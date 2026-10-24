@@ -35,6 +35,7 @@ describe('tracked-file hygiene', () => {
       ]),
     );
     expect(findings).toHaveLength(2);
+    expect(findings.join('\n')).not.toContain(syntheticCanary.slice(0, 4));
   });
 
   it('allows the sanitized environment example', () => {

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PHASE_ZERO_CASES } from './fixtures.js';
 import {
+  CONFIGURATION_VERSION,
   DATASET_VERSION,
   EVALUATOR_VERSION,
   type SystemBundle,
@@ -69,6 +70,7 @@ export async function createSystemBundle(): Promise<SystemBundle> {
     lockfileDigest,
     nodeVersion: process.version,
     pnpmVersion,
+    configurationVersion: CONFIGURATION_VERSION,
     schemaVersion: 'phase-0.1',
     fixtureVersion: DATASET_VERSION,
     fixtureDigest: sha256(JSON.stringify(PHASE_ZERO_CASES)),

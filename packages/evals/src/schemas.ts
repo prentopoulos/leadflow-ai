@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const DATASET_VERSION = 'phase-0.1' as const;
 export const EVALUATOR_VERSION = 'phase-0.1' as const;
+export const CONFIGURATION_VERSION = 'phase-0.1' as const;
 
 export const CaseKindSchema = z.enum([
   'score-valid',
@@ -46,6 +47,7 @@ export const SystemBundleSchema = z.object({
   lockfileDigest: z.string().nullable(),
   nodeVersion: z.string(),
   pnpmVersion: z.string().nullable(),
+  configurationVersion: z.literal(CONFIGURATION_VERSION),
   schemaVersion: z.literal('phase-0.1'),
   fixtureVersion: z.literal(DATASET_VERSION),
   fixtureDigest: z.string(),

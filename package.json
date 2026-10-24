@@ -13,7 +13,7 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "tsc -b --pretty false",
+    "typecheck": "tsc -p tsconfig.check.json --pretty false",
     "test": "vitest run",
     "eval": "node packages/evals/dist/run.js",
     "build": "node scripts/run-workspace-builds.mjs",

@@ -43,6 +43,7 @@ describe('Phase 0 evaluation scaffold', () => {
         lockfileDigest: null,
         nodeVersion: 'v24.22.1',
         pnpmVersion: '12.15.0',
+        configurationVersion: 'phase-0.1',
         schemaVersion: 'phase-0.1',
         fixtureVersion: 'phase-0.1',
         fixtureDigest: 'test',

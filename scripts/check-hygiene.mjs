@@ -25,10 +25,8 @@ export function inspectTrackedFiles(files, contents) {
     }
     const content = contents.get(file);
     if (!content || content.includes('\0')) continue;
-    for (const match of content.matchAll(assignmentPattern)) {
-      findings.push(
-        `${normalized}: possible embedded credential assignment (${match[1].slice(0, 4)}…)`,
-      );
+    if ([...content.matchAll(assignmentPattern)].length > 0) {
+      findings.push(`${normalized}: possible embedded credential assignment`);
     }
   }
   return findings;
