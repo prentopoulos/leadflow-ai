@@ -4,10 +4,16 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 
 ## Current checkpoint
 
-Agent skills and OpenSpec were set up on 2026-10-23 from
-`C:\Users\Peter\Documents\new_project_agent_setup_updated`. No product phase has started and no
-application code, dependency, cloud resource, GitHub remote, or provider credential has been created.
-The setup is intentionally paused before Phase 0 until Peter gives the go-ahead.
+Phase 0 started on 2026-10-23 after Peter accepted the complete decision list. The active branch and
+OpenSpec change are both `phase-0-foundation`. Planning artifacts define a local-only toolchain,
+application skeleton, offline evaluation scaffold, and deterministic quality gate. No application
+implementation, dependency install, cloud resource, GitHub remote, or provider credential has yet
+been created.
+
+The accepted toolchain target is Node.js 24.22.1, pnpm 12.15.0, a private four-package workspace,
+Fastify 5, Zod 4/JSON Schema Draft 2020-12, ESM/strict TypeScript 6, React 19.3, Vite 8, Tailwind
+CSS 4.3, ESLint 10, Prettier 3.9.10, and Vitest 5. Peter authorized local Node/pnpm activation,
+Phase 0 dependency downloads, and a separate non-mutating registry-backed dependency audit.
 
 OpenSpec 1.6.0 created project-local Claude and Codex skills. Its optional global Codex prompt install
 could not write to `C:\Users\Peter\.codex\prompts` under the workspace sandbox; project-local Codex
@@ -15,8 +21,9 @@ skills are present in `.codex/skills/` and are the supported path for this repos
 
 ## Implemented behavior
 
-None yet. This repository contains planning, safety, design, review, and phase-workflow scaffolding
-only. Illustrative dashboard values in the source brief are requirements/examples, not runtime output.
+None yet. The repository still contains planning, safety, design, review, and phase-workflow
+scaffolding only. The new OpenSpec artifacts are plans, not runtime evidence. Illustrative dashboard
+values in the source brief remain requirements/examples, not runtime output.
 
 ## Verification and next action
 
@@ -28,10 +35,14 @@ only. Illustrative dashboard values in the source brief are requirements/example
   no accidental nested copies were found; 110 Markdown files had valid local links; Claude pointer
   frontmatter matched canonical skills; constitution copies matched; strict OpenSpec validation
   returned the valid empty-project result.
+- Phase 0 planning: all four artifacts complete; `openspec validate --all --strict` passed for
+  `phase-0-foundation`. An attempted `openspec validate --change ...` invocation failed because
+  OpenSpec 1.6 does not support that flag; the failure is retained here rather than hidden.
 - Runtime and AI evaluation: not run; no app or AI runtime exists.
 - 21st.dev: routed through the installed design workflow. No paid generation or project design context
   is initialized before the UI phase and owner approval for any paid quota.
 
-Next action after Peter's explicit go-ahead: start a fresh session and run the next-phase workflow for
-Phase 0 to settle the exact Node/backend toolchain, scaffold the React/Node application, create the
-lockfile and CI-quality gate, and establish offline agent evaluation fixtures. Do not start Phase 1.
+Next action: complete OpenSpec task 1.1 by activating and verifying Node.js 24.22.1 and pnpm 12.15.0,
+then implement tasks 1.2–1.3 for the workspace, lockfile, and bootstrap. Continue only through the
+Phase 0 task list; do not start Phase 1. Public GitHub publication, hosted CI, GCP, real personal data,
+paid/model calls, external communication, and Military.com parity claims remain unresolved gates.
