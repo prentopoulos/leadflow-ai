@@ -1,0 +1,7 @@
+# LF for text files everywhere; Git detects binaries.
+* text=auto eol=lf
+
+# Verbatim upstream copies stay byte-exact; their SHA-256 digests are in
+# .agents/skills/leadflow-ai-build-safety/references/source-manifest.json.
+.agents/skills/leadflow-ai-build-safety/agent-builder/** -text
+.agents/skills/grilling/** -text

@@ -1,0 +1,53 @@
+schema: spec-driven
+
+context: |
+  LeadFlow AI: multi-agent marketing lead qualification, enrichment, outreach drafting, verification, and operator monitoring for a Military.com-style auto-insurance funnel.
+  Read PROJECT.md for current scope and WORKFLOW.md for the phase workflow.
+  Stack: React/TypeScript/Vite/Tailwind/shadcn/Recharts; Node/TypeScript; LangGraph.js; Firestore/Firebase Auth; Cloud Run.
+  Local-first proof of concept; app/toolchain gate is TBD in Phase 0.
+  Use fictional identities and test contacts. Real personal data, paid quota, deployment, publication, and external communication are gated.
+  NHTSA and Zippopotam.us are planned read-only enrichments. No insurer integration, quote generation, or automatic outreach exists.
+  Persist each lead before agent work. Structured outputs, deterministic scoring, evidence verification, consent, and human approval are required.
+  Actual Military.com form questions must be verified before claiming parity; VIN and renewal-timeline collection remain unconfirmed.
+  Public GitHub is planned, but no remote exists. Do not push or use gh before owner authorization.
+  Read AI_OPS.md and the leadflow-ai-ai-ops skill for AI/runtime changes; use leadflow-ai-lead-quality-review for scores, evidence, and metrics.
+
+  Non-negotiables, verbatim from PROJECT.md section 5 (the constitution, which governs; only the owner amends it):
+  **Version 1.0.0** · Ratified 2026-10-23 · Last amended 2026-10-23
+
+  - Secrets use the runtime secret mechanism (gitignored .env for local development); never print,
+    commit or include them in reports.
+  - Never fabricate results or external-service output. Label mocked, local and live results
+    accurately. Preserve failed runs.
+  - Operator resolves all gated actions. The agent never satisfies or waives one itself.
+  - Qualification scores marketing readiness only; never use or describe it as insurance eligibility,
+    underwriting, pricing, risk, or personal financial advice.
+  - Use fictional identities and test contact details in development, demonstrations, screenshots,
+    prompts, fixtures, and public repository content unless the real-data gate is explicitly resolved.
+  - Persist a lead before agent execution; represent partial progress, retries, verification failures,
+    and unavailable external evidence honestly.
+  - Outreach requires recorded contact consent and human approval, remains a draft in this MVP, and
+    is never sent automatically.
+  - Keep API keys on the backend, minimize data sent to models, require structured agent outputs, and
+    verify external evidence before presenting it as enriched fact.
+  - Qualification uses the documented deterministic rubric; model interpretation may supply structured
+    criterion evidence but may not silently change point weights or make insurance decisions.
+  - Claims about Military.com's form must be backed by verified source evidence; unconfirmed or added
+    demo fields must be labeled as such.
+  - Dashboard metrics must come from stored run data or a clearly labeled synthetic fixture; never
+    present illustrative values as live operational results.
+  - UI must preserve keyboard access, visible focus, semantic structure, reduced-motion behavior, and
+    readable desktop and 390px mobile layouts.
+
+rules:
+  proposal:
+    - State which PROJECT.md phase this change implements.
+    - Include a Non-goals section.
+    - If the change amends a PROJECT.md section 5 rule or a gate, say so; the amendment follows PROJECT.md section Amending the constitution in its own commit.
+  design:
+    - Designs that use paid or external services name the operator-approved budget and gate.
+    - Offline phases have no live credential, network submission or secret dependency.
+    - "Include a Non-negotiables check: each PROJECT.md section 5 rule and section 6 gate the change touches, how the design keeps it, and any exception with the owner's decision."
+    - For AI behavior changes, name the system bundle, fixed evaluation cases, affected failure paths, and recovery evidence; keep provider evaluations separately budgeted.
+  tasks:
+    - Keep tasks independently committable or group closely related tasks logically.
