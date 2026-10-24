@@ -71,7 +71,8 @@ Windows working notes:
 - after starting a local server, confirm it listens on 127.0.0.1 only unless public exposure is
   explicitly authorized.
 
-Gate: `TBD in Phase 0`.
+Gate: activate the repository toolchain with `. .\scripts\activate-toolchain.ps1`, then run
+`pnpm check`. The gate is credential-free and offline after the frozen dependency install.
 Public GitHub repository planned; no remote exists yet. Do not run `git push` or `gh` until the owner
 authorizes repository creation/publication. Once a remote exists, use phase branches and PRs; nothing
 goes straight to main, and merge only after review and the owner's go-ahead.

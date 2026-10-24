@@ -70,7 +70,9 @@ agent-runtime, state, monitoring, or provider changes.
   `docs/architecture/`, exported to SVG, with Mermaid where a README shows a diagram.
 - Code review: every change to code is reviewed before merge (WORKFLOW.md).
 
-Gate: `TBD in Phase 0`.
+Gate: `. .\scripts\activate-toolchain.ps1` followed by `pnpm check`. The gate is credential-free
+and offline after the frozen dependency install. Run `pnpm audit:dependencies` separately when
+registry access is authorized; it is evidence, not part of the offline gate.
 Public GitHub repository planned; no remote exists yet. Do not run `git push` or `gh` until the
 owner authorizes repository creation/publication. Once a remote exists, push phase branches and
 open PRs at the points WORKFLOW.md sets; nothing goes straight to main, and a PR merges only after
@@ -89,8 +91,8 @@ Accepted by Peter on 2026-10-23 for the Phase 0 proposal:
   CSS 4.3, ESLint 10, exact-pinned Prettier 3.9.10, and Vitest 5.
 - Keep Phase 0 local-only. Docker, hosted CI, public package/repository identity, and licence
   selection remain deferred to their later phases and gates.
-- The planned root quality command is `pnpm check`. It must remain credential-free and offline;
-  Phase 0 may name it as the target but must not claim it works until implementation verifies it.
+- The root quality command is `pnpm check`. It remains credential-free and offline after dependency
+  bootstrap and was verified on the Phase 0 implementation revision recorded in HANDOFF.md.
 - Peter authorized a separately named connected dependency audit against the package registry.
   It is not part of the offline `pnpm check` command and never fixes dependencies automatically.
 - Freeze deterministic synthetic cases for rubric arithmetic, schema rejection, consent,

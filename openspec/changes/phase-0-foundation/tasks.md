@@ -30,6 +30,6 @@
 
 ## 6. Verification and handoff
 
-- [ ] 6.1 Run every leaf check, the complete offline `pnpm check`, strict OpenSpec validation, the connected dependency audit, and a frozen-lockfile/bootstrap verification; preserve and resolve failures.
-- [ ] 6.2 Update PROJECT.md, AI_OPS.md, and HANDOFF.md with the verified command, system/evaluator evidence, limitations, and exact next task without claiming hosted, live-provider, or production results.
+- [x] 6.1 Run every leaf check, the complete offline `pnpm check`, strict OpenSpec validation, the connected dependency audit, and a frozen-lockfile/bootstrap verification; preserve and resolve failures.
+- [x] 6.2 Update PROJECT.md, AI_OPS.md, and HANDOFF.md with the verified command, system/evaluator evidence, limitations, and exact next task without claiming hosted, live-provider, or production results.
 - [ ] 6.3 Perform the required code review against the Phase 0 diff, resolve findings in new commits, and rerun affected checks before marking the phase ready for owner merge approval.

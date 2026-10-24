@@ -4,45 +4,67 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 
 ## Current checkpoint
 
-Phase 0 started on 2026-10-23 after Peter accepted the complete decision list. The active branch and
-OpenSpec change are both `phase-0-foundation`. Planning artifacts define a local-only toolchain,
-application skeleton, offline evaluation scaffold, and deterministic quality gate. No application
-implementation, dependency install, cloud resource, GitHub remote, or provider credential has yet
-been created.
+Phase 0 is implemented on branch and OpenSpec change `phase-0-foundation`. The planning commit is
+`1baae83`; the implementation and verification baseline is
+`30456ff1bf20e7a008abb8875b638b7548a7d094`. Tasks 1.1 through 6.2 are complete. Task 6.3, the
+required branch-diff code review and any finding fixes, is next. Nothing has been merged or archived.
 
-The accepted toolchain target is Node.js 24.22.1, pnpm 12.15.0, a private four-package workspace,
-Fastify 5, Zod 4/JSON Schema Draft 2020-12, ESM/strict TypeScript 6, React 19.3, Vite 8, Tailwind
-CSS 4.3, ESLint 10, Prettier 3.9.10, and Vitest 5. Peter authorized local Node/pnpm activation,
-Phase 0 dependency downloads, and a separate non-mutating registry-backed dependency audit.
-
-OpenSpec 1.6.0 created project-local Claude and Codex skills. Its optional global Codex prompt install
-could not write to `C:\Users\Peter\.codex\prompts` under the workspace sandbox; project-local Codex
-skills are present in `.codex/skills/` and are the supported path for this repository.
+No GitHub remote, hosted CI, cloud resource, real personal data, provider credential, paid/model
+call, live enrichment call, or external communication was created. The project-local Node/pnpm
+toolchain and dependency caches are ignored.
 
 ## Implemented behavior
 
-None yet. The repository still contains planning, safety, design, review, and phase-workflow
-scaffolding only. The new OpenSpec artifacts are plans, not runtime evidence. Illustrative dashboard
-values in the source brief remain requirements/examples, not runtime output.
+- A private pnpm workspace pins Node 24.22.1 and pnpm 12.15.0 with strict ESM TypeScript projects
+  for `apps/web`, `apps/api`, `packages/domain`, and `packages/evals`.
+- The Fastify API exposes only a validated `GET /health` skeleton in Phase 0. Its smoke test binds an
+  ephemeral port on `127.0.0.1` and cleans up.
+- The React/Vite/Tailwind shell visibly labels itself local and synthetic, makes no live or later-phase
+  claims, remains readable at desktop and 390px widths, and preserves keyboard focus and reduced
+  motion behavior.
+- Shared Zod contracts cover health, evidence, deterministic 40/30/30 marketing-readiness scoring,
+  consent/draft boundaries, enrichment availability, and partial/failed run state. Positive rubric
+  points require criterion evidence; the contracts make no insurance eligibility, underwriting,
+  pricing, or risk decision.
+- The fixed synthetic-local evaluation corpus covers rubric arithmetic, schema rejection, consent,
+  hard-boundary injection attempts, unavailable evidence, duplicate/invalid events, and partial or
+  failed runs. Future hosted-model, live-enrichment, and agent-runtime cases remain `not_run`.
+- `pnpm check` is the credential-free offline gate. The registry-backed dependency audit remains a
+  separate non-mutating command.
 
-## Verification and next action
+## Verification evidence
 
-- Source kit validator: passed required files, all 26 verbatim hashes, course provenance, template
-  metadata, Claude settings, Markdown links, and all four render variants.
-- OpenSpec initialization: project-local Claude and Codex skills created; `openspec list` exited
-  successfully with no active changes.
-- Setup verification: unresolved-template scan passed; all 26 installed verbatim hashes matched;
-  no accidental nested copies were found; 110 Markdown files had valid local links; Claude pointer
-  frontmatter matched canonical skills; constitution copies matched; strict OpenSpec validation
-  returned the valid empty-project result.
-- Phase 0 planning: all four artifacts complete; `openspec validate --all --strict` passed for
-  `phase-0-foundation`. An attempted `openspec validate --change ...` invocation failed because
-  OpenSpec 1.6 does not support that flag; the failure is retained here rather than hidden.
-- Runtime and AI evaluation: not run; no app or AI runtime exists.
-- 21st.dev: routed through the installed design workflow. No paid generation or project design context
-  is initialized before the UI phase and owner approval for any paid quota.
+On clean revision `30456ff`, `. .\scripts\activate-toolchain.ps1; pnpm check` passed:
 
-Next action: complete OpenSpec task 1.1 by activating and verifying Node.js 24.22.1 and pnpm 12.15.0,
-then implement tasks 1.2–1.3 for the workspace, lockfile, and bootstrap. Continue only through the
-Phase 0 task list; do not start Phase 1. Public GitHub publication, hosted CI, GCP, real personal data,
-paid/model calls, external communication, and Military.com parity claims remain unresolved gates.
+- exact Node 24.22.1 and pnpm 12.15.0 preflight;
+- Prettier, ESLint, strict TypeScript, 5 Vitest files and 17 tests;
+- synthetic-local evaluation: 24 total, 21 passed, 0 failed, 3 `not_run`;
+- production builds plus API and web smoke tests on `127.0.0.1`;
+- 12-rule constitution-copy check and tracked-file hygiene over 440 candidate files; and
+- `openspec validate --all --strict` for `phase-0-foundation`.
+
+The generated evaluation bundle recorded the clean revision, exact tool versions, and
+source/lockfile/fixture digests while leaving model, provider, prompt, and tool-contract fields null.
+The authorized connected `pnpm audit:dependencies` reported no known vulnerabilities and left the
+lockfile unchanged. A separate clean `--frozen-lockfile --offline --ignore-scripts` bootstrap reused
+all 404 packages, downloaded 0, and preserved lockfile SHA-256
+`DFF53E45F62B4C68973EAD38077FAE594998180F2CC5F7B073462656EC63970D`.
+
+Failures are retained rather than hidden: the original unsupported
+`openspec validate --change ...` invocation failed before the supported strict command passed;
+implementation checks exposed and resolved lint, type, test, build, smoke, formatting, and fake
+credential-canary issues. During final bootstrap verification, one attempt was denied access to
+pnpm's LocalAppData store lock and one intentionally workspace-store-only attempt reported a missing
+offline tarball; the successful default-cache run above followed with explicit exit-code checking.
+
+## Limits and next action
+
+Phase 0 evidence is local and synthetic only. Hosted CI, Docker, model/provider behavior, Firestore,
+LangGraph execution, authentication, live enrichment, dashboard operations, production readiness,
+Military.com intake parity, and all outcome/quality thresholds deferred in PROJECT.md remain
+unimplemented or unresolved.
+
+Next action: review the complete `main...phase-0-foundation` diff, resolve findings in new commits,
+and rerun affected checks. Then archive/sync the OpenSpec change on this branch, mark Phase 0 Done,
+rerun the gate, and ask Peter for merge approval. After an owner-approved merge and clean checkpoint,
+clear the session and start Phase 1 through the `next-phase` workflow; do not begin Phase 1 here.
