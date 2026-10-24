@@ -8,7 +8,8 @@ Phase 0 is implemented on branch `phase-0-foundation`. The planning commit is `1
 implementation baseline is `30456ff`, and reviewed fix revision is
 `c183118b467bd6f200f25f729a5a0833558cccac`. All 18 tasks and the required branch-diff code review
 are complete. The accepted delta specs are synced to `openspec/specs/`, and the completed change is
-archived at `openspec/changes/archive/2026-10-24-phase-0-foundation/`. The branch is not merged.
+archived at `openspec/changes/archive/2026-10-24-phase-0-foundation/`. Peter approved the local
+`--no-ff` merge into `main` on 2026-10-24.
 
 No GitHub remote, hosted CI, cloud resource, real personal data, provider credential, paid/model
 call, live enrichment call, or external communication was created. The project-local Node/pnpm
@@ -69,6 +70,7 @@ LangGraph execution, authentication, live enrichment, dashboard operations, prod
 Military.com intake parity, and all outcome/quality thresholds deferred in PROJECT.md remain
 unimplemented or unresolved.
 
-Next action: rerun the final gate on the archive commit, then ask Peter for merge approval. After an
-owner-approved merge and clean checkpoint, clear the session and start Phase 1 through the
-`next-phase` workflow; do not begin Phase 1 here.
+Next action: if the approved merge and cleanup have not yet completed, merge the phase branch into
+`main`, confirm the gate on the merge commit, and delete the verified merged local branch. At the
+resulting clean checkpoint, clear the session and start Phase 1 through the `next-phase` workflow;
+do not begin Phase 1 here.
