@@ -1,0 +1,6 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Verification commands must never trigger an implicit install or registry access.
+verifyDepsBeforeRun: false

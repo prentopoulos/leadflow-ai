@@ -1,0 +1,14 @@
+.agents/
+.claude/
+.codex/
+.git/
+.local/
+.tools/
+docs/
+openspec/
+node_modules/
+dist/
+dist-types/
+coverage/
+*.md
+pnpm-lock.yaml

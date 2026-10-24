@@ -7,3 +7,16 @@
 .local/
 tmp/
 *.log
+
+# Local toolchain and JavaScript outputs
+.tools/
+node_modules/
+.pnpm-store/
+dist/
+dist-types/
+coverage/
+*.tsbuildinfo
+
+# Tool caches
+.eslintcache
+.vite/

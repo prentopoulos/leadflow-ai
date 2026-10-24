@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "jsx": "react-jsx",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    "paths": {
+      "@leadflow-ai/domain": ["./packages/domain/src/index.ts"],
+      "@leadflow-ai/evals": ["./packages/evals/src/index.ts"]
+    },
+    "types": ["node", "vite/client"]
+  },
+  "include": ["apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts"],
+  "exclude": ["**/dist/**", "**/dist-types/**", "**/node_modules/**"]
+}

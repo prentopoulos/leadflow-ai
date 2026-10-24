@@ -70,11 +70,38 @@ agent-runtime, state, monitoring, or provider changes.
   `docs/architecture/`, exported to SVG, with Mermaid where a README shows a diagram.
 - Code review: every change to code is reviewed before merge (WORKFLOW.md).
 
-Gate: `TBD in Phase 0`.
+Gate: `. .\scripts\activate-toolchain.ps1` followed by `pnpm check`. The gate is credential-free
+and offline after the frozen dependency install. Run `pnpm audit:dependencies` separately when
+registry access is authorized; it is evidence, not part of the offline gate.
 Public GitHub repository planned; no remote exists yet. Do not run `git push` or `gh` until the
 owner authorizes repository creation/publication. Once a remote exists, push phase branches and
 open PRs at the points WORKFLOW.md sets; nothing goes straight to main, and a PR merges only after
 review and the owner's go-ahead.
+
+### Phase 0 decisions
+
+Accepted by Peter on 2026-10-23 for the Phase 0 proposal:
+
+- Pin Node.js 24.22.1 LTS and pnpm 12.15.0; Peter authorized their local activation and the
+  dependency downloads needed for Phase 0.
+- Use a private pnpm workspace with `apps/web`, `apps/api`, `packages/domain`, and
+  `packages/evals`; use private provisional package names under `@leadflow-ai/*`.
+- Use Fastify 5 for the backend HTTP boundary, Zod 4 as the shared schema source, JSON Schema
+  Draft 2020-12 for exported contracts, ESM, strict TypeScript 6, React 19.3, Vite 8, Tailwind
+  CSS 4.3, ESLint 10, exact-pinned Prettier 3.9.10, and Vitest 5.
+- Keep Phase 0 local-only. Docker, hosted CI, public package/repository identity, and licence
+  selection remain deferred to their later phases and gates.
+- The root quality command is `pnpm check`. It remains credential-free and offline after dependency
+  bootstrap and was verified on the Phase 0 implementation revision recorded in HANDOFF.md.
+- Peter authorized a separately named connected dependency audit against the package registry.
+  It is not part of the offline `pnpm check` command and never fixes dependencies automatically.
+- Freeze deterministic synthetic cases for rubric arithmetic, schema rejection, consent,
+  injection resistance, unavailable enrichment, invalid events, and partial/failed runs. Every
+  applicable assertion must pass; deferred capabilities remain `not_run`.
+- Priority thresholds, field-level completeness rules, processing-time boundaries, enrichment
+  success and agent-failure denominators, and model-quality percentages remain explicitly TBD.
+- Complete the recorded Phase 0 acceptance criteria without a separate hours cap; defer
+  nonessential later-phase infrastructure rather than weakening the checks.
 
 ## 5. Non-negotiables
 
@@ -128,7 +155,7 @@ Milestones are ordered by dependency.
 
 | Phase | Deliverable | Status |
 |---|---|---|
-| 0 | Toolchain, app skeleton, lockfile, quality gate with constitution copy check, smoke checks, and offline AI evaluation scaffold | Planned |
+| 0 | Toolchain, app skeleton, lockfile, quality gate with constitution copy check, smoke checks, and offline AI evaluation scaffold | Done |
 | 1 | Verified intake, immediate Firestore persistence, LangGraph orchestration, qualification agent, and C4 architecture diagrams as code | Planned |
 | 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, Firebase Auth, responsive live dashboard, and run monitoring | Planned |
 | 3 | Owner-authorized Cloud Run deployment, public-repository polish, evidence bundle, README, and demonstration walkthrough | Planned |

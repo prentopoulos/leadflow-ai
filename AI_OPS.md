@@ -25,10 +25,10 @@ maps AI capabilities to current evidence. Read
 
 | Record | Location / current status |
 |---|---|
-| Design choices: autonomy, pattern, framework, model tiers, hosting, fallback | Phase 0/1 OpenSpec design; not created yet |
+| Design choices: autonomy, pattern, framework, model tiers, hosting, fallback | Phase 0 foundation design records the local-only boundary; runtime/model choices remain Phase 1 work |
 | System bundle and last known-good version | Not established; first AI runtime phase |
-| Evaluation plan, held-out cases and evaluator | Phase 0 offline scaffold; not created yet |
-| Offline deterministic check command | `TBD in Phase 0` |
+| Evaluation plan, held-out cases and evaluator | `packages/evals`; versioned synthetic fixtures, evaluator, bundle identity, and explicit `not_run` outcomes established in Phase 0 |
+| Offline deterministic check command | Activate with `. .\scripts\activate-toolchain.ps1`, then run `pnpm check` |
 | Authorized provider-evaluation command and budget | Not authorized; paid API gate unresolved |
 | Run records / metrics / alerts | Phase 1/2 Firestore and dashboard design; not created yet |
 | Release evidence and stop/recovery runbook | Phase 3; not created yet |
@@ -53,7 +53,14 @@ maps AI capabilities to current evidence. Read
 
 ## Latest scoped evidence
 
-No AI runtime evaluation has been established by installing this kit. All runtime capabilities are
-deferred and untested. Phase 0 must create offline fixtures for rubric arithmetic, schema rejection,
-consent denial, prompt-injection handling, unavailable enrichment, and failed/partial agent runs
-before any provider evaluation is proposed.
+Phase 0 review-fix revision `c183118b467bd6f200f25f729a5a0833558cccac` passed the credential-free,
+offline `pnpm check` gate on 2026-10-24. Its synthetic-local evaluation ran 24 fixed cases: 21
+passed, 0 failed, and 3 future capabilities were honestly reported as `not_run` (hosted-model
+injection behavior, live enrichment, and agent retry/checkpoint behavior). The generated bundle
+recorded clean source state, Node 24.22.1, pnpm 12.15.0, source/lockfile/fixture digests, and null
+model, provider, prompt, and tool-contract fields.
+
+This is deterministic scaffold evidence, not AI-runtime, live-provider, enrichment, or production
+evidence. Provider evaluation remains unauthorized until the provider, model, budget, credentials,
+and cases are approved. The separately authorized connected dependency audit reported no known
+vulnerabilities and did not modify the lockfile.
