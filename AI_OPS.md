@@ -53,7 +53,7 @@ maps AI capabilities to current evidence. Read
 
 ## Latest scoped evidence
 
-Phase 0 revision `30456ff1bf20e7a008abb8875b638b7548a7d094` passed the credential-free,
+Phase 0 review-fix revision `c183118b467bd6f200f25f729a5a0833558cccac` passed the credential-free,
 offline `pnpm check` gate on 2026-10-24. Its synthetic-local evaluation ran 24 fixed cases: 21
 passed, 0 failed, and 3 future capabilities were honestly reported as `not_run` (hosted-model
 injection behavior, live enrichment, and agent retry/checkpoint behavior). The generated bundle

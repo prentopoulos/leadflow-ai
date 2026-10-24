@@ -5,9 +5,9 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 ## Current checkpoint
 
 Phase 0 is implemented on branch and OpenSpec change `phase-0-foundation`. The planning commit is
-`1baae83`; the implementation and verification baseline is
-`30456ff1bf20e7a008abb8875b638b7548a7d094`. Tasks 1.1 through 6.2 are complete. Task 6.3, the
-required branch-diff code review and any finding fixes, is next. Nothing has been merged or archived.
+`1baae83`, implementation baseline is `30456ff`, and reviewed fix revision is
+`c183118b467bd6f200f25f729a5a0833558cccac`. All 18 tasks and the required branch-diff code review
+are complete. Nothing has been merged or archived.
 
 No GitHub remote, hosted CI, cloud resource, real personal data, provider credential, paid/model
 call, live enrichment call, or external communication was created. The project-local Node/pnpm
@@ -34,7 +34,7 @@ toolchain and dependency caches are ignored.
 
 ## Verification evidence
 
-On clean revision `30456ff`, `. .\scripts\activate-toolchain.ps1; pnpm check` passed:
+On clean review-fix revision `c183118`, `. .\scripts\activate-toolchain.ps1; pnpm check` passed:
 
 - exact Node 24.22.1 and pnpm 12.15.0 preflight;
 - Prettier, ESLint, strict TypeScript, 5 Vitest files and 17 tests;
@@ -56,6 +56,10 @@ implementation checks exposed and resolved lint, type, test, build, smoke, forma
 credential-canary issues. During final bootstrap verification, one attempt was denied access to
 pnpm's LocalAppData store lock and one intentionally workspace-store-only attempt reported a missing
 offline tarball; the successful default-cache run above followed with explicit exit-code checking.
+The required two-axis review then found three medium issues: partial secret text in hygiene output,
+typecheck emitting artifacts used by evaluation, and missing explicit configuration identity in the
+evaluation bundle. Commit `c183118` resolved all three; the artifact-clean and committed-revision
+gates passed. The durable review record is `docs/reviews/phase-0-code-review.md`.
 
 ## Limits and next action
 
@@ -64,7 +68,6 @@ LangGraph execution, authentication, live enrichment, dashboard operations, prod
 Military.com intake parity, and all outcome/quality thresholds deferred in PROJECT.md remain
 unimplemented or unresolved.
 
-Next action: review the complete `main...phase-0-foundation` diff, resolve findings in new commits,
-and rerun affected checks. Then archive/sync the OpenSpec change on this branch, mark Phase 0 Done,
-rerun the gate, and ask Peter for merge approval. After an owner-approved merge and clean checkpoint,
-clear the session and start Phase 1 through the `next-phase` workflow; do not begin Phase 1 here.
+Next action: archive/sync the completed OpenSpec change on this branch, mark Phase 0 Done, rerun the
+gate, and ask Peter for merge approval. After an owner-approved merge and clean checkpoint, clear the
+session and start Phase 1 through the `next-phase` workflow; do not begin Phase 1 here.
