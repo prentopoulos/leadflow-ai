@@ -4,73 +4,70 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 
 ## Current checkpoint
 
-Phase 0 is implemented on branch `phase-0-foundation`. The planning commit is `1baae83`,
-implementation baseline is `30456ff`, and reviewed fix revision is
-`c183118b467bd6f200f25f729a5a0833558cccac`. All 18 tasks and the required branch-diff code review
-are complete. The accepted delta specs are synced to `openspec/specs/`, and the completed change is
-archived at `openspec/changes/archive/2026-10-24-phase-0-foundation/`. Peter approved the local
-`--no-ff` merge into `main` on 2026-10-24.
+Phase 0 is merged into `main` at merge commit `642f70d`. Its branch was deleted after the approved
+local `--no-ff` merge. The Phase 0 implementation, archive, accepted specs, gate evidence, and review
+record remain in history and under `openspec/changes/archive/2026-10-24-phase-0-foundation/`.
 
-No GitHub remote, hosted CI, cloud resource, real personal data, provider credential, paid/model
-call, live enrichment call, or external communication was created. The project-local Node/pnpm
-toolchain and dependency caches are ignored.
+Phase 1 planning is complete on branch `phase-1-intake-qualification` in OpenSpec change
+`phase-1-intake-qualification`. Proposal, design, ten capability delta specs, and the ordered task
+list are apply-ready. No Phase 1 runtime dependency, data, emulator, model, service, or code behavior
+has been implemented yet. The phase remains `Planned` in PROJECT.md until its first implementation
+commit.
 
-## Implemented behavior
+The planning artifacts record Peter's accepted 2026-10-24 decision set. The most important scope
+choices are:
 
-- A private pnpm workspace pins Node 24.22.1 and pnpm 12.15.0 with strict ESM TypeScript projects
-  for `apps/web`, `apps/api`, `packages/domain`, and `packages/evals`.
-- The Fastify API exposes only a validated `GET /health` skeleton in Phase 0. Its smoke test binds an
-  ephemeral port on `127.0.0.1` and cleans up.
-- The React/Vite/Tailwind shell visibly labels itself local and synthetic, makes no live or later-phase
-  claims, remains readable at desktop and 390px widths, and preserves keyboard focus and reduced
-  motion behavior.
-- Shared Zod contracts cover health, evidence, deterministic 40/30/30 marketing-readiness scoring,
-  consent/draft boundaries, enrichment availability, and partial/failed run state. Positive rubric
-  points require criterion evidence; the contracts make no insurance eligibility, underwriting,
-  pricing, or risk decision.
-- The fixed synthetic-local evaluation corpus covers rubric arithmetic, schema rejection, consent,
-  hard-boundary injection attempts, unavailable evidence, duplicate/invalid events, and partial or
-  failed runs. Future hosted-model, live-enrichment, and agent-runtime cases remain `not_run`.
-- `pnpm check` is the credential-free offline gate. The registry-backed dependency audit remains a
-  separate non-mutating command.
+- ZIP code is the only exact Military.com field verified from the current public landing page;
+  every other Phase 1 intake field is visibly a LeadFlow demo field and the parity gate remains open.
+- All inputs and outcomes remain fictional/synthetic and local. Firestore Emulator is the sole
+  durable application store, reached only through loopback Fastify.
+- Intake atomically persists idempotency, lead, run, and first event before graph execution.
+- LangGraph.js uses a project-owned Firestore `BaseCheckpointSaver`; official JavaScript docs do not
+  provide a Firestore saver.
+- `rubric-v1` is deterministic: need timeline 40, request clarity 30, completeness 30; priority is
+  high at 80–100, standard at 50–79, nurture at 0–49, and invalid evidence holds priority.
+- The interpreter is a deterministic structured stub. Provider/model/prompt calls remain gated and
+  `not_run`.
+- A fixed-seed score-independent simulator exercises lifecycle/metric contracts only and makes no
+  predictive or live-conversion claim.
+- The product direction is a restrained operations dossier with a persistent
+  `SIMULATION · Synthetic leads and outcomes` label, complete failure/recovery states, and desktop/
+  390px accessibility.
 
-## Verification evidence
+## Planning verification
 
-On clean review-fix revision `c183118`, `. .\scripts\activate-toolchain.ps1; pnpm check` passed:
+On the uncommitted planning tree, the following passed on 2026-10-24:
 
-- exact Node 24.22.1 and pnpm 12.15.0 preflight;
-- Prettier, ESLint, strict TypeScript, 5 Vitest files and 17 tests;
-- synthetic-local evaluation: 24 total, 21 passed, 0 failed, 3 `not_run`;
-- production builds plus API and web smoke tests on `127.0.0.1`;
-- 12-rule constitution-copy check and tracked-file hygiene over 440 candidate files; and
-- `openspec validate --all --strict` for `phase-0-foundation`.
+- `openspec validate --all --strict`: 5 items passed, 0 failed, including the Phase 1 change;
+- Prettier check over PROJECT, the intake research record, and the complete change directory;
+- `git diff --check`; and
+- `openspec status --change phase-1-intake-qualification --json`, which reported proposal, design,
+  specs, and tasks all `done` and the change apply-ready.
+- `. .\scripts\activate-toolchain.ps1; pnpm check`: exact Node/pnpm preflight, Prettier, ESLint,
+  strict TypeScript, 5 Vitest files/17 tests, production builds, synthetic-local evaluation (21
+  passed, 0 failed, 3 `not_run`), API/web loopback smoke, constitution/hygiene checks, and strict
+  OpenSpec validation.
 
-The generated evaluation bundle recorded the clean revision, exact tool versions, and
-source/lockfile/fixture digests while leaving model, provider, prompt, and tool-contract fields null.
-The authorized connected `pnpm audit:dependencies` reported no known vulnerabilities and left the
-lockfile unchanged. A separate clean `--frozen-lockfile --offline --ignore-scripts` bootstrap reused
-all 404 packages, downloaded 0, and preserved lockfile SHA-256
-`DFF53E45F62B4C68973EAD38077FAE594998180F2CC5F7B073462656EC63970D`.
+The first gate attempt reached smoke and was denied an ephemeral loopback connection by the Windows
+sandbox (`EACCES 127.0.0.1`); that failed attempt is retained. The identical offline gate passed when
+allowed to open its temporary loopback ports. The planning read-through then tightened the accepted
+test-email domains to `example.com`, `example.org`, and `example.net` and narrowed proposal wording to
+the one verified ZIP field. This is planning evidence only; it does not establish Firestore,
+LangGraph, UI, diagram, or Phase 1 runtime behavior.
 
-Failures are retained rather than hidden: the original unsupported
-`openspec validate --change ...` invocation failed before the supported strict command passed;
-implementation checks exposed and resolved lint, type, test, build, smoke, formatting, and fake
-credential-canary issues. During final bootstrap verification, one attempt was denied access to
-pnpm's LocalAppData store lock and one intentionally workspace-store-only attempt reported a missing
-offline tarball; the successful default-cache run above followed with explicit exit-code checking.
-The required two-axis review then found three medium issues: partial secret text in hygiene output,
-typecheck emitting artifacts used by evaluation, and missing explicit configuration identity in the
-evaluation bundle. Commit `c183118` resolved all three; the artifact-clean and committed-revision
-gates passed. The durable review record is `docs/reviews/phase-0-code-review.md`.
+## External evidence and gates
 
-## Limits and next action
+The dated research record is `docs/research/military-com-intake-2026-10-24.md`. It was based on a
+read-only fetch of `https://auto.military.com/`; no form value was submitted and no downstream partner
+form was opened. Current official LangGraph/Firebase documentation was consulted for design
+feasibility, but no dependency was downloaded or installed during planning.
 
-Phase 0 evidence is local and synthetic only. Hosted CI, Docker, model/provider behavior, Firestore,
-LangGraph execution, authentication, live enrichment, dashboard operations, production readiness,
-Military.com intake parity, and all outcome/quality thresholds deferred in PROJECT.md remain
-unimplemented or unresolved.
+No GitHub remote, hosted CI, GCP resource, real personal data, provider credential, paid/model call,
+live enrichment call, external communication, or public publication was created. All PROJECT.md
+gates remain unresolved.
 
-Next action: if the approved merge and cleanup have not yet completed, merge the phase branch into
-`main`, confirm the gate on the merge commit, and delete the verified merged local branch. At the
-resulting clean checkpoint, clear the session and start Phase 1 through the `next-phase` workflow;
-do not begin Phase 1 here.
+## Next action
+
+Present the spec-only branch head for Peter's proposal review. After Peter authorizes implementation,
+begin task 1.1 from `openspec/changes/phase-1-intake-qualification/tasks.md`; do not mark the phase In
+progress before the first implementation commit. With no remote, there is no draft PR or hosted CI.

@@ -103,6 +103,37 @@ Accepted by Peter on 2026-10-23 for the Phase 0 proposal:
 - Complete the recorded Phase 0 acceptance criteria without a separate hours cap; defer
   nonessential later-phase infrastructure rather than weakening the checks.
 
+### Phase 1 decisions
+
+Accepted by Peter on 2026-10-24 for the Phase 1 proposal:
+
+- Keep Phase 1 local-only and synthetic. Use the Firestore Emulator as the sole durable application
+  store, keep browser traffic behind Fastify, and bind every listener to `127.0.0.1`.
+- Treat ZIP code as the only exact Military.com field verified from the current public landing page.
+  Name, email, vehicle, coverage, timeline, intent, request-detail, and consent inputs are LeadFlow
+  demo fields; the Military.com intake-parity gate remains unresolved.
+- Persist the lead, run, first lifecycle event, and idempotency record atomically before LangGraph
+  execution. Use a project-owned Firestore implementation of LangGraph.js's checkpoint interface,
+  because the official JavaScript checkpointer list has no Firestore implementation.
+- Use one sequential qualification workflow with one bounded retry for explicitly transient local
+  faults and an idempotent operator resume action. Do not add live enrichment, outreach, or a
+  general-purpose autonomous tool loop.
+- Use a deterministic structured interpreter stub and `rubric-v1`: need timeline 40 points, request
+  clarity 30 points, and completeness 30 points. Priority is `high` at 80–100, `standard` at 50–79,
+  and `nurture` at 0–49; invalid or unsupported evidence holds priority instead of guessing.
+- Keep provider, model, prompt, and paid-call fields null and provider cases `not_run`. The paid/API
+  gate remains unresolved.
+- Add a fixed-seed synthetic outcome simulator only to exercise lifecycle and metric contracts. Its
+  outcomes are independent of score, visibly synthetic, and are not evidence that the rubric
+  predicts conversion.
+- Use a restrained operations-led interface: a continuous intake-to-run workspace, warm neutral
+  surfaces, dark ink, one teal accent, thin borders, minimal motion, and no Military.com visual
+  imitation. Evidence, source status, failures, and the persistent synthetic label stay close to
+  the result they qualify.
+- Pin and locally activate Java 21 for the Firestore Emulator and Structurizr tooling without
+  changing the accepted Node/pnpm versions. Normal `pnpm check` remains credential-free and offline
+  after the frozen dependency/tool bootstrap.
+
 ## 5. Non-negotiables
 
 These rules and the gates in section 6 are this project's constitution. They override AGENTS.md,
