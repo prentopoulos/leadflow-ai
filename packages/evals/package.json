@@ -1,0 +1,21 @@
+{
+  "name": "@leadflow-ai/evals",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "evaluate": "node dist/run.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@leadflow-ai/domain": "workspace:*",
+    "zod": "4.6.7"
+  }
+}
