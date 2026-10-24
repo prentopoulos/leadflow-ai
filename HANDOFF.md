@@ -4,10 +4,11 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 
 ## Current checkpoint
 
-Phase 0 is implemented on branch and OpenSpec change `phase-0-foundation`. The planning commit is
-`1baae83`, implementation baseline is `30456ff`, and reviewed fix revision is
+Phase 0 is implemented on branch `phase-0-foundation`. The planning commit is `1baae83`,
+implementation baseline is `30456ff`, and reviewed fix revision is
 `c183118b467bd6f200f25f729a5a0833558cccac`. All 18 tasks and the required branch-diff code review
-are complete. Nothing has been merged or archived.
+are complete. The accepted delta specs are synced to `openspec/specs/`, and the completed change is
+archived at `openspec/changes/archive/2026-10-24-phase-0-foundation/`. The branch is not merged.
 
 No GitHub remote, hosted CI, cloud resource, real personal data, provider credential, paid/model
 call, live enrichment call, or external communication was created. The project-local Node/pnpm
@@ -68,6 +69,6 @@ LangGraph execution, authentication, live enrichment, dashboard operations, prod
 Military.com intake parity, and all outcome/quality thresholds deferred in PROJECT.md remain
 unimplemented or unresolved.
 
-Next action: archive/sync the completed OpenSpec change on this branch, mark Phase 0 Done, rerun the
-gate, and ask Peter for merge approval. After an owner-approved merge and clean checkpoint, clear the
-session and start Phase 1 through the `next-phase` workflow; do not begin Phase 1 here.
+Next action: rerun the final gate on the archive commit, then ask Peter for merge approval. After an
+owner-approved merge and clean checkpoint, clear the session and start Phase 1 through the
+`next-phase` workflow; do not begin Phase 1 here.

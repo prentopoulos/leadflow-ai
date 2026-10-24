@@ -155,7 +155,7 @@ Milestones are ordered by dependency.
 
 | Phase | Deliverable | Status |
 |---|---|---|
-| 0 | Toolchain, app skeleton, lockfile, quality gate with constitution copy check, smoke checks, and offline AI evaluation scaffold | In progress |
+| 0 | Toolchain, app skeleton, lockfile, quality gate with constitution copy check, smoke checks, and offline AI evaluation scaffold | Done |
 | 1 | Verified intake, immediate Firestore persistence, LangGraph orchestration, qualification agent, and C4 architecture diagrams as code | Planned |
 | 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, Firebase Auth, responsive live dashboard, and run monitoring | Planned |
 | 3 | Owner-authorized Cloud Run deployment, public-repository polish, evidence bundle, README, and demonstration walkthrough | Planned |
