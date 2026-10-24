@@ -1,10 +1,10 @@
 ## 1. Dependencies and local toolchain
 
-- [ ] 1.1 Verify current official LangGraph.js, Firebase Admin/CLI, Firestore Emulator, Java 21, and Structurizr compatibility; record the selected exact versions, licences, alternatives, and emulator/production limitations before installing.
-- [ ] 1.2 Add the private `@leadflow-ai/runtime` workspace with strict ESM/TypeScript references and the permitted dependency direction, then update exact manifests and the frozen pnpm lockfile without adding a provider SDK.
-- [ ] 1.3 Pin and activate project-local Java 21 plus cached Firebase/Structurizr tooling through the existing Windows-friendly toolchain scripts without changing Node 24.22.1 or pnpm 12.15.0.
-- [ ] 1.4 Add validated loopback-only Firestore Emulator configuration, the exact synthetic project ID, isolated start/exec/import/export commands, gitignored `.local` state, and safe example configuration.
-- [ ] 1.5 Update development/bootstrap documentation and verify a frozen offline reuse path for dependencies, Java, the emulator, and diagram checks after the authorized setup downloads.
+- [x] 1.1 Verify current official LangGraph.js, Firebase Admin/CLI, Firestore Emulator, Java 21, and Structurizr compatibility; record the selected exact versions, licences, alternatives, and emulator/production limitations before installing.
+- [x] 1.2 Add the private `@leadflow-ai/runtime` workspace with strict ESM/TypeScript references and the permitted dependency direction, then update exact manifests and the frozen pnpm lockfile without adding a provider SDK.
+- [x] 1.3 Pin and activate project-local Java 21 plus cached Firebase/Structurizr tooling through the existing Windows-friendly toolchain scripts without changing Node 24.22.1 or pnpm 12.15.0.
+- [x] 1.4 Add validated loopback-only Firestore Emulator configuration, the exact synthetic project ID, isolated start/exec/import/export commands, gitignored `.local` state, and safe example configuration.
+- [x] 1.5 Update development/bootstrap documentation and verify a frozen offline reuse path for dependencies, Java, the emulator, and diagram checks after the authorized setup downloads.
 
 ## 2. Domain contracts, rubric, and versions
 

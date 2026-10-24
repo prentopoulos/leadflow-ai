@@ -4,3 +4,10 @@ packages:
 
 # Verification commands must never trigger an implicit install or registry access.
 verifyDepsBeforeRun: false
+
+# Phase 1 needs no dependency install scripts. These transitive packages expose
+# scripts, but the selected emulator/Admin SDK paths work without executing them.
+allowBuilds:
+  '@firebase/util': false
+  protobufjs: false
+  re2: false

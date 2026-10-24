@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@leadflow-ai/domain': `${root}packages/domain/src/index.ts`,
+      '@leadflow-ai/runtime': `${root}packages/runtime/src/index.ts`,
       '@leadflow-ai/evals': `${root}packages/evals/src/index.ts`,
     },
   },

@@ -9,6 +9,7 @@
     "noEmit": true,
     "paths": {
       "@leadflow-ai/domain": ["./packages/domain/src/index.ts"],
+      "@leadflow-ai/runtime": ["./packages/runtime/src/index.ts"],
       "@leadflow-ai/evals": ["./packages/evals/src/index.ts"]
     },
     "types": ["node", "vite/client"]
