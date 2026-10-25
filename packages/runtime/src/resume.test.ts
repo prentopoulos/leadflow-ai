@@ -279,6 +279,63 @@ describe('QualificationResumeService', () => {
     });
   });
 
+  it('reclaims a run stranded in running once its lease expires', async () => {
+    const base = await fixture();
+    // A claim whose process died before the graph ran: the run stays running.
+    const claimed = await base.lifecycle.claim({
+      ...request(base.persisted.runId, 0),
+      leaseDurationMs: 1,
+      authorization: 'not_applicable',
+    });
+    expect(claimed.run.status).toBe('running');
+
+    const result = await resumeService(base, new MemorySaver()).resume(
+      request(base.persisted.runId, claimed.run.revision),
+    );
+
+    expect(result.resumedFrom).toBe('lease_reclaim');
+    expect(result.state.finalized).toBe(true);
+    await expect(
+      base.repositories.runs.get(base.persisted.runId),
+    ).resolves.toMatchObject({ status: 'complete', lease: null });
+    expect(events(base.store).map((event) => event.name)).toContain(
+      'run.lease_reclaimed',
+    );
+  });
+
+  it('refuses to reclaim a running run whose lease is still active', async () => {
+    const base = await fixture();
+    const claimed = await base.lifecycle.claim({
+      ...request(base.persisted.runId, 0),
+      authorization: 'not_applicable',
+    });
+    const before = await base.repositories.runs.get(base.persisted.runId);
+
+    await expect(
+      resumeService(base, new MemorySaver()).resume(
+        request(base.persisted.runId, claimed.run.revision),
+      ),
+    ).rejects.toThrow();
+    await expect(
+      base.repositories.runs.get(base.persisted.runId),
+    ).resolves.toEqual(before);
+  });
+
+  it('records step durations from the workflow clock', async () => {
+    const base = await fixture();
+    await resumeService(base, new MemorySaver()).resume(
+      request(base.persisted.runId, 0),
+    );
+    const completed = [...base.store.documents.entries()]
+      .filter(([path]) => path.includes('/events/'))
+      .map(([, event]) => event as { name: string; durationMs: number | null })
+      .filter((event) => event.name === 'step.completed');
+    expect(completed.length).toBeGreaterThan(0);
+    for (const event of completed) {
+      expect(event.durationMs).toBeGreaterThan(0);
+    }
+  });
+
   it('rejects a retryable run when its checkpoint is missing', async () => {
     const base = await fixture();
     const failed = await failRetryably(base);

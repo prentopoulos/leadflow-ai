@@ -46,8 +46,18 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
       error !== null &&
       'validation' in error &&
       error.validation !== undefined;
+    // Fastify's own client errors (malformed JSON, unsupported media type,
+    // oversized body) carry a 4xx statusCode and stay client errors.
+    const statusCode =
+      typeof error === 'object' &&
+      error !== null &&
+      'statusCode' in error &&
+      typeof error.statusCode === 'number'
+        ? error.statusCode
+        : 500;
+    const clientError = validation || (statusCode >= 400 && statusCode < 500);
     const response = createErrorResponse(
-      validation
+      clientError
         ? {
             code: 'validation_failed',
             category: 'validation',
@@ -62,7 +72,9 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
           },
       options.requestIdFactory,
     );
-    return reply.code(validation ? 400 : 500).send(response);
+    return reply
+      .code(validation ? 400 : clientError ? statusCode : 500)
+      .send(response);
   });
 
   if (phaseOne.status === 'ready') {

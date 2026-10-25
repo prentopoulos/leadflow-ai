@@ -57,6 +57,21 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
     );
   });
 
+  it('never reports declared emulator or rendered observations as measured passes', () => {
+    const results = evaluateAll(COMBINED_CASES);
+    const declared = results.filter(
+      (result) =>
+        result.evidenceScope === 'local-emulator' ||
+        result.evidenceScope === 'rendered-local',
+    );
+    expect(declared.length).toBeGreaterThan(0);
+    for (const result of declared) {
+      expect(result.status).toBe('not_run');
+      expect(result.assertions.length).toBeGreaterThan(0);
+      expect(result.reason).toMatch(/measured by/u);
+    }
+  });
+
   it('retains an intentional failing canary', () => {
     const baseline = PHASE_ZERO_CASES.find(
       (item) => item.id === 'p0-score-maximum-valid',

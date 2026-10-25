@@ -19,4 +19,4 @@ for (const check of checks) {
   runPnpm(['run', check], { timeout: 180_000 });
 }
 
-console.log('\nPhase 0 offline quality gate passed.');
+console.log('\nOffline quality gate passed.');

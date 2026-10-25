@@ -134,6 +134,42 @@ describe('POST /v1/intake', () => {
     });
   });
 
+  it('keeps malformed and unsupported bodies as safe client errors', async () => {
+    const persist = vi.fn();
+    const app = buildApp({
+      persistence: { persist },
+      systemBundleId: bundleId,
+    });
+
+    const malformed = await app.inject({
+      method: 'POST',
+      url: '/v1/intake',
+      headers: {
+        'idempotency-key': 'api-intake-bad-json',
+        'content-type': 'application/json',
+      },
+      payload: '{"schemaVersion":',
+    });
+    const unsupported = await app.inject({
+      method: 'POST',
+      url: '/v1/intake',
+      headers: {
+        'idempotency-key': 'api-intake-bad-type',
+        'content-type': 'application/xml',
+      },
+      payload: '<intake/>',
+    });
+
+    expect(malformed.statusCode).toBe(400);
+    expect(malformed.json().error).toMatchObject({
+      code: 'validation_failed',
+      retryable: false,
+    });
+    expect(unsupported.statusCode).toBe(415);
+    expect(unsupported.json().error.code).toBe('validation_failed');
+    expect(persist).not.toHaveBeenCalled();
+  });
+
   it('returns the original committed identity on replay without starting duplicate work', async () => {
     const replayed = { ...accepted, replayed: true };
     const processPersisted = vi.fn(async () => undefined);

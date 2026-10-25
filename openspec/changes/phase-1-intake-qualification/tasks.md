@@ -58,4 +58,4 @@
 
 ## 9. Completion
 
-- [ ] 9.1 Integrate the remaining checks into the offline gate; run affected leaf checks and one clean final gate, strict OpenSpec validation, offline reuse, and the separately authorized dependency audit; perform one consolidated branch review across code, lead quality, security/state, UI, and architecture; fix findings; then update PROJECT/AI_OPS/HANDOFF and prepare the verified change for archive and owner merge approval.
+- [x] 9.1 Integrate the remaining checks into the offline gate; run affected leaf checks and one clean final gate, strict OpenSpec validation, offline reuse, and the separately authorized dependency audit; perform one consolidated branch review across code, lead quality, security/state, UI, and architecture; fix findings; then update PROJECT/AI_OPS/HANDOFF and prepare the verified change for archive and owner merge approval.

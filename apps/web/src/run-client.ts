@@ -86,7 +86,9 @@ export function createRunClient(fetcher: Fetcher = fetch): RunClient {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ expectedRevision }),
-            signal: AbortSignal.timeout(5_000),
+            // The route runs the resumed workflow before answering; polling
+            // still reflects committed state if this request gives up.
+            signal: AbortSignal.timeout(30_000),
           },
         );
         return await parseResponse(response, (payload) => {

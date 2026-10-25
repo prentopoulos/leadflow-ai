@@ -9,10 +9,12 @@ import {
   createRunDetailService,
   initialQualificationGraphState,
   qualificationProjectionFromLead,
+  resetLocalEmulatorData,
   type QualificationInterpreter,
 } from '@leadflow-ai/runtime';
 import { z } from 'zod';
 import type { IntakeRouteDependencies } from './intake-route.js';
+import type { ResetRouteDependencies } from './reset-route.js';
 import type { ResumeRouteDependencies } from './resume-route.js';
 import type { RunRouteDependencies } from './run-route.js';
 import type { PhaseOneStartup } from './startup.js';
@@ -23,6 +25,7 @@ export interface PhaseOneApiDependencies {
   intake: IntakeRouteDependencies;
   runs: RunRouteDependencies;
   resume: ResumeRouteDependencies;
+  reset: ResetRouteDependencies;
 }
 
 export interface PhaseOneApiRuntimeOptions {
@@ -110,5 +113,15 @@ export async function createPhaseOneApiDependencies(
     },
     runs: { details },
     resume: { resume, details },
+    reset: {
+      // A guarded reset erases every emulator document, including the bundle
+      // this process validated at startup; restore it so later runs keep a
+      // resolvable systemBundleId.
+      reset: async (request) => {
+        const result = await resetLocalEmulatorData(request);
+        await repositories.systemBundles.create(systemBundle);
+        return result;
+      },
+    },
   };
 }

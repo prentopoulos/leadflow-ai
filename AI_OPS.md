@@ -117,21 +117,34 @@ This is synthetic local runtime evidence, not provider, production, predictive, 
 evidence.
 
 The current `phase-1.0` combined evaluator retains all 24 Phase 0 case IDs and adds 14 Phase 1
-cases. Its latest local report ran 38 fixed synthetic cases: 31 passed, 0 failed, 7 were `not_run`,
+cases. Its latest local report ran 38 fixed synthetic cases: 26 passed, 0 failed, 12 were `not_run`,
 and 0 were stale. The report binds source/dirty-patch state, lockfile, fixtures, evaluator, schemas,
 rubric, interpreter, graph, checkpointer, simulator, configuration, environment, and absent-provider
-reasons into one system bundle. The seven unrun cases preserve hosted model/provider, live
-enrichment, cloud Firestore, real-personal-data, and production-readiness boundaries. A changed
-bundle digest marks affected evidence `stale`; the full emulator/runtime and rendered-local checks
-remain separate evidence lanes and must rerun together for the final candidate in task 9.1.
+reasons into one system bundle. Seven unrun cases preserve hosted model/provider, live enrichment,
+cloud Firestore, real-personal-data, and production-readiness boundaries. The other five are
+emulator-scoped or rendered-scoped cases whose declared observations this offline run checks for
+consistency but does not measure; they report `not_run` and name `pnpm emulator:runtime` or rendered
+local review as the measuring check. A changed bundle digest marks affected evidence `stale`.
 
 Recovery remains local and explicit: the first transient interpreter fault gets one retry, exhausted
 transient work becomes `failed_retryable`, unknown/non-retryable faults become terminal, and only an
 eligible persisted or retryable run with the expected revision and compatible checkpoint can resume.
+A run left `running` by a crashed process is reclaimed through the same resume path once its lease
+expires, replaying from the stored lead with idempotent, compared result writes.
 Crashes, ambiguous writes, lease races, unavailable/malformed stored state, and resume conflicts
 remain visible rather than becoming success. Recheck this evidence on any event/run/checkpoint,
 rubric/interpreter/graph/simulator, retry/resume/lease, Firestore adapter, configuration, evaluator,
 or dependency change.
+
+Final Phase 1 candidate evidence (2026-10-25, after the consolidated review fixes): the complete
+offline `pnpm check` passed (29 test files/187 tests, 26 pass / 0 fail / 12 `not_run` / 0 stale
+evaluation, API and web loopback smokes, docs
+and Structurizr checks, strict OpenSpec 5/5); `pnpm emulator:runtime` passed the built-API, workflow
+recovery and verified-flush probes; offline dependency reuse and tool verification passed; and a live
+local run through `pnpm api:local` reached `complete` with simulation notices intact. The authorized
+connected audit found no high or critical advisory and two moderate transitive advisories in the
+development-only Firebase CLI (`uuid` < 11.1.1, `@opentelemetry/core` < 2.8.0). Recheck them when
+the Firebase CLI pin changes.
 
 No provider SDK, prompt, hosted model, live NHTSA/ZIP/email-domain adapter, insurer/quote integration,
 cloud database, authentication, real-personal-data path, outreach sender, or external tool server is

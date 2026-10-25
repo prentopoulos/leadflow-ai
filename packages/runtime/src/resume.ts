@@ -56,7 +56,7 @@ export interface QualificationResumeRequest extends Omit<
 }
 
 export interface QualificationResumeResult {
-  resumedFrom: 'persisted' | 'checkpoint';
+  resumedFrom: 'persisted' | 'checkpoint' | 'lease_reclaim';
   state: QualificationGraphState;
 }
 
@@ -84,23 +84,29 @@ export class QualificationResumeService {
     if (run.revision !== request.expectedRevision) {
       throw new RunRevisionConflictError();
     }
-    if (!isResumeEligible(run.status)) {
+    const leaseExpired =
+      run.lease !== null &&
+      Date.parse(run.lease.expiresAt) <= Date.parse(this.now());
+    // A run left `running` by a crashed or failed process is recoverable only
+    // once its lease has expired; reclaim replays from the persisted lead and
+    // relies on idempotent, compared result writes.
+    const reclaim = run.status === 'running' && leaseExpired;
+    if (!isResumeEligible(run.status) && !reclaim) {
       throw new RunStateConflictError(
-        'Only a persisted or retryable run can be resumed.',
+        'Only a persisted or retryable run, or a running run with an expired lease, can be resumed.',
       );
     }
-    if (
-      run.lease !== null &&
-      Date.parse(run.lease.expiresAt) > Date.parse(this.now())
-    ) {
+    if (run.lease !== null && !leaseExpired) {
       throw new RunLeaseConflictError();
     }
 
     const prepared =
-      run.status === 'persisted'
+      run.status === 'persisted' || reclaim
         ? await this.fromPersisted(run, request)
         : await this.fromCheckpoint(run);
-    const resumed = await this.dependencies.lifecycle.resume(request);
+    const resumed = reclaim
+      ? await this.dependencies.lifecycle.reclaimExpiredLease(request)
+      : await this.dependencies.lifecycle.resume(request);
     const state = QualificationGraphStateSchema.parse({
       ...prepared,
       runRevision: resumed.run.revision,
@@ -108,7 +114,11 @@ export class QualificationResumeService {
       finalized: false,
     });
     return {
-      resumedFrom: run.status === 'persisted' ? 'persisted' : 'checkpoint',
+      resumedFrom: reclaim
+        ? 'lease_reclaim'
+        : run.status === 'persisted'
+          ? 'persisted'
+          : 'checkpoint',
       state: await this.dependencies.workflow.invoke(state, graphConfig(run)),
     };
   }

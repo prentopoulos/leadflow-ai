@@ -60,8 +60,9 @@ fictional lead. Stopping the emulator discards all state.
 <img src="docs/diagrams/run-lifecycle.svg" alt="Run lifecycle: persisted, running, retrying, partial, failed retryable, failed terminal and complete, with lease reclaim and operator resume" width="100%">
 
 The first transient fault gets one retry. A fault that persists leaves the run `failed_retryable`,
-which an operator can resume only at the expected revision with a compatible checkpoint. Unknown
-or non-retryable faults end in `failed_terminal`. Crashes, stale revisions, lease races and
+which an operator can resume only at the expected revision with a compatible checkpoint. A run left
+`running` by a crashed process can be resumed once its lease expires, which replays it from the
+stored lead. Unknown or non-retryable faults end in `failed_terminal`. Crashes, stale revisions, lease races and
 malformed stored state stay visible rather than turning into success.
 
 The stored records and their relationships are in the [data model](docs/diagrams/data-model.svg).

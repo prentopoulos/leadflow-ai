@@ -594,7 +594,11 @@ export function App({
                       ? 'Lead stored'
                       : 'Store synthetic lead'}
                 </button>
-                <button className="secondary-action" type="reset">
+                <button
+                  className="secondary-action"
+                  type="reset"
+                  disabled={submissionStatus === 'submitting'}
+                >
                   {submissionStatus === 'stored'
                     ? 'Start another intake'
                     : 'Restore example'}

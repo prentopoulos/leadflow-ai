@@ -41,7 +41,14 @@ async function sourceDigest() {
   const hash = createHash('sha256');
   for (const file of files) {
     hash.update(file);
-    hash.update(await readFile(path.join(repoRoot, file)));
+    try {
+      hash.update(await readFile(path.join(repoRoot, file)));
+    } catch (error) {
+      // A tracked file deleted in the working tree is part of the dirty
+      // patch; mark it here instead of failing bundle creation.
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      hash.update('\0deleted');
+    }
   }
   return hash.digest('hex');
 }

@@ -631,6 +631,39 @@ a first API start before emulator readiness returned `storage_unavailable` (expe
 gating), and a stale API process held port 3001 after its shell was stopped. GitHub README/SVG
 render review is not possible without a remote and remains open for the publication phase.
 
+## Consolidated branch review (task 9.1)
+
+`/code-review high` on `main...HEAD` (131 files) reported 10 findings. Each was checked against the
+code before acting:
+
+- Fixed: a run left `running` after a post-claim crash or failure was unrecoverable, because
+  expired-lease reclaim was never wired. Resume now reclaims a `running` run with an expired lease,
+  replays from the stored lead, and reports `resumedFrom: lease_reclaim`; the dossier offers resume
+  in that state. Tests cover both the reclaim and the refusal while the lease is still active.
+- Fixed: Fastify client errors (malformed JSON 400, unsupported media type 415, oversized body)
+  were returned as 500 `unknown_failure`; they now keep their 4xx status as `validation_failed`.
+- Fixed: the system-bundle source digest crashed on an unstaged tracked-file deletion. Deleted
+  files now hash as a marker, and the dirty patch digest still carries the change.
+- Fixed: a guarded local reset erased the bundle the API had validated. The API now re-records it.
+- Fixed: the intake reset button was enabled during submission, so a late response could
+  repopulate a cleared form. It is now disabled while submitting.
+- Fixed: lifecycle events always carried `durationMs: null`. Step completion and failure events now
+  record durations from the workflow clock, which the lifecycle report consumes.
+- Fixed, honesty: emulator-scoped and rendered-scoped eval cases passed by checking declared literals
+  that this offline run never measured. They now report `not_run` with the probe that measures them,
+  while still failing if their declared contract is inconsistent.
+- Narrowed: the resume client timeout rose from 5s to 30s. The resume route still runs the workflow
+  inside the request; recheck this when a slower model-backed interpreter is introduced.
+- Not applicable in Phase 1: "resume re-runs completed steps". Only interpreter faults are retryable,
+  and they occur before any step completes, so checkpoint resumes start at interpretation by
+  construction. Reclaim deliberately replays with idempotent, compared result writes.
+- Deferred, efficiency: the checkpointer reads whole run subcollections per tuple. This is
+  acceptable for emulator-scale synthetic runs; use indexed queries before any cloud or long-run use.
+
+Lead-quality review: `rubric-v1` matches the accepted spec (timeline ≤40, clarity 15/10/5,
+completeness 5/5/4×5, consent unscored, mismatched evidence held), and lifecycle metrics name
+numerator, denominator and exclusions. No finding.
+
 ## External evidence and gates
 
 The dated Military.com research record is `docs/research/military-com-intake-2026-10-24.md`.

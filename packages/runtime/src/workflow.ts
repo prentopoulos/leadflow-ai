@@ -99,8 +99,23 @@ export function compileQualificationWorkflow(
     return run;
   }
 
+  // Step durations use the workflow clock, keyed per run so one compiled
+  // graph can serve concurrent runs.
+  const stepStarts = new Map<string, number>();
+  const stepKey = (state: QualificationGraphState, step: WorkflowStep) =>
+    `${state.runId}:${step}`;
+  function elapsedMs(state: QualificationGraphState, step: WorkflowStep) {
+    const key = stepKey(state, step);
+    const started = stepStarts.get(key);
+    stepStarts.delete(key);
+    return started === undefined
+      ? null
+      : Math.max(0, Date.parse(now()) - started);
+  }
+
   async function startStep(state: QualificationGraphState, step: WorkflowStep) {
     const run = await storedRun(state);
+    stepStarts.set(stepKey(state, step), Date.parse(now()));
     const attempt =
       step === 'interpret_qualification' && run.attempt === 0 ? 1 : run.attempt;
     return dependencies.lifecycle.commitRunEvent({
@@ -140,7 +155,7 @@ export function compileQualificationWorkflow(
       }),
       eventName,
       step,
-      durationMs: null,
+      durationMs: elapsedMs(state, step),
       traceId: state.traceId,
       requestId: state.requestId,
       authorization: 'not_applicable',
@@ -162,7 +177,7 @@ export function compileQualificationWorkflow(
       }),
       eventName: 'step.failed',
       step: 'interpret_qualification',
-      durationMs: null,
+      durationMs: elapsedMs(state, 'interpret_qualification'),
       traceId: state.traceId,
       requestId: state.requestId,
       authorization: 'not_applicable',
@@ -202,7 +217,7 @@ export function compileQualificationWorkflow(
       }),
       eventName: 'step.failed',
       step,
-      durationMs: null,
+      durationMs: elapsedMs(state, step),
       traceId: state.traceId,
       requestId: state.requestId,
       authorization: 'not_applicable',
@@ -394,7 +409,7 @@ export function compileQualificationWorkflow(
           }),
           eventName: 'run.completed',
           step: 'finalize_run',
-          durationMs: null,
+          durationMs: elapsedMs(state, 'finalize_run'),
           traceId: state.traceId,
           requestId: state.requestId,
           authorization: 'not_applicable',

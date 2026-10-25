@@ -176,7 +176,10 @@ export function RunDossier({
 
   const canResume =
     detail.run.status === 'persisted' ||
-    detail.run.status === 'failed_retryable';
+    detail.run.status === 'failed_retryable' ||
+    (detail.run.status === 'running' &&
+      detail.run.lease !== null &&
+      Date.parse(detail.run.lease.expiresAt) <= Date.now());
   return (
     <div className="run-detail">
       {refreshError !== null ? (

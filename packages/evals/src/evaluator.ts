@@ -511,15 +511,24 @@ export function evaluateCase(evaluationCase: EvalCase): EvalResult {
         throw new Error('future runtime case was incorrectly marked runnable');
     }
 
+    // Emulator and rendered cases hold declared observations. This offline
+    // run can prove them consistent but did not measure them, so it must not
+    // report a pass; the measured evidence comes from the named probe.
+    const measuredElsewhere =
+      evidenceScope === 'local-emulator' || evidenceScope === 'rendered-local';
     return {
       caseId: parsedCase.id,
-      status: 'pass',
+      status: measuredElsewhere ? 'not_run' : 'pass',
       evidenceClass: 'synthetic-local',
       evidenceScope,
       datasetVersion: DATASET_VERSION,
       evaluatorVersion: EVALUATOR_VERSION,
       assertions,
-      reason: null,
+      reason: measuredElsewhere
+        ? evidenceScope === 'local-emulator'
+          ? 'Declared observations are consistent; measured by pnpm emulator:runtime, not this offline run.'
+          : 'Declared observations are consistent; measured by rendered local review, not this offline run.'
+        : null,
     };
   } catch (error) {
     return {
