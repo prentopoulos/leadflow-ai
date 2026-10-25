@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–5.5 are implemented and locally verified; 21 of 46
+verified dependency/toolchain slice. Tasks 1.1–5.6 are implemented and locally verified; 20 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -432,6 +432,32 @@ the retained real emulator persisted/retry/resume/run-detail probe, and the comp
 Task 5.5 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 24 Vitest files/150 tests,
 the retained real emulator guarded-reset/verified-flush probe, and the complete offline gate.
 
+## Implemented built emulator-backed API composition and smoke
+
+- `createPhaseOneApiDependencies` composes the validated Admin database into atomic intake,
+  lifecycle, durable checkpointer, deterministic interpreter/workflow, stable run detail, and explicit
+  resume dependencies. It first requires the named strict system bundle to exist and match the exact
+  local synthetic project.
+- Server startup optionally reads `LEADFLOW_SYSTEM_BUNDLE_ID`. Only a valid UUID resolving to that
+  persisted compatible bundle enables the stateful intake/run/resume routes; missing, invalid,
+  malformed, or unavailable bundle state leaves process health available and stateful routes fail
+  closed. The example configuration documents the required persisted-record relationship without a
+  fabricated bundle ID.
+- `pnpm emulator:runtime` now compiles the built API as well as domain/runtime, starts it on an
+  ephemeral `127.0.0.1` port, and uses real HTTP with five-second abort timeouts. It checks narrow
+  health, invalid test-contact rejection, committed intake, bounded polling to stored completion,
+  replay identity, conflicting-key rejection, stored retryable failure, explicit resume and durable
+  resume replay, and disabled-reset 404.
+- The probe closes the Fastify listener and its separately owned Admin app, confirms the listener is
+  no longer active, then performs the guarded emulator flush and verifies runtime, API, retry,
+  resume, and system-bundle records are gone. The wrapper always stops the isolated emulator.
+
+Task 5.6 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 24 Vitest files/150 tests,
+the complete offline gate, and the built loopback API/emulator end-to-end probe. The first integrated
+probe correctly rejected a system-bundle document that an earlier malformed-read fixture had
+intentionally corrupted; restoring the validated fixture after that negative assertion made the
+identical full probe pass without weakening the strict read or bundle gate.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
@@ -453,6 +479,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 5.6 by wiring the built loopback API to the complete emulator-backed runtime and adding
-contract/smoke coverage for health, intake, completion/failure, resume, reset denial, timeouts, and
-process cleanup. With no remote, there is no draft PR or hosted CI.
+Begin task 6.1 by replacing the Phase 0 shell with the accepted calm operations-dossier visual
+system and continuous responsive workspace while retaining the persistent synthetic context. With
+no remote, there is no draft PR or hosted CI.

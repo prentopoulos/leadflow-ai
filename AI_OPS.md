@@ -67,7 +67,7 @@ evidence. Provider evaluation remains unauthorized until the provider, model, bu
 and cases are approved. The separately authorized connected dependency audit reported no known
 vulnerabilities and did not modify the lockfile.
 
-Phase 1 tasks 3.1–5.5 now provide local-only runtime evidence: strict Firestore repositories,
+Phase 1 tasks 3.1–5.6 now provide local-only runtime evidence: strict Firestore repositories,
 atomic intake, concurrency-safe lifecycle updates, a project-owned durable LangGraph checkpointer,
 the fixed qualification graph, and exactly one automatic retry only for the typed
 `SyntheticTransientFault`. Unit fixtures cover success after the first transient, exhaustion after
@@ -101,6 +101,12 @@ The destructive HTTP surface is absent unless validated startup explicitly enabl
 enabled, its strict body can name only the hard-coded synthetic project and exact confirmation; the
 server supplies the already-validated emulator host and actual loopback requester to the bounded
 reset function. No collection, URL, host, or production project can be selected by the caller.
+The built API now has one composition boundary for atomic intake, automatic deterministic workflow,
+stored run detail, and explicit resume. Composition requires a strict persisted compatible system
+bundle before stateful routes are enabled; otherwise the server retains process health and fails the
+stateful surface closed. The isolated emulator probe exercises built loopback HTTP with five-second
+client timeouts and verifies health scope, invalid intake, persistence, completion, stored failure,
+resume/replay, intake replay/conflict, reset denial, listener shutdown, Admin cleanup, and final flush.
 This is synthetic local runtime evidence, not provider, production, predictive, or external-tool
 evidence; the retained evaluator still reports provider/live cases as `not_run` until tasks 7.1–7.3
 replace the Phase 0 corpus.

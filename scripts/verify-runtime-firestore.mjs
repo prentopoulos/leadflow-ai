@@ -11,10 +11,11 @@ import {
   initialQualificationGraphState,
   LOCAL_RESET_CONFIRMATION,
   qualificationProjectionFromLead,
-  QualificationResumeService,
   resetLocalEmulatorData,
   SyntheticTransientFault,
 } from '../packages/runtime/dist/index.js';
+import { createApp } from '../apps/api/dist/app.js';
+import { createPhaseOneApiDependencies } from '../apps/api/dist/phase-one-runtime.js';
 
 const timestamp = '2026-10-24T20:00:00.000Z';
 const digest = 'a'.repeat(64);
@@ -105,6 +106,7 @@ try {
   if (!malformedReadRejected) {
     throw new Error('Emulator repository accepted malformed stored state.');
   }
+  await boundary.database.doc(`systemBundles/${systemBundleId}`).set(bundle);
 
   const intakeService = createIntakePersistenceService(boundary.database);
   const intake = {
@@ -428,41 +430,189 @@ try {
   if (exhaustionCalls !== 2 || exhaustedRun?.status !== 'failed_retryable') {
     throw new Error('Emulator resume fixture did not exhaust exactly once.');
   }
-  const restartedSaver = createFirestoreCheckpointSaver(
-    boundary.database,
+  const apiBoundary = createEmulatorFirestoreBoundary();
+  const apiStartup = {
+    status: 'ready',
+    configuration: {
+      configurationVersion: 'phase-1-local-v1',
+      projectId: 'demo-leadflow-ai-local',
+      firestoreHost: '127.0.0.1:8080',
+      localResetEnabled: false,
+    },
+    firestore: apiBoundary,
+  };
+  const apiDependencies = await createPhaseOneApiDependencies(
+    apiStartup,
     systemBundleId,
+    { now: graphClock },
   );
-  const resumedGraph = compileQualificationWorkflow({
-    interpreter: new DeterministicQualificationInterpreter(graphClock),
-    lifecycle: graphLifecycle,
-    repositories,
-    checkpointer: restartedSaver,
-    now: graphClock,
-  });
-  const resumed = await new QualificationResumeService({
-    repositories,
-    lifecycle: graphLifecycle,
-    checkpoints: restartedSaver,
-    workflow: resumedGraph,
-    now: graphClock,
-  }).resume({
-    runId: resumeIntake.runId,
-    expectedRevision: exhaustedRun.revision,
-    ownerId: 'emulator-worker-resume',
-    leaseDurationMs: 30_000,
-    traceId: context.traceId,
-    requestId: context.requestId,
-    authorization: 'allowed',
-  });
+  const api = createApp({ phaseOne: apiStartup, ...apiDependencies });
+  await api.listen({ host: '127.0.0.1', port: 0 });
+  const apiAddress = api.server.address();
+  if (
+    apiAddress === null ||
+    typeof apiAddress === 'string' ||
+    apiAddress.address !== '127.0.0.1'
+  ) {
+    throw new Error('Built API did not bind to the exact loopback address.');
+  }
+  const apiUrl = `http://127.0.0.1:${apiAddress.port}`;
+  let builtApiRunId;
+  const apiFetch = (path, init = {}) =>
+    fetch(`${apiUrl}${path}`, {
+      ...init,
+      signal: AbortSignal.timeout(5_000),
+    });
+  try {
+    const healthResponse = await apiFetch('/health');
+    const health = await healthResponse.json();
+    if (
+      !healthResponse.ok ||
+      health.scope !== 'process' ||
+      'readiness' in health
+    ) {
+      throw new Error('Built API health exceeded its process-only contract.');
+    }
+
+    const failedDetailResponse = await apiFetch(
+      `/v1/runs/${resumeIntake.runId}`,
+    );
+    const failedDetail = await failedDetailResponse.json();
+    if (
+      !failedDetailResponse.ok ||
+      failedDetail.run?.status !== 'failed_retryable' ||
+      failedDetail.run?.revision !== exhaustedRun.revision
+    ) {
+      throw new Error('Built API did not expose the stored retryable failure.');
+    }
+
+    const resumeResponse = await apiFetch(
+      `/v1/runs/${resumeIntake.runId}/resume`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ expectedRevision: exhaustedRun.revision }),
+      },
+    );
+    const resumeBody = await resumeResponse.json();
+    if (
+      !resumeResponse.ok ||
+      resumeBody.status !== 'complete' ||
+      resumeBody.revision !== 16 ||
+      resumeBody.replayed
+    ) {
+      throw new Error('Built API explicit resume did not complete the run.');
+    }
+    const resumeReplayResponse = await apiFetch(
+      `/v1/runs/${resumeIntake.runId}/resume`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ expectedRevision: exhaustedRun.revision }),
+      },
+    );
+    const resumeReplay = await resumeReplayResponse.json();
+    if (!resumeReplayResponse.ok || !resumeReplay.replayed) {
+      throw new Error('Built API did not identify the durable resume replay.');
+    }
+
+    const apiIntake = {
+      ...intake,
+      requestDetails: 'Synthetic built API workflow probe.',
+    };
+    const intakeResponse = await apiFetch('/v1/intake', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'built-api-intake-probe-v1',
+      },
+      body: JSON.stringify(apiIntake),
+    });
+    const accepted = await intakeResponse.json();
+    builtApiRunId = accepted.runId;
+    if (intakeResponse.status !== 202 || accepted.replayed) {
+      throw new Error('Built API did not accept committed synthetic intake.');
+    }
+
+    let completedDetail;
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const response = await apiFetch(`/v1/runs/${accepted.runId}`);
+      if (response.ok) {
+        completedDetail = await response.json();
+        if (completedDetail.run?.status === 'complete') break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    if (
+      completedDetail?.run?.status !== 'complete' ||
+      completedDetail.qualification?.classification !== 'marketing_readiness' ||
+      completedDetail.simulation?.notices?.[1] !== 'not_predictive'
+    ) {
+      throw new Error('Built API intake did not reach stored completion.');
+    }
+
+    const replayResponse = await apiFetch('/v1/intake', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'built-api-intake-probe-v1',
+      },
+      body: JSON.stringify(apiIntake),
+    });
+    const replayBody = await replayResponse.json();
+    if (
+      replayResponse.status !== 200 ||
+      !replayBody.replayed ||
+      replayBody.runId !== accepted.runId
+    ) {
+      throw new Error(
+        'Built API intake replay changed the committed identity.',
+      );
+    }
+    const conflictResponse = await apiFetch('/v1/intake', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'built-api-intake-probe-v1',
+      },
+      body: JSON.stringify({ ...apiIntake, zipCode: '90210' }),
+    });
+    const invalidResponse = await apiFetch('/v1/intake', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'built-api-invalid-probe-v1',
+      },
+      body: JSON.stringify({ ...apiIntake, email: 'person@invalid.test' }),
+    });
+    const resetDenied = await apiFetch('/v1/local-data', {
+      method: 'DELETE',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        projectId: 'demo-leadflow-ai-local',
+        confirmation: 'DELETE SYNTHETIC LEADFLOW LOCAL DATA',
+      }),
+    });
+    if (
+      conflictResponse.status !== 409 ||
+      invalidResponse.status !== 400 ||
+      resetDenied.status !== 404
+    ) {
+      throw new Error('Built API safe denial contracts did not hold.');
+    }
+  } finally {
+    await api.close();
+  }
+  if (api.server.listening) {
+    throw new Error('Built API listener remained open after cleanup.');
+  }
   const resumedRun = await repositories.runs.get(resumeIntake.runId);
   const resumedEvents = await boundary.database
     .collection(`runs/${resumeIntake.runId}/events`)
     .get();
   if (
-    resumed.resumedFrom !== 'checkpoint' ||
-    !resumed.state.finalized ||
-    resumed.state.runRevision !== 16 ||
     resumedRun?.status !== 'complete' ||
+    resumedRun.revision !== 16 ||
     resumedEvents.docs.filter(
       (document) => document.data().name === 'run.resume_requested',
     ).length !== 1
@@ -567,13 +717,15 @@ try {
     (await repositories.runs.get(first.runId)) !== null ||
     (await repositories.runs.get(retryIntake.runId)) !== null ||
     (await repositories.runs.get(resumeIntake.runId)) !== null ||
+    (builtApiRunId !== undefined &&
+      (await repositories.runs.get(builtApiRunId)) !== null) ||
     (await repositories.systemBundles.get(systemBundleId)) !== null
   ) {
     throw new Error('Verified emulator flush left fixture records behind.');
   }
 
   console.log(
-    'Runtime Firestore repository, intake, lifecycle, qualification graph, checkpointer, and verified-flush probes passed against the isolated emulator.',
+    'Runtime Firestore, built loopback API, workflow recovery, and verified-flush probes passed against the isolated emulator.',
   );
 } finally {
   await boundary.close();

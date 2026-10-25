@@ -90,6 +90,7 @@ if (mode === 'runtime') {
       'false',
       path.join(repoRoot, 'packages', 'domain'),
       path.join(repoRoot, 'packages', 'runtime'),
+      path.join(repoRoot, 'apps', 'api'),
     ],
     { timeout: 120_000 },
   );
