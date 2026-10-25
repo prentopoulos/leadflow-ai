@@ -41,32 +41,21 @@
 
 ## 6. Operator intake and run detail
 
-- [ ] 6.1 Replace the Phase 0 shell with the accepted calm operations-dossier tokens and continuous desktop/mobile workspace, preserving the persistent `SIMULATION · Synthetic leads and outcomes` context and avoiding Military.com visual imitation.
-- [ ] 6.2 Build the semantic intake with ZIP source evidence, visible LeadFlow demo-field grouping, fictional/test-contact guidance, explicit consent default, client/server validation, linked error summary, and long-error behavior.
-- [ ] 6.3 Connect submission to the persisted API response with stable idempotency behavior, useful persistence errors, protected local input, run identity, and deliberate focus movement to the stored run heading.
-- [ ] 6.4 Render polling from stored revisions/events with accessible progress, retry history, timestamped stale-state handling, bounded polling, terminal stop, and no elapsed-time simulation or focus theft.
-- [ ] 6.5 Render qualification breakdown/evidence/missing information/versions/non-insurance meaning, integrity holds, distinct failure states, eligible resume, race refresh, and separately labeled non-predictive simulation detail.
-- [ ] 6.6 Add deterministic component/integration tests for every declared loading, empty, validation, persistence, in-progress, retrying, partial, retryable-failure, terminal-failure, complete, stale, and long-content state.
-- [ ] 6.7 Inspect and fix the running product at desktop and 390px for page top/middle/bottom, keyboard/focus, reduced motion, errors, long content, retry/resume, and complete states; record rendered evidence and remaining limits.
+- [ ] 6.1 Build the responsive calm operations-dossier shell and semantic intake, keeping the persistent synthetic label, honest ZIP/demo-field grouping, test-contact guidance, explicit consent, accessible validation, and no Military.com visual imitation.
+- [ ] 6.2 Connect intake submission to the persisted response with stable idempotency, safe input/error handling, stored run identity, and deliberate focus movement.
+- [ ] 6.3 Render stored polling, lifecycle progress, qualification evidence, failures, eligible resume, and separately labeled non-predictive simulation without fabricated progress or focus theft.
+- [ ] 6.4 Cover the essential loading, validation, persistence, progress, failure/resume, complete, stale, and long-content paths with deterministic tests, then inspect and fix the running flow at desktop and 390px for keyboard, focus, semantics, and reduced motion.
 
 ## 7. Evaluation, telemetry, and AI operations
 
-- [ ] 7.1 Freeze Phase 1 normal/edge/adversarial/failure fixtures before tuning for intake provenance, idempotency, persist-before-processing, graph order, recovery, rubric/priority, injection, simulation, telemetry privacy, reset, emulator isolation, and UI states.
-- [ ] 7.2 Extend the independent evaluator and canaries to compare subcriteria, totals, priority/hold, transitions, retries/resume, simulator reproducibility/independence, privacy, and metric denominators while retaining all Phase 0 cases.
-- [ ] 7.3 Implement privacy-aware lifecycle-event validation and reporting with explicit denominators/statuses, null usage reasons, bundle identity, and synthetic/local/emulator/rendered/not-run evidence separation.
-- [ ] 7.4 Update `AI_OPS.md` with enabled persistent workflow state, deferred provider/tool boundaries, system/evaluation evidence pointers, recovery behavior, prototype limits, and capability recheck triggers.
+- [ ] 7.1 Add one focused, fixed Phase 1 fixture/evaluator suite covering the accepted intake, persistence, rubric, workflow recovery, simulator, privacy, reset, and UI contracts while retaining Phase 0 cases and honest `not_run` boundaries.
+- [ ] 7.2 Add privacy-aware lifecycle reporting and update `AI_OPS.md` with bundle-bound evidence, recovery behavior, deferred provider/tool boundaries, prototype limits, and recheck triggers.
 
 ## 8. Architecture and source evidence
 
-- [ ] 8.1 Resolve the first-diagram style profile from the accepted product tokens, create the architecture component/flow inventory, and define the split context, container, persist-before-processing, recovery, and ERD views within the diagram complexity budgets.
-- [ ] 8.2 Implement and validate `docs/architecture/workspace.dsl` with stable C4 context/container/dynamic identifiers, trust/data boundaries, deferred external systems, and flows that agree with the runtime/storage contracts.
-- [ ] 8.3 Author self-contained accessible diagram HTML and checked SVG exports for the publishable architecture/data views, run the diagram self/geometry checks, and inspect the final exports for clipping/overlap/font fallback.
-- [ ] 8.4 Add the schema ERD and compact README Mermaid summary, then verify component names, collection paths, local links, and no live/deployed/parity claims across all views.
-- [ ] 8.5 Link the dated Military.com source record from the intake/docs, verify ZIP as the only exact field claim, and retain the unanswered downstream-form/parity boundary and recheck trigger.
+- [ ] 8.1 Create the canonical Structurizr context, container, persist-before-processing/recovery, and ERD views plus the compact README Mermaid summary, using stable identifiers and matching the implemented runtime, storage, trust, and deferred-system boundaries.
+- [ ] 8.2 Validate and export the architecture views, inspect the rendered results, verify local links and collection/component names, and retain the dated Military.com source with ZIP as the only exact field claim and parity unresolved.
 
-## 9. Quality gate, review, and handoff
+## 9. Completion
 
-- [ ] 9.1 Extend `pnpm check` with Java/tool preflight, artifact-clean no-emit checks, isolated emulator/LangGraph integration, combined evaluation, diagram/link validation, accessibility-sensitive tests, and built Phase 1 smoke cleanup while keeping it offline and credential-free.
-- [ ] 9.2 Run every affected leaf check, the complete offline gate twice, strict OpenSpec validation, frozen offline bootstrap/emulator reuse, and the separate non-mutating connected dependency audit; retain and resolve all failures with exact bundle evidence.
-- [ ] 9.3 Perform the required branch-diff code review plus lead-quality, security/state, UI, and architecture review against every requirement/design non-negotiable; fix findings in new commits and rerun affected checks.
-- [ ] 9.4 Update PROJECT milestone status only when evidenced, refresh AI_OPS/HANDOFF with revision, checks, limitations, failures, and exact next action, archive/sync the complete OpenSpec change, and rerun validation/gate before requesting owner merge approval.
+- [ ] 9.1 Integrate the remaining checks into the offline gate; run affected leaf checks and one clean final gate, strict OpenSpec validation, offline reuse, and the separately authorized dependency audit; perform one consolidated branch review across code, lead quality, security/state, UI, and architecture; fix findings; then update PROJECT/AI_OPS/HANDOFF and prepare the verified change for archive and owner merge approval.

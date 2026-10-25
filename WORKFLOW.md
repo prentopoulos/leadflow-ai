@@ -66,6 +66,13 @@ the next phase needs may live only in the chat.
 
 ## Phase loop
 
+Keep each phase plan lean: normally no more than nine implementation tasks, with a smaller cap when
+the phase allows it. A task should produce one reviewable outcome rather than split implementation,
+tests, documentation, and evidence into parallel bookkeeping tasks. Run focused checks while building
+and one clean full gate at completion; repeat the full gate only when a failure or material fix makes
+another run necessary. Required safety evidence, code review, owner gates, and archive checks are not
+optional and must not be removed merely to meet the task budget.
+
 1. Inspect actual branch/tree and active OpenSpec status. Resume an existing authorized
    phase on its branch. Select a bounded task slice; planning readiness is not implementation.
 2. Read affected artifacts and PROJECT gates. Explore unresolved feasibility before relying

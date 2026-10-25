@@ -191,6 +191,35 @@ Milestones are ordered by dependency.
 | 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, Firebase Auth, responsive live dashboard, and run monitoring | Planned |
 | 3 | Owner-authorized Cloud Run deployment, public-repository polish, evidence bundle, README, and demonstration walkthrough | Planned |
 
+### Lean task budgets for remaining phases
+
+Future OpenSpec plans SHALL stay outcome-focused: no more than nine implementation tasks per phase,
+one logical commit per task where practical, affected leaf checks during construction, and one clean
+full gate at completion. Tests, documentation, and review evidence belong with the capability they
+verify unless they are genuinely independent deliverables. These budgets organize work; they do not
+resolve or waive any gate below.
+
+**Phase 2 blueprint — at most nine tasks**
+
+1. Add bounded live enrichment adapters with verified evidence and explicit unavailable states.
+2. Add consent-gated outreach drafting with mandatory human approval and no sending path.
+3. Add the verification/security layer across enrichment, drafts, prompts, and stored evidence.
+4. Add Firebase Auth and the accepted local/remote access boundary after its gate is resolved.
+5. Build the stored-data dashboard and run monitoring with honest metric denominators.
+6. Complete the responsive operator flows and essential automated/rendered accessibility checks.
+7. Extend evaluation, telemetry, architecture, and AI-operations evidence for the new boundaries.
+8. Integrate the offline gate and any separately authorized live checks.
+9. Run one consolidated review, fix findings, update handoff evidence, and prepare archive/merge.
+
+**Phase 3 blueprint — at most six tasks**
+
+1. Resolve the deployment and public-publication gates without broadening product scope.
+2. Implement the approved Cloud Run/GCP configuration with secrets, budget, rollback, and access controls.
+3. Prepare the public repository, README, licensing decision, and secret/private-data/history scans.
+4. Produce the evidence bundle and demonstration walkthrough from verified stored results.
+5. Run authorized deployment smoke, security, cost, observability, and rollback checks.
+6. Run one consolidated review, fix findings, update final handoff evidence, and prepare archive/merge.
+
 ### Before paid API or AI quota
 
 - [ ] Owner selects the provider/model or paid design tool, approves the account and spend ceiling,
