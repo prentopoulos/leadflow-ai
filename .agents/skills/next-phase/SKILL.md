@@ -111,7 +111,8 @@ Do not treat the roadmap in PROJECT.md as an instruction to build all later phas
   Do not claim runtime verification from these checks.
 - Runtime: run `TBD in Phase 0` once implemented. Before Phase 0 finishes, inspect
   actual checks rather than assuming this command exists. Run meaningful regression/contract
-  tests for the change.
+  tests for the change. Pace checks by WORKFLOW.md § Efficient execution: leaf checks while
+  editing, task-specific probes to close a task, one full gate per phase.
 - Results and claims: check outputs independently of the code that produced them. No
   exception does not prove correctness; a timeout or empty result does not prove a negative.
 - Model/agent behavior: evaluate against cases fixed before measuring. An LLM judge cannot

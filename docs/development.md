@@ -95,3 +95,13 @@ Structurizr validation joins `pnpm check` when the Phase 1 architecture source i
 
 Development listeners must remain on `127.0.0.1`. Phase 1 uses no hosted model, live enrichment,
 authentication, cloud Firestore, external communication, or other credentialed service.
+
+## Known shell workarounds
+
+- Run `pnpm` from PowerShell after `. .\scripts\activate-toolchain.ps1`. Git Bash cannot resolve
+  the standalone pnpm shim.
+- If Git reports `dubious ownership` because the checkout belongs to another Windows account, pass
+  a one-command override such as `git -c safe.directory=C:/Users/Peter/Documents/leadflow_ai status`
+  rather than changing global configuration, unless the owner adds the directory permanently.
+- Diagram tooling runs under the Python launcher: `py -3.13` for the diagram-design self-check and
+  SVG export, and `py -3.10` where Playwright is installed.

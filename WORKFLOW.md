@@ -71,7 +71,7 @@ the phase allows it. A task should produce one reviewable outcome rather than sp
 tests, documentation, and evidence into parallel bookkeeping tasks. Run focused checks while building
 and one clean full gate at completion; repeat the full gate only when a failure or material fix makes
 another run necessary. Required safety evidence, code review, owner gates, and archive checks are not
-optional and must not be removed merely to meet the task budget.
+optional and must not be removed merely to meet the task budget. Follow § Efficient execution.
 
 1. Inspect actual branch/tree and active OpenSpec status. Resume an existing authorized
    phase on its branch. Select a bounded task slice; planning readiness is not implementation.
@@ -92,6 +92,29 @@ optional and must not be removed merely to meet the task budget.
    Delete only a verified merged branch. No force deletion to finish a checklist.
 7. Update HANDOFF with scope, checks, limitations and the next task; begin a genuinely new
    phase in a fresh session from the clean checkpoint (§ Fresh session per phase).
+
+## Efficient execution
+
+Speed comes from not repeating work, never from skipping required evidence.
+
+- **Check ladder.** While editing, run only the leaf checks for the changed files or workspace
+  (format, lint, typecheck, affected tests). Close a task with those plus any probe that task
+  specifically needs (emulator, browser, render). Run the full gate once at phase completion, and
+  again only after a failure or material fix. Never rerun an identical passing check on the same
+  revision.
+- **Slices, not micro-tasks.** Commit a coherent group of tasks together when they share a boundary.
+  Update HANDOFF at the end of a slice or session, not after every task, and keep each entry to what
+  changed, the checks that passed, retained failures, and the next step.
+- **Encode rules as checks.** When a skill imposes mechanical rules (layout, naming, budgets,
+  contrast, links, drift), put them in the generator, script, or test that produces the artifact so a
+  violation fails automatically. Review by eye only what a check cannot see, such as a render.
+- **Read once, record once.** Load only the skill references the slice needs, and write the
+  decisions derived from them into the design or the generator so later sessions do not re-read them.
+- **Fix the environment once.** When a shell, cache, port, or permission problem blocks a command,
+  diagnose it once, record the working invocation in the development docs, and reuse it instead of
+  retrying variations.
+- **Overlap waiting.** Start long checks, probes, or renders in the background and continue with
+  independent steps; collect the result before marking the task complete.
 
 ## Prerequisites and authority
 
