@@ -26,7 +26,7 @@ PROJECT.md gate.
 - Add guarded local emulator retention/reset behavior, independently versioned schemas and system
   bundles, and reproducible workflow, rubric, simulator, accessibility, recovery, and failure tests.
 - Create C4 context, container, and persist-before-processing dynamic views as code, plus an ERD and
-  compact README Mermaid summary.
+  a new README whose compact architecture overview is a diagram-design SVG.
 - Record the verified public Military.com landing-page evidence and the exact limits of any form
   or parity claim.
 

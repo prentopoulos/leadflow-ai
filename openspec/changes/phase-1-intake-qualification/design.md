@@ -268,8 +268,16 @@ fixtures, and is not source code.
 ### Architecture evidence
 
 - Keep `docs/architecture/workspace.dsl` as the canonical Structurizr model with system context,
-  container, and persist-before-processing dynamic views. Add a schema ERD and a compact README
-  Mermaid overview that agree with the same component and collection inventory.
+  container, and persist-before-processing dynamic views. It is the unrendered source of truth for
+  component names and drift checks; every rendered view, including the schema ERD and the compact
+  README overview, is drawn with the `diagram-design` skill and agrees with the same component and
+  collection inventory. The README follows the showcase skill's README method. (Owner decision,
+  2026-10-25: use the diagram and README skills instead of a Mermaid summary; keeping Structurizr as
+  the unrendered model was delegated to the agent because the CLI is already pinned and provides the
+  drift baseline.)
+- Diagram colors map the product tokens in `apps/web/src/styles.css` to the skill's semantic roles in
+  a deterministic in-repo generator, leaving the vendored skill's default style guide unchanged.
+  Diagrams use the skill's `system` font source so exported SVGs need no network fonts.
 - Following the showcase/diagram method, each publishable view also has self-contained HTML with
   accessible inline SVG and a checked SVG export. Before the first render, resolve the diagram style
   guide gate and map it to the product tokens. Keep each overview within the diagram complexity

@@ -48,8 +48,10 @@ complexity/connector rules.
 - **THEN** it is split into overview and detail rather than shrinking or overlapping content
 
 ### Requirement: Compact README architecture summary
-The README SHALL include a small Mermaid summary that links to the detailed architecture sources and
-uses the same component names and boundaries without claiming deployment or live integrations.
+The README SHALL follow the showcase README method and embed a compact architecture overview drawn
+with the `diagram-design` skill and exported as SVG under `docs/diagrams/`, linking to the detailed
+architecture sources and using the same component names and boundaries without claiming deployment
+or live integrations.
 
 #### Scenario: README links are checked
 - **WHEN** documentation validation runs

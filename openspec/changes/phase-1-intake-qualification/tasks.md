@@ -53,7 +53,7 @@
 
 ## 8. Architecture and source evidence
 
-- [ ] 8.1 Create the canonical Structurizr context, container, persist-before-processing/recovery, and ERD views plus the compact README Mermaid summary, using stable identifiers and matching the implemented runtime, storage, trust, and deferred-system boundaries.
+- [ ] 8.1 Create the canonical Structurizr context, container, persist-before-processing/recovery, and ERD views, render every publishable view with the `diagram-design` skill, and write the README with the showcase method around a compact diagram-design overview SVG, using stable identifiers and matching the implemented runtime, storage, trust, and deferred-system boundaries.
 - [ ] 8.2 Validate and export the architecture views, inspect the rendered results, verify local links and collection/component names, and retain the dated Military.com source with ZIP as the only exact field claim and parity unresolved.
 
 ## 9. Completion
