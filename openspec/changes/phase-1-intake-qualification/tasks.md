@@ -25,7 +25,7 @@
 ## 4. Qualification workflow and recovery
 
 - [x] 4.1 Implement the `QualificationInterpreter` interface and deterministic `qualification-interpretation-v1` stub using the minimum intake projection, structured field evidence, and no model/prompt/tool call.
-- [ ] 4.2 Compile the fixed LangGraph workflow for interpretation, deterministic score, synthetic simulation, and finalization with versioned minimal state and durable events/checkpoints.
+- [x] 4.2 Compile the fixed LangGraph workflow for interpretation, deterministic score, synthetic simulation, and finalization with versioned minimal state and durable events/checkpoints.
 - [ ] 4.3 Add the single typed transient retry path and verify first-failure retry, second-failure exhaustion, non-retryable failure, attempt history, and absence of a silent third attempt.
 - [ ] 4.4 Implement revision-checked explicit resume from persisted/retryable compatible state and verify complete/running/terminal/stale/missing/incompatible/active-lease rejection paths.
 - [ ] 4.5 Exercise crash-before-commit, after-commit-before-claim, during checkpoint/event/result writes, and restart reconstruction so partial work remains honest and duplicate logical effects do not occur.

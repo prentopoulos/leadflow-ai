@@ -249,7 +249,9 @@ export class FirestoreCheckpointSaver extends BaseCheckpointSaver {
       parentCheckpointId: identity.checkpointId,
       checkpoint: serializedCheckpoint,
       metadata: serializedMetadata,
-      channelVersions: newVersions,
+      channelVersions: Object.entries(newVersions)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([channel, version]) => ({ channel, version })),
       systemBundleId: this.systemBundleId,
       createdAt: checkpoint.ts,
     });

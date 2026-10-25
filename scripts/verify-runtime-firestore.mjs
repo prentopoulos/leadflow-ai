@@ -5,7 +5,11 @@ import {
   createFirestoreCheckpointSaver,
   createIntakePersistenceService,
   createLifecyclePersistenceService,
+  compileQualificationWorkflow,
+  DeterministicQualificationInterpreter,
+  initialQualificationGraphState,
   LOCAL_RESET_CONFIRMATION,
+  qualificationProjectionFromLead,
   resetLocalEmulatorData,
 } from '../packages/runtime/dist/index.js';
 
@@ -210,6 +214,72 @@ try {
     boundary.database,
     systemBundleId,
   );
+  let graphMilliseconds = 0;
+  const graphClock = () => {
+    graphMilliseconds += 1;
+    return new Date(
+      Date.UTC(2026, 9, 24, 20, 1, 3, graphMilliseconds),
+    ).toISOString();
+  };
+  const graphLifecycle = createLifecyclePersistenceService(boundary.database, {
+    now: graphClock,
+  });
+  const graph = compileQualificationWorkflow({
+    interpreter: new DeterministicQualificationInterpreter(graphClock),
+    lifecycle: graphLifecycle,
+    repositories,
+    checkpointer: saver,
+    now: graphClock,
+  });
+  const graphConfig = {
+    configurable: {
+      thread_id: first.runId,
+      system_bundle_id: systemBundleId,
+    },
+  };
+  const graphOutput = await graph.invoke(
+    initialQualificationGraphState({
+      runId: first.runId,
+      leadId: first.leadId,
+      traceId: context.traceId,
+      requestId: context.requestId,
+      systemBundleId,
+      runRevision: reclaim.run.revision,
+      projection: qualificationProjectionFromLead(storedLead),
+    }),
+    graphConfig,
+  );
+  const completedRun = await repositories.runs.get(first.runId);
+  if (
+    !graphOutput.finalized ||
+    graphOutput.runRevision !== 10 ||
+    completedRun?.status !== 'complete' ||
+    completedRun.revision !== 10 ||
+    completedRun.nextEventSequence !== 12 ||
+    (await repositories.qualificationResults.get(
+      graphOutput.qualification?.resultId ?? '',
+    )) === null ||
+    (await repositories.simulationRecords.get(
+      graphOutput.simulation?.simulationRecordId ?? '',
+    )) === null
+  ) {
+    throw new Error(
+      'Emulator qualification graph did not durably finalize its run and results.',
+    );
+  }
+  const graphCheckpoints = [];
+  for await (const tuple of saver.list(graphConfig)) {
+    graphCheckpoints.push(tuple);
+  }
+  if (
+    graphCheckpoints.length < 5 ||
+    graphCheckpoints[0]?.checkpoint.channel_values.finalized !== true
+  ) {
+    throw new Error(
+      'Emulator qualification graph did not persist its durable checkpoints.',
+    );
+  }
+
   const rootCheckpointId = '00000000-0000-6000-8000-000000000001';
   const childCheckpointId = '00000000-0000-6000-8000-000000000002';
   const checkpointConfig = {
@@ -309,7 +379,7 @@ try {
   }
 
   console.log(
-    'Runtime Firestore repository, intake, lifecycle, checkpointer, and verified-flush probes passed against the isolated emulator.',
+    'Runtime Firestore repository, intake, lifecycle, qualification graph, checkpointer, and verified-flush probes passed against the isolated emulator.',
   );
 } finally {
   await boundary.close();

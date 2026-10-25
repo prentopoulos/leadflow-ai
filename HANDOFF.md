@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–4.1 are implemented and locally verified; 30 of 46
+verified dependency/toolchain slice. Tasks 1.1–4.2 are implemented and locally verified; 29 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -231,12 +231,41 @@ tests. The first typecheck correctly rejected an intentionally extra test field 
 runtime rejection fixture now uses an explicit boundary cast. A following format check caught that
 test edit, and the formatter plus identical fail-fast checks then passed.
 
+## Implemented fixed qualification workflow
+
+- `qualification-graph-v1` compiles one fixed LangGraph sequence:
+  `interpretQualification` → `scoreQualification` → `simulateOutcome` → `finalizeRun`. The graph
+  has no provider, model, prompt, enrichment, or outbound-tool boundary.
+- Strict `qualification-graph-state-v1` state carries only run/lead/request/trace/system-bundle
+  identity, the minimum qualification projection, deterministic interpretation/result, synthetic
+  simulation, run revision, and finalization state. A stable project-owned public interface prevents
+  generated declarations from leaking LangGraph internals.
+- Each node records a transactional start plus completion event. Scoring and simulation persist
+  their strict result records; finalization transitions the run to `complete`, clears the lease, and
+  retains all four completed steps. The graph uses the project-owned durable checkpointer rather
+  than in-process state.
+- Firestore stores channel-version identities as ordered `{ channel, version }` values rather than
+  dynamic map keys. This preserves LangGraph-reserved names such as `__start__` without using
+  Firestore-reserved field names.
+
+Task 4.2 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 18 Vitest files/96 tests,
+runtime package declaration build, and the real emulator workflow from persisted intake through
+claim/reclaim, four nodes, ten graph revisions, twelve event-sequence slots, durable results,
+checkpoints, and verified flush. The first unit check queried a non-empty top-level checkpoint
+namespace that LangGraph intentionally normalizes to the root namespace; the assertion now follows
+the pinned runtime behavior. The first emulator build exposed an inferred internal LangGraph type in
+the exported declaration, so the workflow now has a project-owned public interface. A sandboxed
+emulator launch again could not bind its hub port; the allowed loopback run then exposed Firestore's
+rejection of reserved `__start__` map fields, leading to the lossless ordered channel-version
+encoding. The corrected emulator sequence passed.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
-pinned Firestore checkpoint contract only. They do not yet establish the compiled LangGraph
-workflow, the Phase 1 API/UI, diagrams, or production behavior. The evaluator still executes the
-retained Phase 0 fixture corpus; Phase 1 fixtures and independent evaluation remain tasks 7.1–7.3.
+pinned Firestore checkpoint contract plus fixed qualification workflow. They do not yet establish
+retry/failure/resume orchestration, the Phase 1 API/UI, diagrams, or production behavior. The
+evaluator still executes the retained Phase 0 fixture corpus; Phase 1 fixtures and independent
+evaluation remain tasks 7.1–7.3.
 
 ## External evidence and gates
 
@@ -250,6 +279,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 4.2 by compiling the fixed four-node LangGraph workflow for interpretation, deterministic
-score, score-independent synthetic simulation, and finalization with versioned minimal state and
-durable checkpoints/events. With no remote, there is no draft PR or hosted CI.
+Begin task 4.3 by adding the single typed transient retry path and verifying first-failure retry,
+second-failure exhaustion, non-retryable failure, attempt history, and absence of a silent third
+attempt. With no remote, there is no draft PR or hosted CI.

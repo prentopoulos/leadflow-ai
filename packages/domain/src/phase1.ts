@@ -10,6 +10,7 @@ export const PHASE_ONE_VERSIONS = {
   idempotency: 'idempotency-v1',
   qualificationProjection: 'qualification-projection-v1',
   interpretation: 'qualification-interpretation-v1',
+  graphState: 'qualification-graph-state-v1',
   rubric: 'rubric-v1',
   simulator: 'simulator-v1',
   systemBundle: 'system-bundle-v1',
@@ -162,6 +163,7 @@ export const WorkflowStepSchema = z.enum([
   'simulate_outcome',
   'finalize_run',
 ]);
+export type WorkflowStep = z.infer<typeof WorkflowStepSchema>;
 
 export const ExecutionLeaseSchema = z
   .object({
@@ -251,7 +253,14 @@ export const CheckpointDocumentSchema = z
     parentCheckpointId: z.string().min(1).max(200).nullable(),
     checkpoint: SerializedValueSchema,
     metadata: SerializedValueSchema,
-    channelVersions: z.record(z.string(), z.union([z.string(), z.number()])),
+    channelVersions: z.array(
+      z
+        .object({
+          channel: z.string().min(1),
+          version: z.union([z.string(), z.number()]),
+        })
+        .strict(),
+    ),
     systemBundleId: IdentifierSchema,
     createdAt: UtcTimestampSchema,
   })
@@ -528,6 +537,26 @@ export const SimulationRecordSchema = z
     }
   });
 export type SimulationRecord = z.infer<typeof SimulationRecordSchema>;
+
+export const QualificationGraphStateSchema = z
+  .object({
+    schemaVersion: z.literal(PHASE_ONE_VERSIONS.graphState),
+    runId: IdentifierSchema,
+    leadId: IdentifierSchema,
+    traceId: IdentifierSchema,
+    requestId: IdentifierSchema,
+    systemBundleId: IdentifierSchema,
+    runRevision: z.number().int().nonnegative(),
+    projection: QualificationProjectionSchema,
+    interpretation: QualificationInterpretationSchema.nullable(),
+    qualification: QualificationResultSchema.nullable(),
+    simulation: SimulationRecordSchema.nullable(),
+    finalized: z.boolean(),
+  })
+  .strict();
+export type QualificationGraphState = z.infer<
+  typeof QualificationGraphStateSchema
+>;
 
 const UnavailableBoundarySchema = z
   .object({ value: z.null(), reason: z.string().min(1).max(160) })

@@ -97,7 +97,7 @@ describe('FirestoreCheckpointSaver pinned contract', () => {
       initialConfig(),
       checkpoint(checkpointOne, { ready: true }),
       metadata('input', -1, 'root'),
-      { state: 1 },
+      { __start__: 1 },
     );
     expect(storedConfig).toEqual({
       configurable: {
@@ -116,6 +116,15 @@ describe('FirestoreCheckpointSaver pinned contract', () => {
       pendingWrites: [],
     });
     expect(tuple?.parentConfig).toBeUndefined();
+    const stored = [...backend.documents.values()].find(
+      (candidate) =>
+        typeof candidate === 'object' &&
+        candidate !== null &&
+        'channelVersions' in candidate,
+    ) as { channelVersions: unknown } | undefined;
+    expect(stored?.channelVersions).toEqual([
+      { channel: '__start__', version: 1 },
+    ]);
   });
 
   it('orders pending writes by task path, task ID, and write index', async () => {

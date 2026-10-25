@@ -179,7 +179,7 @@ describe('Phase 1 boundary schemas', () => {
         parentCheckpointId: null,
         checkpoint: { type: 'json', data: '{}' },
         metadata: { type: 'json', data: '{}' },
-        channelVersions: { state: 1 },
+        channelVersions: [{ channel: '__start__', version: 1 }],
         systemBundleId: ids.bundle,
         createdAt: timestamp,
       }).checkpointId,
