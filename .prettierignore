@@ -3,6 +3,7 @@
 .codex/
 .git/
 .local/
+.impeccable/
 .tools/
 docs/
 openspec/

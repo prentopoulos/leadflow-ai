@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import {
   createHealthResponse,
   HealthResponseSchema,
@@ -8,11 +9,77 @@ import {
   type ZodTypeProvider,
   validatorCompiler,
 } from 'fastify-type-provider-zod';
+import { PHASE_ONE_UNAVAILABLE, type PhaseOneStartup } from './startup.js';
+import {
+  createErrorResponse,
+  registerIntakeRoute,
+  type IntakeRouteDependencies,
+  type RequestIdFactory,
+} from './intake-route.js';
+import { registerRunRoute, type RunRouteDependencies } from './run-route.js';
+import {
+  registerResumeRoute,
+  type ResumeRouteDependencies,
+} from './resume-route.js';
+import {
+  registerResetRoute,
+  type ResetRouteDependencies,
+} from './reset-route.js';
 
-export function createApp(): FastifyInstance {
+export interface CreateAppOptions {
+  phaseOne?: PhaseOneStartup;
+  intake?: IntakeRouteDependencies;
+  runs?: RunRouteDependencies;
+  resume?: ResumeRouteDependencies;
+  reset?: ResetRouteDependencies;
+  requestIdFactory?: RequestIdFactory;
+}
+
+export function createApp(options: CreateAppOptions = {}): FastifyInstance {
   const app = Fastify({ logger: false }).withTypeProvider<ZodTypeProvider>();
+  const phaseOne = options.phaseOne ?? PHASE_ONE_UNAVAILABLE;
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
+  app.setErrorHandler((error, _request, reply) => {
+    const validation =
+      typeof error === 'object' &&
+      error !== null &&
+      'validation' in error &&
+      error.validation !== undefined;
+    // Fastify's own client errors (malformed JSON, unsupported media type,
+    // oversized body) carry a 4xx statusCode and stay client errors.
+    const statusCode =
+      typeof error === 'object' &&
+      error !== null &&
+      'statusCode' in error &&
+      typeof error.statusCode === 'number'
+        ? error.statusCode
+        : 500;
+    const clientError = validation || (statusCode >= 400 && statusCode < 500);
+    const response = createErrorResponse(
+      clientError
+        ? {
+            code: 'validation_failed',
+            category: 'validation',
+            retryable: false,
+            message: 'Request validation failed.',
+          }
+        : {
+            code: 'unknown_failure',
+            category: 'runtime',
+            retryable: false,
+            message: 'The request could not be completed.',
+          },
+      options.requestIdFactory,
+    );
+    return reply
+      .code(validation ? 400 : clientError ? statusCode : 500)
+      .send(response);
+  });
+
+  if (phaseOne.status === 'ready') {
+    app.addHook('onClose', async () => phaseOne.firestore.close());
+  }
 
   app.get(
     '/health',
@@ -22,6 +89,21 @@ export function createApp(): FastifyInstance {
       },
     },
     async () => createHealthResponse(),
+  );
+
+  registerIntakeRoute(app, phaseOne, options.intake, options.requestIdFactory);
+  registerRunRoute(app, phaseOne, options.runs, options.requestIdFactory);
+  registerResumeRoute(
+    app,
+    phaseOne,
+    options.resume,
+    options.requestIdFactory ?? randomUUID,
+  );
+  registerResetRoute(
+    app,
+    phaseOne,
+    options.requestIdFactory ?? randomUUID,
+    options.reset,
   );
 
   return app;

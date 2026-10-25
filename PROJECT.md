@@ -103,6 +103,37 @@ Accepted by Peter on 2026-10-23 for the Phase 0 proposal:
 - Complete the recorded Phase 0 acceptance criteria without a separate hours cap; defer
   nonessential later-phase infrastructure rather than weakening the checks.
 
+### Phase 1 decisions
+
+Accepted by Peter on 2026-10-24 for the Phase 1 proposal:
+
+- Keep Phase 1 local-only and synthetic. Use the Firestore Emulator as the sole durable application
+  store, keep browser traffic behind Fastify, and bind every listener to `127.0.0.1`.
+- Treat ZIP code as the only exact Military.com field verified from the current public landing page.
+  Name, email, vehicle, coverage, timeline, intent, request-detail, and consent inputs are LeadFlow
+  demo fields; the Military.com intake-parity gate remains unresolved.
+- Persist the lead, run, first lifecycle event, and idempotency record atomically before LangGraph
+  execution. Use a project-owned Firestore implementation of LangGraph.js's checkpoint interface,
+  because the official JavaScript checkpointer list has no Firestore implementation.
+- Use one sequential qualification workflow with one bounded retry for explicitly transient local
+  faults and an idempotent operator resume action. Do not add live enrichment, outreach, or a
+  general-purpose autonomous tool loop.
+- Use a deterministic structured interpreter stub and `rubric-v1`: need timeline 40 points, request
+  clarity 30 points, and completeness 30 points. Priority is `high` at 80–100, `standard` at 50–79,
+  and `nurture` at 0–49; invalid or unsupported evidence holds priority instead of guessing.
+- Keep provider, model, prompt, and paid-call fields null and provider cases `not_run`. The paid/API
+  gate remains unresolved.
+- Add a fixed-seed synthetic outcome simulator only to exercise lifecycle and metric contracts. Its
+  outcomes are independent of score, visibly synthetic, and are not evidence that the rubric
+  predicts conversion.
+- Use a restrained operations-led interface: a continuous intake-to-run workspace, warm neutral
+  surfaces, dark ink, one teal accent, thin borders, minimal motion, and no Military.com visual
+  imitation. Evidence, source status, failures, and the persistent synthetic label stay close to
+  the result they qualify.
+- Pin and locally activate Java 21 for the Firestore Emulator and Structurizr tooling without
+  changing the accepted Node/pnpm versions. Normal `pnpm check` remains credential-free and offline
+  after the frozen dependency/tool bootstrap.
+
 ## 5. Non-negotiables
 
 These rules and the gates in section 6 are this project's constitution. They override AGENTS.md,
@@ -156,9 +187,38 @@ Milestones are ordered by dependency.
 | Phase | Deliverable | Status |
 |---|---|---|
 | 0 | Toolchain, app skeleton, lockfile, quality gate with constitution copy check, smoke checks, and offline AI evaluation scaffold | Done |
-| 1 | Verified intake, immediate Firestore persistence, LangGraph orchestration, qualification agent, and C4 architecture diagrams as code | Planned |
+| 1 | Verified intake, immediate Firestore persistence, LangGraph orchestration, qualification agent, and C4 architecture diagrams as code | Done |
 | 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, Firebase Auth, responsive live dashboard, and run monitoring | Planned |
 | 3 | Owner-authorized Cloud Run deployment, public-repository polish, evidence bundle, README, and demonstration walkthrough | Planned |
+
+### Lean task budgets for remaining phases
+
+Future OpenSpec plans SHALL stay outcome-focused: no more than nine implementation tasks per phase,
+one logical commit per task where practical, affected leaf checks during construction, and one clean
+full gate at completion. Tests, documentation, and review evidence belong with the capability they
+verify unless they are genuinely independent deliverables. These budgets organize work; they do not
+resolve or waive any gate below.
+
+**Phase 2 blueprint — at most nine tasks**
+
+1. Add bounded live enrichment adapters with verified evidence and explicit unavailable states.
+2. Add consent-gated outreach drafting with mandatory human approval and no sending path.
+3. Add the verification/security layer across enrichment, drafts, prompts, and stored evidence.
+4. Add Firebase Auth and the accepted local/remote access boundary after its gate is resolved.
+5. Build the stored-data dashboard and run monitoring with honest metric denominators.
+6. Complete the responsive operator flows and essential automated/rendered accessibility checks.
+7. Extend evaluation, telemetry, architecture, and AI-operations evidence for the new boundaries.
+8. Integrate the offline gate and any separately authorized live checks.
+9. Run one consolidated review, fix findings, update handoff evidence, and prepare archive/merge.
+
+**Phase 3 blueprint — at most six tasks**
+
+1. Resolve the deployment and public-publication gates without broadening product scope.
+2. Implement the approved Cloud Run/GCP configuration with secrets, budget, rollback, and access controls.
+3. Prepare the public repository, README, licensing decision, and secret/private-data/history scans.
+4. Produce the evidence bundle and demonstration walkthrough from verified stored results.
+5. Run authorized deployment smoke, security, cost, observability, and rollback checks.
+6. Run one consolidated review, fix findings, update final handoff evidence, and prepare archive/merge.
 
 ### Before paid API or AI quota
 

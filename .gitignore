@@ -20,3 +20,6 @@ coverage/
 # Tool caches
 .eslintcache
 .vite/
+
+# Local design-hook cache
+.impeccable/
