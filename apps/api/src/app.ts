@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import {
   createHealthResponse,
   HealthResponseSchema,
@@ -16,11 +17,16 @@ import {
   type RequestIdFactory,
 } from './intake-route.js';
 import { registerRunRoute, type RunRouteDependencies } from './run-route.js';
+import {
+  registerResumeRoute,
+  type ResumeRouteDependencies,
+} from './resume-route.js';
 
 export interface CreateAppOptions {
   phaseOne?: PhaseOneStartup;
   intake?: IntakeRouteDependencies;
   runs?: RunRouteDependencies;
+  resume?: ResumeRouteDependencies;
   requestIdFactory?: RequestIdFactory;
 }
 
@@ -70,6 +76,12 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
 
   registerIntakeRoute(app, phaseOne, options.intake, options.requestIdFactory);
   registerRunRoute(app, phaseOne, options.runs, options.requestIdFactory);
+  registerResumeRoute(
+    app,
+    phaseOne,
+    options.resume,
+    options.requestIdFactory ?? randomUUID,
+  );
 
   return app;
 }

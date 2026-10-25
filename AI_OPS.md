@@ -67,7 +67,7 @@ evidence. Provider evaluation remains unauthorized until the provider, model, bu
 and cases are approved. The separately authorized connected dependency audit reported no known
 vulnerabilities and did not modify the lockfile.
 
-Phase 1 tasks 3.1–5.3 now provide local-only runtime evidence: strict Firestore repositories,
+Phase 1 tasks 3.1–5.4 now provide local-only runtime evidence: strict Firestore repositories,
 atomic intake, concurrency-safe lifecycle updates, a project-owned durable LangGraph checkpointer,
 the fixed qualification graph, and exactly one automatic retry only for the typed
 `SyntheticTransientFault`. Unit fixtures cover success after the first transient, exhaustion after
@@ -92,6 +92,11 @@ ordered event history matching the run revision, validates every linked result i
 run to reject mixed-revision snapshots, and caps the API history at 200 events. Missing, changing,
 malformed, or incompatible state produces a safe unavailable/integrity response rather than inferred
 progress; `retrievedAt` lets the client label its last confirmed snapshot.
+The resume HTTP boundary accepts only a strict expected revision, supplies server-owned correlation,
+and delegates all eligibility, lease, checkpoint, and workflow authority to the durable resume
+service. A retry is labeled `replayed` only when validated event history proves that the requested
+revision advanced through `run.resume_requested`; unrelated stale revisions remain conflicts. All
+race, ineligible, checkpoint, missing-run, and unavailable paths use fixed safe responses.
 This is synthetic local runtime evidence, not provider, production, predictive, or external-tool
 evidence; the retained evaluator still reports provider/live cases as `not_run` until tasks 7.1–7.3
 replace the Phase 0 corpus.

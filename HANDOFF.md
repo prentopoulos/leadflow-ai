@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–5.3 are implemented and locally verified; 23 of 46
+verified dependency/toolchain slice. Tasks 1.1–5.4 are implemented and locally verified; 22 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -394,6 +394,25 @@ events, linked qualification/simulation records, stable revision, and checked ev
 first lint pass caught a mutable-holder declaration in the race fixture; a const holder preserved the
 same revision-race test and the corrected sequence passed.
 
+## Implemented explicit resume HTTP boundary
+
+- `POST /v1/runs/:runId/resume` strictly validates the run UUID and a body containing only a
+  nonnegative integer `expectedRevision`. The API supplies its own request/trace UUIDs, bounded owner
+  identity, fixed five-minute lease request, and recorded `allowed` authorization to the existing
+  resume service.
+- Eligibility, active-lease, revision, stored-lead, checkpoint compatibility, lifecycle transaction,
+  and graph continuation remain owned by the already-tested durable runtime service. The HTTP route
+  does not bypass, repair, or waive any rejection.
+- A revision-conflict retry returns `replayed: true` only when a fresh strict run-detail snapshot has
+  a `run.resume_requested` event at exactly `expectedRevision + 1`. Thus the same logical resume can
+  recover its current stored status after a lost response, while an unrelated stale revision stays a
+  409 conflict and never starts duplicate execution.
+- Missing run, active lease, ineligible state, missing/incompatible checkpoint, stale race, and
+  unknown storage failure map to fixed schema-valid 404/409/503 responses without raw error text.
+
+Task 5.4 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 23 Vitest files/144 tests,
+the retained real emulator persisted/retry/resume/run-detail probe, and the complete offline gate.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
@@ -415,6 +434,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 5.4 by implementing `POST /v1/runs/:runId/resume` with a strict expected revision,
-eligibility/lease/checkpoint enforcement, idempotent response behavior, and safe race/error
-contracts. With no remote, there is no draft PR or hosted CI.
+Begin task 5.5 by exposing the optional local-data reset only behind the exact feature, requester,
+project, host, and confirmation guards, with no generic or production-capable delete surface. With
+no remote, there is no draft PR or hosted CI.
