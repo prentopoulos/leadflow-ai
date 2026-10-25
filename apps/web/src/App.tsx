@@ -11,6 +11,8 @@ import {
   type IntakeClient,
   type IntakeClientResult,
 } from './intake-client.js';
+import { RunDossier } from './RunDossier.js';
+import type { RunClient } from './run-client.js';
 
 const coverageOptions = [
   ['balanced', 'Balanced coverage'],
@@ -106,11 +108,13 @@ type SubmissionStatus = 'idle' | 'submitting' | 'failed' | 'stored';
 interface AppProps {
   intakeClient?: IntakeClient;
   idempotencyKeyFactory?: () => string;
+  runClient?: RunClient;
 }
 
 export function App({
   intakeClient = submitIntake,
   idempotencyKeyFactory = createIdempotencyKey,
+  runClient,
 }: AppProps = {}) {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [validationAttempt, setValidationAttempt] = useState(0);
@@ -628,36 +632,39 @@ export function App({
                 </p>
               </div>
             ) : (
-              <div className="stored-run" role="status">
-                <p className="summary-label">
-                  {accepted.replayed
-                    ? 'Stored request replay confirmed'
-                    : 'Persistence confirmed'}
-                </p>
-                <h3>The lead is stored before processing.</h3>
-                <dl>
-                  <div>
-                    <dt>Run ID</dt>
-                    <dd>{accepted.runId}</dd>
-                  </div>
-                  <div>
-                    <dt>Lead ID</dt>
-                    <dd>{accepted.leadId}</dd>
-                  </div>
-                  <div>
-                    <dt>Committed</dt>
-                    <dd>{new Date(accepted.committedAt).toLocaleString()}</dd>
-                  </div>
-                  <div>
-                    <dt>Evidence</dt>
-                    <dd>{accepted.evidenceClass}</dd>
-                  </div>
-                </dl>
-                <p>
-                  The first stored run snapshot has not been loaded yet. No
-                  client-side progress is inferred from elapsed time.
-                </p>
-              </div>
+              <>
+                <div className="stored-run" role="status">
+                  <p className="summary-label">
+                    {accepted.replayed
+                      ? 'Stored request replay confirmed'
+                      : 'Persistence confirmed'}
+                  </p>
+                  <h3>The lead is stored before processing.</h3>
+                  <dl>
+                    <div>
+                      <dt>Run ID</dt>
+                      <dd>{accepted.runId}</dd>
+                    </div>
+                    <div>
+                      <dt>Lead ID</dt>
+                      <dd>{accepted.leadId}</dd>
+                    </div>
+                    <div>
+                      <dt>Committed</dt>
+                      <dd>{new Date(accepted.committedAt).toLocaleString()}</dd>
+                    </div>
+                    <div>
+                      <dt>Evidence</dt>
+                      <dd>{accepted.evidenceClass}</dd>
+                    </div>
+                  </dl>
+                </div>
+                <RunDossier
+                  runId={accepted.runId}
+                  initialRevision={accepted.runRevision}
+                  {...(runClient === undefined ? {} : { client: runClient })}
+                />
+              </>
             )}
 
             <div className="dossier-index" aria-label="Run dossier contents">

@@ -613,6 +613,220 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
+.run-loading,
+.run-summary,
+.event-history,
+.result-section {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.run-loading h3,
+.run-summary h3,
+.event-history h3,
+.result-section h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  letter-spacing: -0.035em;
+}
+
+.run-loading p:last-child,
+.run-summary > p,
+.result-section p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.stale-state {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 1.5rem;
+  border: 1px solid #a56f1d;
+  border-left-width: 5px;
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  color: #624211;
+  background: #f7ecd5;
+  font-size: 0.78rem;
+}
+
+.run-summary dl,
+.simulation-result dl {
+  margin: 1rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.run-summary dl > div,
+.simulation-result dl > div {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.run-summary dt,
+.simulation-result dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.run-summary dd,
+.simulation-result dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
+.safe-error {
+  border-left: 4px solid var(--error);
+  padding: 0.7rem;
+  color: var(--error) !important;
+  background: var(--error-soft);
+}
+
+.resume-action {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.resume-action button {
+  color: #fff;
+  border-color: var(--accent-dark);
+  background: var(--accent-dark);
+}
+
+.resume-action span,
+.version-line {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+}
+
+.event-history ol {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event-history li {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.event-history li > span {
+  color: var(--accent-dark);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+}
+
+.event-history li strong,
+.event-history li small {
+  display: block;
+}
+
+.event-history li strong {
+  font-size: 0.8rem;
+}
+
+.event-history li small {
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.score-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.score-heading p {
+  margin-bottom: 0;
+}
+
+.score-value {
+  color: var(--accent-dark);
+  font-family: var(--mono);
+  font-size: 2.4rem;
+  letter-spacing: -0.08em;
+}
+
+.score-value span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0;
+}
+
+.criteria-list {
+  margin-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.criteria-list details {
+  border-bottom: 1px solid var(--line);
+  padding: 0.8rem 0;
+}
+
+.criteria-list summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.criteria-list ul {
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.criteria-list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.25rem 1rem;
+  padding: 0.55rem 0;
+  border-top: 1px dotted var(--line-strong);
+  font-size: 0.76rem;
+}
+
+.criteria-list li small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.missing-information {
+  margin-top: 1rem;
+  border-left: 3px solid var(--accent);
+  padding-left: 0.8rem;
+  font-size: 0.78rem;
+}
+
+.missing-information p {
+  margin: 0.25rem 0 0;
+}
+
+.integrity-hold {
+  border-left: 4px solid var(--error);
+  padding-left: 1rem;
+}
+
+.simulation-result {
+  background: var(--accent-soft);
+  margin-inline: calc(clamp(1.35rem, 3vw, 2.5rem) * -1);
+  padding-inline: clamp(1.35rem, 3vw, 2.5rem);
+}
+
 .dossier-index,
 .boundary-note {
   padding: 1.5rem 0;
@@ -689,6 +903,7 @@ button:disabled {
 
   .subsection-heading,
   .validation-status,
+  .resume-action,
   .page-footer {
     align-items: start;
     flex-direction: column;

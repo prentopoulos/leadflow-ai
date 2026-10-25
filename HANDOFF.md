@@ -7,8 +7,8 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–5.6 are implemented and locally verified; 20 of 46
-tasks remain. PROJECT.md records Phase 1 as `In progress`.
+verified dependency/toolchain slice. Tasks 1.1–6.3 are implemented and locally verified; 6 of 35
+compressed tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
 
@@ -513,6 +513,26 @@ run stayed absent, and browser logs contained no warning/error. Successful persi
 identity rendering, disabled duplicate submission, and unchanged-retry key reuse are deterministic
 component/client tests; polling and full rendered state coverage remain tasks 6.3–6.4.
 
+## Implemented stored run dossier and recovery controls
+
+- A strict browser run client now polls `GET /v1/runs/:runId` with bounded attempts and a five-second
+  request timeout. The view renders only schema-validated stored revisions and retains the last
+  confirmed revision with an explicit stale-state notice when a newer read is unavailable.
+- The run dossier shows stored status, attempt/retry counts, current step, system bundle, append-only
+  lifecycle events, safe failures, and explicit resume only for `persisted` or `failed_retryable`
+  runs. Resume posts the visible expected revision and restarts polling after acceptance; a revision
+  conflict refreshes stored state rather than guessing progress.
+- Completed qualification presents deterministic score, priority, criterion points, field-level
+  evidence, missing information, and rubric/interpreter versions as marketing readiness only.
+  Integrity holds render no priority.
+- Simulation remains a separate panel labeled synthetic and not predictive. It directly identifies
+  its evidence class, source run, simulator/seed versions, seed, and simulated lifecycle values.
+  Polling does not move focus or announce unchanged event history.
+
+Task 6.3 checks passed on 2026-10-25: scoped Prettier, ESLint, strict TypeScript, 13 focused
+web/client tests, and the production web build. Task 6.4 retains the consolidated deterministic UI
+state matrix and rendered desktop/390px accessibility inspection.
+
 ## External evidence and gates
 
 The dated Military.com research record is `docs/research/military-com-intake-2026-10-24.md`.
@@ -525,6 +545,7 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 6.3 by polling `GET /v1/runs/:runId` from the committed run identity and rendering stored
-lifecycle progress, qualification evidence, safe failures, eligible resume, and separately labeled
-simulation without inferring client-side progress. With no remote, there is no draft PR or hosted CI.
+Begin task 6.4 by consolidating deterministic loading, validation, persistence, progress,
+failure/resume, complete, stale, and long-content state coverage, then inspect and fix the running
+flow at desktop and 390px for keyboard, focus, semantics, and reduced motion. With no remote, there
+is no draft PR or hosted CI.
