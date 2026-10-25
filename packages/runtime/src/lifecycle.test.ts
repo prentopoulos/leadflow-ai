@@ -41,6 +41,7 @@ class SerialMemoryAtomicStore
   implements FirestoreDocumentStore, FirestoreAtomicStore
 {
   readonly documents = new Map<string, unknown>();
+  failEventCreate = false;
   private queue: Promise<void> = Promise.resolve();
 
   async create(path: string, data: DocumentData): Promise<void> {
@@ -71,6 +72,9 @@ class SerialMemoryAtomicStore
       const result = await operation({
         get: async (path) => structuredClone(staged.get(path) ?? null),
         create: (path, data) => {
+          if (this.failEventCreate && path.includes('/events/')) {
+            throw new Error('injected event write failure');
+          }
           if (staged.has(path)) throw new Error('already exists');
           staged.set(path, structuredClone(data));
         },
@@ -270,6 +274,42 @@ describe('transactional lifecycle persistence', () => {
         ...eventContext(),
       }),
     ).rejects.toThrow(/already exists/u);
+    await expect(repositories.runs.get(response.runId)).resolves.toEqual(
+      claim.run,
+    );
+  });
+
+  it('rolls back the run update when the event write fails', async () => {
+    const store = new SerialMemoryAtomicStore();
+    const { repositories, response } = await persistedRun(store);
+    const service = new LifecyclePersistenceService({
+      atomicStore: store,
+      repositories,
+      idFactory: deterministicIds(700),
+      now: () => '2026-10-24T20:01:00.000Z',
+    });
+    const claim = await service.claim({
+      runId: response.runId,
+      expectedRevision: 0,
+      ownerId: 'worker-1',
+      leaseDurationMs: 30_000,
+      ...eventContext(),
+    });
+    store.failEventCreate = true;
+
+    await expect(
+      service.commitRunEvent({
+        runId: response.runId,
+        expectedRevision: claim.run.revision,
+        next: nextState(claim.run, {
+          currentStep: 'interpret_qualification',
+        }),
+        eventName: 'step.started',
+        step: 'interpret_qualification',
+        durationMs: null,
+        ...eventContext(),
+      }),
+    ).rejects.toThrow(/injected event write failure/u);
     await expect(repositories.runs.get(response.runId)).resolves.toEqual(
       claim.run,
     );

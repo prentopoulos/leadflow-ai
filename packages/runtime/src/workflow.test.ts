@@ -46,11 +46,21 @@ class WorkflowMemoryStore
   implements FirestoreDocumentStore, FirestoreAtomicStore
 {
   readonly documents = new Map<string, unknown>();
+  readonly creates: string[] = [];
+  failAfterCreatePrefix: string | null = null;
   private queue: Promise<void> = Promise.resolve();
 
   async create(path: string, data: DocumentData): Promise<void> {
     if (this.documents.has(path)) throw new Error('already exists');
     this.documents.set(path, structuredClone(data));
+    this.creates.push(path);
+    if (
+      this.failAfterCreatePrefix !== null &&
+      path.startsWith(this.failAfterCreatePrefix)
+    ) {
+      this.failAfterCreatePrefix = null;
+      throw new Error('injected ambiguous workflow result create');
+    }
   }
 
   async get(path: string): Promise<unknown | null> {
@@ -172,7 +182,6 @@ async function executeInjectedWorkflow(
     lifecycle,
     repositories,
     checkpointer: new MemorySaver(),
-    idFactory: deterministicIds(200),
     now: clock,
   });
   const output = await graph.invoke(
@@ -204,6 +213,69 @@ async function executeInjectedWorkflow(
     )
     .sort((left, right) => left.sequence - right.sequence);
   return { interpreter, output, run, events };
+}
+
+async function executeAmbiguousResultWrite(
+  pathPrefix: 'qualificationResults/' | 'simulationRecords/',
+) {
+  const store = new WorkflowMemoryStore();
+  const repositories = createFirestoreRepositories(store);
+  const initial = await new IntakePersistenceService({
+    atomicStore: store,
+    repositories,
+    idFactory: deterministicIds(),
+    now: () => '2026-10-25T00:19:00.000Z',
+  }).persist({
+    idempotencyKey: `workflow-ambiguous-${pathPrefix.replace('/', '')}`,
+    intake,
+    systemBundleId: bundleId,
+  });
+  const clock = tickingClock();
+  const lifecycle = new LifecyclePersistenceService({
+    atomicStore: store,
+    repositories,
+    idFactory: deterministicIds(100),
+    now: clock,
+  });
+  const claimed = await lifecycle.claim({
+    runId: initial.runId,
+    expectedRevision: 0,
+    ownerId: 'workflow-worker',
+    leaseDurationMs: 300_000,
+    traceId,
+    requestId,
+    authorization: 'not_applicable',
+  });
+  const lead = await repositories.leads.get(initial.leadId);
+  if (lead === null) throw new Error('lead fixture missing');
+  store.failAfterCreatePrefix = pathPrefix;
+  const graph = compileQualificationWorkflow({
+    interpreter: new DeterministicQualificationInterpreter(clock),
+    lifecycle,
+    repositories,
+    checkpointer: new MemorySaver(),
+    now: clock,
+  });
+  const output = await graph.invoke(
+    initialQualificationGraphState({
+      runId: initial.runId,
+      leadId: initial.leadId,
+      traceId,
+      requestId,
+      systemBundleId: bundleId,
+      runRevision: claimed.run.revision,
+      projection: qualificationProjectionFromLead(lead),
+    }),
+    { configurable: { thread_id: initial.runId } },
+  );
+  return {
+    output,
+    run: await repositories.runs.get(initial.runId),
+    resultPaths: [...store.documents.keys()].filter((path) =>
+      path.startsWith(pathPrefix),
+    ),
+    resultCreates: store.creates.filter((path) => path.startsWith(pathPrefix)),
+  };
 }
 
 describe('qualification-graph-v1', () => {
@@ -244,7 +316,6 @@ describe('qualification-graph-v1', () => {
       lifecycle,
       repositories,
       checkpointer,
-      idFactory: deterministicIds(200),
       now: lifecycleClock,
     });
     const graphConfig = {
@@ -346,6 +417,24 @@ describe('qualification-graph-v1', () => {
       runRevision: 9,
     });
   });
+
+  it.each(['qualificationResults/', 'simulationRecords/'] as const)(
+    'reconciles an ambiguous %s write without duplicating its logical effect',
+    async (pathPrefix) => {
+      const result = await executeAmbiguousResultWrite(pathPrefix);
+
+      expect(result.output).toMatchObject({
+        finalized: true,
+        runRevision: 9,
+      });
+      expect(result.run).toMatchObject({
+        status: 'complete',
+        revision: 9,
+      });
+      expect(result.resultPaths).toHaveLength(1);
+      expect(result.resultCreates).toHaveLength(1);
+    },
+  );
 
   it('persists one transient failure and completes on the single retry', async () => {
     const result = await executeInjectedWorkflow(

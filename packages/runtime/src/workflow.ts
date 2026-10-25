@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { isDeepStrictEqual } from 'node:util';
 import type { RunnableConfig } from '@langchain/core/runnables';
 import {
   END,
@@ -36,7 +36,6 @@ export interface QualificationWorkflowDependencies {
   lifecycle: LifecyclePersistenceService;
   repositories: FirestoreRepositories;
   checkpointer: BaseCheckpointSaver;
-  idFactory?: () => string;
   now?: () => string;
 }
 
@@ -86,7 +85,6 @@ function safeErrorFrom(error: unknown): SafeError {
 export function compileQualificationWorkflow(
   dependencies: QualificationWorkflowDependencies,
 ): CompiledQualificationWorkflow {
-  const idFactory = dependencies.idFactory ?? randomUUID;
   const now = dependencies.now ?? (() => new Date().toISOString());
 
   async function storedRun(state: QualificationGraphState) {
@@ -285,13 +283,21 @@ export function compileQualificationWorkflow(
         if (state.interpretation === null) {
           throw new Error('Qualification interpretation is unavailable.');
         }
+        const storedQualification =
+          await dependencies.repositories.qualificationResults.get(state.runId);
         const qualification = scoreQualification(state.interpretation, {
-          resultId: idFactory(),
+          resultId: state.runId,
           runId: state.runId,
           leadId: state.leadId,
-          generatedAt: now(),
+          generatedAt: storedQualification?.generatedAt ?? now(),
         });
-        await dependencies.repositories.qualificationResults.create(
+        if (
+          storedQualification !== null &&
+          !isDeepStrictEqual(storedQualification, qualification)
+        ) {
+          throw new Error('Stored qualification result is incompatible.');
+        }
+        await dependencies.repositories.qualificationResults.createIdempotent(
           qualification,
         );
         const completed = await completeStep(
@@ -323,11 +329,24 @@ export function compileQualificationWorkflow(
         if (state.qualification === null) {
           throw new Error('Qualification result is unavailable.');
         }
+        const simulationRecordId = `${state.runId}:${PHASE_ONE_VERSIONS.simulator}`;
+        const storedSimulation =
+          await dependencies.repositories.simulationRecords.get(
+            simulationRecordId,
+          );
         const simulation = simulateOutcome({
           runId: state.runId,
-          generatedAt: now(),
+          generatedAt: storedSimulation?.generatedAt ?? now(),
         });
-        await dependencies.repositories.simulationRecords.create(simulation);
+        if (
+          storedSimulation !== null &&
+          !isDeepStrictEqual(storedSimulation, simulation)
+        ) {
+          throw new Error('Stored simulation record is incompatible.');
+        }
+        await dependencies.repositories.simulationRecords.createIdempotent(
+          simulation,
+        );
         const completed = await completeStep(
           state,
           started.run,

@@ -255,15 +255,19 @@ export class FirestoreCheckpointSaver extends BaseCheckpointSaver {
       systemBundleId: this.systemBundleId,
       createdAt: checkpoint.ts,
     });
-    const existing = await this.backend.createIfAbsent(
-      checkpointPath(
-        identity.runId,
-        this.systemBundleId,
-        identity.namespace,
-        checkpointId,
-      ),
-      document,
+    const path = checkpointPath(
+      identity.runId,
+      this.systemBundleId,
+      identity.namespace,
+      checkpointId,
     );
+    let existing: unknown | null;
+    try {
+      existing = await this.backend.createIfAbsent(path, document);
+    } catch (error) {
+      existing = await this.backend.get(path);
+      if (existing === null) throw error;
+    }
     if (
       existing !== null &&
       !isDeepStrictEqual(this.parseCheckpoint(existing), document)
@@ -308,10 +312,29 @@ export class FirestoreCheckpointSaver extends BaseCheckpointSaver {
           writeIndex,
         );
         if (writeIndex < 0) {
-          await this.backend.set(path, document);
+          try {
+            await this.backend.set(path, document);
+          } catch (error) {
+            const stored = await this.backend.get(path);
+            if (
+              stored === null ||
+              !isDeepStrictEqual(
+                parseStored(PendingWriteDocumentSchema, stored),
+                document,
+              )
+            ) {
+              throw error;
+            }
+          }
           return;
         }
-        const existing = await this.backend.createIfAbsent(path, document);
+        let existing: unknown | null;
+        try {
+          existing = await this.backend.createIfAbsent(path, document);
+        } catch (error) {
+          existing = await this.backend.get(path);
+          if (existing === null) throw error;
+        }
         if (existing !== null) {
           parseStored(PendingWriteDocumentSchema, existing);
         }

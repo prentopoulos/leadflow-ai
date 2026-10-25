@@ -75,6 +75,20 @@ export class ValidatedDocumentRepository<
     return prepared.data;
   }
 
+  async createIdempotent(candidate: unknown): Promise<T> {
+    const prepared = this.prepareCreate(candidate);
+    try {
+      await this.store.create(prepared.path, prepared.data);
+      return prepared.data;
+    } catch (error) {
+      const stored = await this.store.get(prepared.path);
+      if (stored === null) throw error;
+      const parsed = this.parseStored(stored);
+      if (!isDeepStrictEqual(parsed, prepared.data)) throw error;
+      return parsed;
+    }
+  }
+
   async get(...lookup: Lookup): Promise<T | null> {
     const stored = await this.store.get(this.readPath(...lookup));
     if (stored === null) return null;

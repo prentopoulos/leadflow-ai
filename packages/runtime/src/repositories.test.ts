@@ -189,11 +189,16 @@ const interpretation = {
 class MemoryDocumentStore implements FirestoreDocumentStore {
   readonly documents = new Map<string, unknown>();
   readonly creates: string[] = [];
+  failAfterCreatePath: string | null = null;
 
   async create(path: string, data: DocumentData): Promise<void> {
     if (this.documents.has(path)) throw new Error('already exists');
     this.documents.set(path, structuredClone(data));
     this.creates.push(path);
+    if (this.failAfterCreatePath === path) {
+      this.failAfterCreatePath = null;
+      throw new Error('injected ambiguous document create');
+    }
   }
 
   async get(path: string): Promise<unknown | null> {
@@ -259,6 +264,32 @@ describe('schema-validating Firestore repositories', () => {
       repositories.leads.create({ ...lead, unexpected: true }),
     ).rejects.toThrow();
     expect(store.creates).toEqual([]);
+  });
+
+  it('reconciles an exact ambiguous create but rejects conflicting reuse', async () => {
+    const store = new MemoryDocumentStore();
+    const repositories = createFirestoreRepositories(store);
+    const qualification = scoreQualification(interpretation, {
+      resultId: ids.result,
+      runId: ids.run,
+      leadId: ids.lead,
+      generatedAt: timestamp,
+    });
+    store.failAfterCreatePath = `qualificationResults/${ids.result}`;
+
+    await expect(
+      repositories.qualificationResults.createIdempotent(qualification),
+    ).resolves.toEqual(qualification);
+    await expect(
+      repositories.qualificationResults.createIdempotent(qualification),
+    ).resolves.toEqual(qualification);
+    await expect(
+      repositories.qualificationResults.createIdempotent({
+        ...qualification,
+        generatedAt: '2026-10-24T20:00:01.000Z',
+      }),
+    ).rejects.toThrow(/already exists/u);
+    expect(store.creates).toEqual([`qualificationResults/${ids.result}`]);
   });
 
   it('rejects malformed or normalization-dependent stored state', async () => {

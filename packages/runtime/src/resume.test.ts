@@ -185,7 +185,6 @@ async function failRetryably(base: Awaited<ReturnType<typeof fixture>>) {
     lifecycle: base.lifecycle,
     repositories: base.repositories,
     checkpointer: saver,
-    idFactory: deterministicIds(200),
     now: base.clock,
   });
   const config = { configurable: { thread_id: base.persisted.runId } };
@@ -217,7 +216,6 @@ function resumeService(
     lifecycle: base.lifecycle,
     repositories: base.repositories,
     checkpointer: saver,
-    idFactory: deterministicIds(300),
     now: base.clock,
   });
   return new QualificationResumeService({

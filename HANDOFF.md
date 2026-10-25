@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–4.4 are implemented and locally verified; 27 of 46
+verified dependency/toolchain slice. Tasks 1.1–4.5 are implemented and locally verified; 26 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -306,11 +306,31 @@ internal `__pregel_tasks` channel beside application state; the resume boundary 
 one pinned internal key before strict state parsing. A lint pass then caught the initially discarded
 binding, which was replaced with an explicit copy/delete before the passing sequence.
 
+## Implemented crash-safe recovery exercise
+
+- Intake crash-before-commit and lifecycle event-write failures remain fully transactional: injected
+  failures leave neither partial intake records nor a run revision without its matching event.
+  Persisted-before-claim work is reconstructable from the strict stored lead.
+- Qualification and simulation records now use stable per-run logical identities. Create-only
+  persistence reconciles an exact record after an ambiguous commit response, reuses its original
+  timestamp on replay, and rejects same-ID content conflicts rather than overwriting them.
+- Checkpoint and pending-write persistence similarly reads back the exact immutable record after an
+  ambiguous create/set response. Checkpoint conflicts still fail visibly, while LangGraph special
+  pending-write slots retain their documented replacement behavior.
+- Unit recovery fixtures reconstruct state through a newly instantiated checkpoint saver and prove
+  that ambiguous qualification/simulation/checkpoint/pending writes produce one logical effect. The
+  real emulator retry/resume probe now constructs a fresh Firestore checkpoint adapter before resume,
+  exercising durable restart reconstruction rather than relying on the original adapter instance.
+
+Task 4.5 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 19 Vitest files/110 tests,
+and the real isolated Firestore emulator workflow/retry/restart-resume/verified-flush probe.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
-pinned Firestore checkpoint contract plus fixed qualification workflow. They do not yet establish
-crash/restart reconstruction guarantees, the Phase 1 API/UI, diagrams, or production behavior. The
+pinned Firestore checkpoint contract plus fixed qualification workflow and locally exercised
+crash/restart recovery. They do not yet establish the Phase 1 API/UI, diagrams, or production
+behavior. The
 evaluator still executes the retained Phase 0 fixture corpus; Phase 1 fixtures and independent
 evaluation remain tasks 7.1–7.3.
 
@@ -326,6 +346,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 4.5 by exercising crash-before-commit, after-commit-before-claim, failures during
-checkpoint/event/result writes, and restart reconstruction so partial work stays honest and logical
-effects are not duplicated. With no remote, there is no draft PR or hosted CI.
+Begin task 5.1 by adding validated Phase 1 configuration/startup readiness that cannot fall through
+to cloud Firestore while keeping `GET /health` narrower than emulator/workflow readiness. With no
+remote, there is no draft PR or hosted CI.

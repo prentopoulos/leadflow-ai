@@ -401,17 +401,21 @@ try {
   if (exhaustionCalls !== 2 || exhaustedRun?.status !== 'failed_retryable') {
     throw new Error('Emulator resume fixture did not exhaust exactly once.');
   }
+  const restartedSaver = createFirestoreCheckpointSaver(
+    boundary.database,
+    systemBundleId,
+  );
   const resumedGraph = compileQualificationWorkflow({
     interpreter: new DeterministicQualificationInterpreter(graphClock),
     lifecycle: graphLifecycle,
     repositories,
-    checkpointer: saver,
+    checkpointer: restartedSaver,
     now: graphClock,
   });
   const resumed = await new QualificationResumeService({
     repositories,
     lifecycle: graphLifecycle,
-    checkpoints: saver,
+    checkpoints: restartedSaver,
     workflow: resumedGraph,
     now: graphClock,
   }).resume({

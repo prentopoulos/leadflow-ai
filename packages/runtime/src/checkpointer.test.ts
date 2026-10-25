@@ -17,6 +17,8 @@ const checkpointTwo = '00000000-0000-6000-8000-000000000002';
 
 class MemoryCheckpointBackend implements FirestoreCheckpointBackend {
   readonly documents = new Map<string, unknown>();
+  failAfterNextCreate = false;
+  failAfterNextSet = false;
 
   async createIfAbsent(
     path: string,
@@ -25,11 +27,19 @@ class MemoryCheckpointBackend implements FirestoreCheckpointBackend {
     const existing = this.documents.get(path);
     if (existing !== undefined) return structuredClone(existing);
     this.documents.set(path, structuredClone(data));
+    if (this.failAfterNextCreate) {
+      this.failAfterNextCreate = false;
+      throw new Error('injected ambiguous checkpoint create');
+    }
     return null;
   }
 
   async set(path: string, data: DocumentData): Promise<void> {
     this.documents.set(path, structuredClone(data));
+    if (this.failAfterNextSet) {
+      this.failAfterNextSet = false;
+      throw new Error('injected ambiguous pending-write set');
+    }
   }
 
   async get(path: string): Promise<unknown | null> {
@@ -222,6 +232,62 @@ describe('FirestoreCheckpointSaver pinned contract', () => {
       filtered.push(tuple.checkpoint.id);
     }
     expect(filtered).toEqual([checkpointTwo]);
+  });
+
+  it('reconciles an ambiguous checkpoint create and reconstructs after restart', async () => {
+    const backend = new MemoryCheckpointBackend();
+    const firstProcess = new FirestoreCheckpointSaver(backend, bundleId);
+    backend.failAfterNextCreate = true;
+    const storedConfig = await firstProcess.put(
+      initialConfig(),
+      checkpoint(checkpointOne, { durable: true }),
+      metadata('input', -1, 'root'),
+      { __start__: 1 },
+    );
+
+    const restartedProcess = new FirestoreCheckpointSaver(backend, bundleId);
+    await expect(
+      restartedProcess.getTuple(storedConfig),
+    ).resolves.toMatchObject({
+      checkpoint: checkpoint(checkpointOne, { durable: true }),
+      metadata: metadata('input', -1, 'root'),
+    });
+  });
+
+  it('reconciles ambiguous ordinary and special pending writes', async () => {
+    const backend = new MemoryCheckpointBackend();
+    const firstProcess = new FirestoreCheckpointSaver(backend, bundleId);
+    const storedConfig = await firstProcess.put(
+      initialConfig(),
+      checkpoint(checkpointOne, { durable: true }),
+      metadata('input', -1, 'root'),
+      { __start__: 1 },
+    );
+
+    backend.failAfterNextCreate = true;
+    await firstProcess.putWrites(
+      storedConfig,
+      [['alpha', { persisted: true }]],
+      'task-ordinary',
+      'ordinary-path',
+    );
+    backend.failAfterNextSet = true;
+    await firstProcess.putWrites(
+      storedConfig,
+      [['__error__', { safe: true }]],
+      'task-special',
+      'special-path',
+    );
+
+    const restartedProcess = new FirestoreCheckpointSaver(backend, bundleId);
+    await expect(
+      restartedProcess.getTuple(storedConfig),
+    ).resolves.toMatchObject({
+      pendingWrites: [
+        ['task-ordinary', 'alpha', { persisted: true }],
+        ['task-special', '__error__', { safe: true }],
+      ],
+    });
   });
 
   it('rejects conflicting checkpoint reuse and bundle mismatch', async () => {
