@@ -10,6 +10,7 @@ import {
   initialQualificationGraphState,
   LOCAL_RESET_CONFIRMATION,
   qualificationProjectionFromLead,
+  QualificationResumeService,
   resetLocalEmulatorData,
   SyntheticTransientFault,
 } from '../packages/runtime/dist/index.js';
@@ -351,6 +352,95 @@ try {
     );
   }
 
+  const resumeIntake = await intakeService.persist({
+    idempotencyKey: 'emulator-resume-probe-v1',
+    intake,
+    systemBundleId,
+  });
+  const resumeClaim = await graphLifecycle.claim({
+    runId: resumeIntake.runId,
+    expectedRevision: 0,
+    ownerId: 'emulator-worker-failure',
+    leaseDurationMs: 30_000,
+    ...context,
+  });
+  const resumeLead = await repositories.leads.get(resumeIntake.leadId);
+  if (resumeLead === null) throw new Error('Emulator resume lead is missing.');
+  let exhaustionCalls = 0;
+  const exhaustionGraph = compileQualificationWorkflow({
+    interpreter: {
+      version: 'deterministic-interpreter-v1',
+      async interpret() {
+        exhaustionCalls += 1;
+        throw new SyntheticTransientFault();
+      },
+    },
+    lifecycle: graphLifecycle,
+    repositories,
+    checkpointer: saver,
+    now: graphClock,
+  });
+  await exhaustionGraph.invoke(
+    initialQualificationGraphState({
+      runId: resumeIntake.runId,
+      leadId: resumeIntake.leadId,
+      traceId: context.traceId,
+      requestId: context.requestId,
+      systemBundleId,
+      runRevision: resumeClaim.run.revision,
+      projection: qualificationProjectionFromLead(resumeLead),
+    }),
+    {
+      configurable: {
+        thread_id: resumeIntake.runId,
+        system_bundle_id: systemBundleId,
+      },
+    },
+  );
+  const exhaustedRun = await repositories.runs.get(resumeIntake.runId);
+  if (exhaustionCalls !== 2 || exhaustedRun?.status !== 'failed_retryable') {
+    throw new Error('Emulator resume fixture did not exhaust exactly once.');
+  }
+  const resumedGraph = compileQualificationWorkflow({
+    interpreter: new DeterministicQualificationInterpreter(graphClock),
+    lifecycle: graphLifecycle,
+    repositories,
+    checkpointer: saver,
+    now: graphClock,
+  });
+  const resumed = await new QualificationResumeService({
+    repositories,
+    lifecycle: graphLifecycle,
+    checkpoints: saver,
+    workflow: resumedGraph,
+    now: graphClock,
+  }).resume({
+    runId: resumeIntake.runId,
+    expectedRevision: exhaustedRun.revision,
+    ownerId: 'emulator-worker-resume',
+    leaseDurationMs: 30_000,
+    traceId: context.traceId,
+    requestId: context.requestId,
+    authorization: 'allowed',
+  });
+  const resumedRun = await repositories.runs.get(resumeIntake.runId);
+  const resumedEvents = await boundary.database
+    .collection(`runs/${resumeIntake.runId}/events`)
+    .get();
+  if (
+    resumed.resumedFrom !== 'checkpoint' ||
+    !resumed.state.finalized ||
+    resumed.state.runRevision !== 16 ||
+    resumedRun?.status !== 'complete' ||
+    resumedEvents.docs.filter(
+      (document) => document.data().name === 'run.resume_requested',
+    ).length !== 1
+  ) {
+    throw new Error(
+      'Emulator explicit resume did not continue from compatible durable state.',
+    );
+  }
+
   const rootCheckpointId = '00000000-0000-6000-8000-000000000001';
   const childCheckpointId = '00000000-0000-6000-8000-000000000002';
   const checkpointConfig = {
@@ -445,6 +535,7 @@ try {
   if (
     (await repositories.runs.get(first.runId)) !== null ||
     (await repositories.runs.get(retryIntake.runId)) !== null ||
+    (await repositories.runs.get(resumeIntake.runId)) !== null ||
     (await repositories.systemBundles.get(systemBundleId)) !== null
   ) {
     throw new Error('Verified emulator flush left fixture records behind.');

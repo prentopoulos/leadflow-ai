@@ -14,7 +14,7 @@ maps AI capabilities to current evidence. Read
 | Semantic or response caching | deferred | No cache is planned | Cache or replay optimization is proposed |
 | Model training / feature pipelines | deferred | No training is planned; rubric scoring is deterministic | Scope adds training or feature serving |
 | Tool actions / external adapters | partial-local | The loopback Firestore Emulator boundary is implemented; NHTSA, ZIP, email-domain, model, auth, and outbound adapters remain absent | First additional adapter or destination change |
-| Persistent state / replay | implemented-local | Versioned Firestore leads/runs/events/results plus LangGraph checkpoints and bounded retry history are exercised locally; explicit resume/reconstruction remain Phase 1 work | State schema, checkpointer, retry, or resume change |
+| Persistent state / replay | implemented-local | Versioned Firestore leads/runs/events/results, LangGraph checkpoints, bounded retry history, and explicit compatible-state resume are exercised locally; crash reconstruction remains Phase 1 work | State schema, checkpointer, retry, resume, or reconstruction change |
 | Multiple users / tenants | deferred | Firebase Auth is planned; roles and tenant boundaries remain TBD | Phase 2 auth/access design |
 | Generated code execution | deferred | Not part of the MVP | A code-execution tool is proposed |
 | MCP / external tool servers | deferred | Not part of the runtime design | An MCP/runtime tool server is proposed |
@@ -67,12 +67,13 @@ evidence. Provider evaluation remains unauthorized until the provider, model, bu
 and cases are approved. The separately authorized connected dependency audit reported no known
 vulnerabilities and did not modify the lockfile.
 
-Phase 1 tasks 3.1–4.3 now provide local-only runtime evidence: strict Firestore repositories,
+Phase 1 tasks 3.1–4.4 now provide local-only runtime evidence: strict Firestore repositories,
 atomic intake, concurrency-safe lifecycle updates, a project-owned durable LangGraph checkpointer,
 the fixed qualification graph, and exactly one automatic retry only for the typed
 `SyntheticTransientFault`. Unit fixtures cover success after the first transient, exhaustion after
 the second transient with `failed_retryable`, immediate terminal handling for unknown errors, safe
-telemetry, and absence of a third attempt. The real isolated emulator confirms durable attempt/retry
-events and checkpoints. This is synthetic local runtime evidence, not provider, production,
-predictive, or external-tool evidence; the retained evaluator still reports provider/live cases as
-`not_run` until tasks 7.1–7.3 replace the Phase 0 corpus.
+telemetry, absence of a third attempt, revision/lease/status rejection, and compatible-checkpoint
+resume. The real isolated emulator confirms durable attempt/retry/resume events and checkpoints.
+This is synthetic local runtime evidence, not provider, production, predictive, or external-tool
+evidence; the retained evaluator still reports provider/live cases as `not_run` until tasks 7.1–7.3
+replace the Phase 0 corpus.

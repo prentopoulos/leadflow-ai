@@ -7,4 +7,5 @@ export * from './interpreter.js';
 export * from './lifecycle.js';
 export * from './local-reset.js';
 export * from './repositories.js';
+export * from './resume.js';
 export * from './workflow.js';

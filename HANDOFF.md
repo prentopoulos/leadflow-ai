@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–4.3 are implemented and locally verified; 28 of 46
+verified dependency/toolchain slice. Tasks 1.1–4.4 are implemented and locally verified; 27 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -283,11 +283,34 @@ exhausted typed transient faults `failed_retryable`; one sentence in the accepte
 exhaustion is terminal, so the implementation follows the normative scenario and this planning-text
 discrepancy remains explicit for the next artifact update.
 
+## Implemented explicit compatible-state resume
+
+- `LifecyclePersistenceService.resume` transactionally rechecks the expected revision, eligible
+  `persisted`/`failed_retryable` status, and absence of an active lease before transitioning to
+  `running`, claiming a bounded lease, and appending one authorized `run.resume_requested` event.
+- `QualificationResumeService` performs read-only rejection checks before mutation. A persisted run
+  reconstructs initial graph state from its strict stored lead; a retryable run requires the latest
+  durable checkpoint and validates schema, run/lead/bundle identity, revision, unfinished state, and
+  exact safe-error agreement before the resume transaction.
+- Resume understands the pinned LangGraph `__pregel_tasks` internal channel but strictly parses all
+  remaining channel values as `qualification-graph-state-v1`. Missing, malformed, or incompatible
+  checkpoints do not change the run or start a graph node.
+- Successful resume uses the same fixed workflow and checkpoint thread. Complete, running,
+  terminal, stale-revision, missing-run, incompatible-checkpoint, missing-checkpoint, and
+  active-lease requests are rejected without mutation.
+
+Task 4.4 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 19 Vitest files/104 tests,
+runtime declaration build, and the real emulator twice-failed → compatible-checkpoint → authorized
+resume → complete path with verified flush. The first compatible unit fixture exposed LangGraph's
+internal `__pregel_tasks` channel beside application state; the resume boundary now excludes that
+one pinned internal key before strict state parsing. A lint pass then caught the initially discarded
+binding, which was replaced with an explicit copy/delete before the passing sequence.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
 pinned Firestore checkpoint contract plus fixed qualification workflow. They do not yet establish
-explicit resume/reconstruction orchestration, the Phase 1 API/UI, diagrams, or production behavior. The
+crash/restart reconstruction guarantees, the Phase 1 API/UI, diagrams, or production behavior. The
 evaluator still executes the retained Phase 0 fixture corpus; Phase 1 fixtures and independent
 evaluation remain tasks 7.1–7.3.
 
@@ -303,6 +326,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 4.4 by implementing revision-checked explicit resume from persisted or retryable
-compatible state and verifying complete/running/terminal/stale/missing/incompatible/active-lease
-rejection paths. With no remote, there is no draft PR or hosted CI.
+Begin task 4.5 by exercising crash-before-commit, after-commit-before-claim, failures during
+checkpoint/event/result writes, and restart reconstruction so partial work stays honest and logical
+effects are not duplicated. With no remote, there is no draft PR or hosted CI.

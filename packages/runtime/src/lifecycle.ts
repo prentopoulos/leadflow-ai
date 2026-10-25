@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import {
   assertRunTransition,
+  isResumeEligible,
   type LifecycleEvent,
   type RunDocument,
   type RunStatus,
@@ -225,6 +226,58 @@ export class LifecyclePersistenceService {
           },
           eventName: 'run.lease_reclaimed',
           step: null,
+          durationMs: null,
+        },
+        eventId,
+        occurredAt,
+      );
+    });
+  }
+
+  async resume(request: ClaimRunRequest): Promise<RunEventCommit> {
+    assertOwnerId(request.ownerId);
+    assertLeaseDuration(request.leaseDurationMs);
+    const eventId = this.idFactory();
+    const occurredAt = this.now();
+    const expiresAt = new Date(
+      Date.parse(occurredAt) + request.leaseDurationMs,
+    ).toISOString();
+    return this.dependencies.atomicStore.runTransaction(async (transaction) => {
+      const run = await this.loadRun(transaction, request.runId);
+      this.assertRevision(run, request.expectedRevision);
+      if (!isResumeEligible(run.status)) {
+        throw new RunStateConflictError(
+          'Only a persisted or retryable run can be resumed.',
+        );
+      }
+      if (
+        run.lease !== null &&
+        Date.parse(run.lease.expiresAt) > Date.parse(occurredAt)
+      ) {
+        throw new RunLeaseConflictError();
+      }
+      return this.commitLoadedRunEvent(
+        transaction,
+        run,
+        {
+          ...request,
+          next: {
+            status: 'running',
+            attempt: run.attempt,
+            retryCount: run.retryCount,
+            currentStep: run.currentStep,
+            completedSteps: run.completedSteps,
+            lease: {
+              ownerId: request.ownerId,
+              claimedAt: occurredAt,
+              expiresAt,
+            },
+            qualificationResultId: run.qualificationResultId,
+            simulationRecordId: run.simulationRecordId,
+            safeError: run.safeError,
+          },
+          eventName: 'run.resume_requested',
+          step: run.currentStep,
           durationMs: null,
         },
         eventId,
