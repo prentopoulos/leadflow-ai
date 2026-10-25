@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–3.5 are implemented and locally verified; 31 of 46
+verified dependency/toolchain slice. Tasks 1.1–4.1 are implemented and locally verified; 30 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -213,6 +213,24 @@ and the real emulator pre/post-flush probe. The first typecheck retained an inco
 the project-ID constant; importing it from the domain owner fixed the failure before the passing
 sequence.
 
+## Implemented deterministic interpreter boundary
+
+- `qualification-projection-v1` carries only the normalized fields needed for qualification and
+  excludes consent, provenance, storage, prompt, provider, model, and tool state. Projection from a
+  strict stored lead happens before the interpreter boundary.
+- `QualificationInterpreter` is bound in Phase 1 to `deterministic-interpreter-v1`. It validates the
+  minimum projection, derives a complete disjoint field-evidence partition in stable domain order,
+  treats bounded nonblank request text only as presence evidence, and returns the strict
+  `qualification-interpretation-v1` contract. Its only dependency is an injectable clock.
+- Tests cover full and missing evidence, blank details, consent/provenance exclusion, inert
+  control-like text, absence of provider/model/prompt/tool output, and rejection of fields outside
+  the projection.
+
+Task 4.1 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, and 17 Vitest files/95
+tests. The first typecheck correctly rejected an intentionally extra test field at compile time; the
+runtime rejection fixture now uses an explicit boundary cast. A following format check caught that
+test edit, and the formatter plus identical fail-fast checks then passed.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
@@ -232,6 +250,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 4.1 with the minimum-projection `QualificationInterpreter` interface and deterministic
-`qualification-interpretation-v1` stub, with no model, prompt, provider, or tool call. With no remote,
-there is no draft PR or hosted CI.
+Begin task 4.2 by compiling the fixed four-node LangGraph workflow for interpretation, deterministic
+score, score-independent synthetic simulation, and finalization with versioned minimal state and
+durable checkpoints/events. With no remote, there is no draft PR or hosted CI.

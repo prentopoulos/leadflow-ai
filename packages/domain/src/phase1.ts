@@ -8,6 +8,7 @@ export const PHASE_ONE_VERSIONS = {
   checkpoint: 'checkpoint-v1',
   pendingWrite: 'pending-write-v1',
   idempotency: 'idempotency-v1',
+  qualificationProjection: 'qualification-projection-v1',
   interpretation: 'qualification-interpretation-v1',
   rubric: 'rubric-v1',
   simulator: 'simulator-v1',
@@ -287,7 +288,7 @@ export const IdempotencyRecordSchema = z
   .strict();
 export type IdempotencyRecord = z.infer<typeof IdempotencyRecordSchema>;
 
-export const QualificationFieldSchema = z.enum([
+export const QUALIFICATION_FIELDS = [
   'givenName',
   'familyName',
   'email',
@@ -299,9 +300,31 @@ export const QualificationFieldSchema = z.enum([
   'requestIntent',
   'needTimeline',
   'requestDetails',
-]);
+] as const;
+export const QualificationFieldSchema = z.enum(QUALIFICATION_FIELDS);
 export type QualificationField = z.infer<typeof QualificationFieldSchema>;
 const qualificationFields = QualificationFieldSchema.options;
+
+export const QualificationProjectionSchema = z
+  .object({
+    schemaVersion: z.literal(PHASE_ONE_VERSIONS.qualificationProjection),
+    leadId: IdentifierSchema,
+    givenName: z.string().trim().min(1).max(80),
+    familyName: z.string().trim().min(1).max(80),
+    email: TestEmailSchema,
+    zipCode: z.string().regex(/^\d{5}$/u),
+    vehicleYear: z.number().int().min(1981).max(2027).nullable(),
+    vehicleMake: z.string().trim().min(1).max(80).nullable(),
+    vehicleModel: z.string().trim().min(1).max(80).nullable(),
+    coverageFocus: CoverageFocusSchema.nullable(),
+    requestIntent: RequestIntentSchema.nullable(),
+    needTimeline: NeedTimelineSchema.nullable(),
+    requestDetails: z.string().trim().max(1_000).nullable(),
+  })
+  .strict();
+export type QualificationProjection = z.infer<
+  typeof QualificationProjectionSchema
+>;
 
 export const QualificationInterpretationSchema = z
   .object({
