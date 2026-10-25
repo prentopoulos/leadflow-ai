@@ -604,6 +604,33 @@ Git Bash could not resolve the pnpm shim; the identical commands passed from the
 session. The repository is owned by a different Windows account, so Git commands in this session
 use a per-command `safe.directory` override; global Git configuration was not changed.
 
+## Implemented architecture evidence and README (tasks 8.1–8.2)
+
+- Owner decision 2026-10-25: rendered views use the diagram-design skill and the README uses the
+  showcase method; no Mermaid. `docs/architecture/workspace.dsl` is the unrendered Structurizr model
+  (context, containers, API components, persist-before-processing and recovery dynamic views).
+- `scripts/generate-diagrams.mjs` with `scripts/diagram-kit.mjs` deterministically renders the
+  architecture, sequence, lifecycle, data-model and README principles views from product tokens
+  (accent is `--accent-dark` for 4.5:1 contrast) with offline system fonts. It enforces orthogonal
+  connectors, label/box separation, text fit, viewBox bounds, 4px grid, and node/arrow/accent
+  budgets, and exports SVGs through the skill's `export_svg.py`. `pnpm docs:diagrams` regenerates.
+- `pnpm docs:check` (now in `pnpm check`) verifies README links against tracked files, the
+  bottom-line figures against the evals corpus and rubric source, diagram/SVG freshness, Structurizr
+  element names against the architecture view, data-model collections against runtime paths both
+  ways, the ZIP-only/parity research record, and offline Structurizr validation.
+- New `pnpm api:local` records the code-bound system bundle in a running emulator and serves the
+  API. Before it, the README's interactive path could not work, because the server needs a stored
+  bundle that only the probe created.
+
+Checks on 2026-10-25: Prettier, ESLint, typecheck, script tests (18), skill `self_check.py --offline`
+(5 files), XML parse, `pnpm docs:check`, and rendered review of every SVG at 1.5x. Live path:
+emulator, `pnpm api:local` and the Vite dev server gave intake `202`, replay `200`, and a run that
+reached `complete` with score 100 / `high`, 10 events, and `not_live`/`not_predictive` simulation.
+Desktop render was inspected, and 390px scroll width equals client width (Playwright). Retained:
+a first API start before emulator readiness returned `storage_unavailable` (expected startup
+gating), and a stale API process held port 3001 after its shell was stopped. GitHub README/SVG
+render review is not possible without a remote and remains open for the publication phase.
+
 ## External evidence and gates
 
 The dated Military.com research record is `docs/research/military-com-intake-2026-10-24.md`.

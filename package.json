@@ -26,6 +26,9 @@
     "build": "node scripts/run-workspace-builds.mjs",
     "smoke": "node scripts/run-smokes.mjs",
     "governance": "node scripts/run-governance.mjs",
+    "api:local": "node scripts/run-local-api.mjs",
+    "docs:diagrams": "node scripts/generate-diagrams.mjs",
+    "docs:check": "node scripts/check-docs.mjs",
     "check:openspec": "openspec validate --all --strict",
     "check": "node scripts/run-checks.mjs",
     "audit:dependencies": "node scripts/run-pnpm-audit.mjs"

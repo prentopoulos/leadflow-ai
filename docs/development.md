@@ -88,8 +88,10 @@ pnpm tools:verify
 pnpm emulator:exec
 ```
 
-Structurizr validation joins `pnpm check` when the Phase 1 architecture source is added. Until then,
-`pnpm tools:verify` and preflight verify that the pinned CLI is locally available.
+`pnpm docs:check` (part of `pnpm check`) validates `docs/architecture/workspace.dsl` with the pinned
+Structurizr CLI offline, plus README links and figures, diagram freshness and model/schema drift.
+Regenerate diagrams with `pnpm docs:diagrams`; it exports SVGs through the diagram-design skill's
+helper and needs the Python launcher (`py -3.13`, or set `LEADFLOW_PYTHON`).
 
 ## Local application boundary
 

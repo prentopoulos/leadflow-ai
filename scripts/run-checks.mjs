@@ -10,6 +10,7 @@ const checks = [
   'eval',
   'smoke',
   'governance',
+  'docs:check',
   'check:openspec',
 ];
 

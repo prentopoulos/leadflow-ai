@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="run-lifecycle-title run-lifecycle-desc" id="run-lifecycle-root">
+  <title id="run-lifecycle-title">Run lifecycle and recovery</title>
+  <desc id="run-lifecycle-desc">A persisted run is claimed into running, retries the first transient fault once, records partial then failed_retryable or failed_terminal when a step still fails, completes after finalize, and returns to running only through an expired-lease reclaim or an explicit operator resume of a retryable run.</desc>
+  <defs>
+      <style>#run-lifecycle-root { --color-paper: #f4f1e9;
+      --color-ink: #1a211f;
+      --color-muted: #626a66;
+      --color-accent: #075e57;
+      --font-sans: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace; }
+      #run-lifecycle-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #run-lifecycle-root .diagram-container { width: 100%; overflow-x: auto; }
+      #run-lifecycle-root .intro { color: var(--color-muted); max-width: 60ch; margin-bottom: 1.5rem; line-height: 1.5; }
+      @media print {
+#run-lifecycle-root .diagram-container { overflow-x: visible; }
+}</style>
+      <marker id="run-lifecycle-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#626a66"/></marker>
+      <marker id="run-lifecycle-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#075e57"/></marker>
+      <marker id="run-lifecycle-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3a5a85"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f4f1e9"/>
+  <rect x="40" y="48" width="880" height="148" rx="8" fill="#1a211f" stroke="rgba(26,33,31,0.12)" stroke-width="0.8" fill-opacity="0.02"/>
+  <rect x="52" y="52" width="52" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="78" y="61" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">PROGRESS</text>
+  <rect x="40" y="276" width="880" height="100" rx="8" fill="#1a211f" stroke="rgba(26,33,31,0.12)" stroke-width="0.8" fill-opacity="0.02"/>
+  <rect x="52" y="280" width="52" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="78" y="289" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">RECOVERY</text>
+  <rect x="40" y="436" width="880" height="100" rx="8" fill="#1a211f" stroke="rgba(26,33,31,0.12)" stroke-width="0.8" fill-opacity="0.02"/>
+  <rect x="52" y="440" width="48" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="76" y="449" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">STOPPED</text>
+  <circle cx="72" cy="134" r="6" fill="#1a211f"/>
+  <path d="M78,134 L100,134" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#run-lifecycle-arrow)"/>
+  <path d="M240,134 L360,134" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#run-lifecycle-arrow)"/>
+  <path d="M400,120 L400,96 Q400,88 408,88 L452,88 Q460,88 460,96 L460,120" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#run-lifecycle-arrow)"/>
+  <path d="M500,148 L740,148" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#run-lifecycle-arrow)"/>
+  <path d="M360,148 L288,148 Q280,148 280,156 L280,300" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#run-lifecycle-arrow)"/>
+  <path d="M320,300 L320,170 Q320,162 328,162 L360,162" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#run-lifecycle-arrow)"/>
+  <path d="M430,176 L430,300" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#run-lifecycle-arrow)"/>
+  <path d="M540,328 L612,328 Q620,328 620,336 L620,460" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#run-lifecycle-arrow)"/>
+  <path d="M450,356 L450,460" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#run-lifecycle-arrow)"/>
+  <path d="M700,460 L700,248 Q700,240 692,240 L478,240 Q470,240 470,232 L470,176" fill="none" stroke="#075e57" stroke-width="1.2" marker-end="url(#run-lifecycle-arrow-accent)"/>
+  <rect x="280" y="114" width="40" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="300" y="123" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">CLAIM</text>
+  <rect x="390" y="68" width="80" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="430" y="77" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">LEASE RECLAIM</text>
+  <rect x="594" y="128" width="52" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="620" y="137" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">FINALIZE</text>
+  <rect x="204" y="222" width="68" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="238" y="231" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">FIRST FAULT</text>
+  <rect x="328" y="230" width="64" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="360" y="239" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">RETRY ONCE</text>
+  <rect x="438" y="264" width="64" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="470" y="273" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">STEP FAILS</text>
+  <rect x="548" y="308" width="60" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="578" y="317" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">RETRYABLE</text>
+  <rect x="362" y="402" width="80" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="402" y="411" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">NOT RETRYABLE</text>
+  <rect x="563" y="220" width="44" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="585" y="229" fill="#075e57" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">RESUME</text>
+  <rect x="100" y="120" width="140" height="56" rx="6" fill="#f4f1e9"/>
+  <rect x="100" y="120" width="140" height="56" rx="6" fill="#1a211f" stroke="#626a66" stroke-width="1" fill-opacity="0.05"/>
+  <rect x="108" y="126" width="32" height="12" rx="2" fill="none" stroke="#626a66" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="124" y="135" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+  <text x="170" y="152" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Persisted</text>
+  <text x="170" y="167" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">status: persisted</text>
+  <rect x="360" y="120" width="140" height="56" rx="6" fill="#f4f1e9"/>
+  <rect x="360" y="120" width="140" height="56" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
+  <rect x="368" y="126" width="32" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="384" y="135" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+  <text x="430" y="152" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Running</text>
+  <text x="430" y="167" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">status: running</text>
+  <rect x="740" y="120" width="140" height="56" rx="6" fill="#f4f1e9"/>
+  <rect x="740" y="120" width="140" height="56" rx="6" fill="#1a211f" stroke="#626a66" stroke-width="1" fill-opacity="0.05"/>
+  <rect x="748" y="126" width="32" height="12" rx="2" fill="none" stroke="#626a66" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="764" y="135" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+  <text x="810" y="152" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Complete</text>
+  <text x="810" y="167" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">status: complete</text>
+  <rect x="200" y="300" width="140" height="56" rx="6" fill="#f4f1e9"/>
+  <rect x="200" y="300" width="140" height="56" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
+  <rect x="208" y="306" width="32" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="224" y="315" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+  <text x="270" y="332" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Retrying</text>
+  <text x="270" y="347" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">status: retrying</text>
+  <rect x="400" y="300" width="140" height="56" rx="6" fill="#f4f1e9"/>
+  <rect x="400" y="300" width="140" height="56" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
+  <rect x="408" y="306" width="32" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="424" y="315" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+  <text x="470" y="332" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Partial</text>
+  <text x="470" y="347" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">status: partial</text>
+  <rect x="380" y="460" width="160" height="56" rx="6" fill="#f4f1e9"/>
+  <rect x="380" y="460" width="160" height="56" rx="6" fill="#1a211f" stroke="#626a66" stroke-width="1" fill-opacity="0.05"/>
+  <rect x="388" y="466" width="32" height="12" rx="2" fill="none" stroke="#626a66" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="404" y="475" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+  <text x="460" y="492" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Failed · terminal</text>
+  <text x="460" y="507" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">status: failed_terminal</text>
+  <rect x="580" y="460" width="160" height="56" rx="6" fill="#f4f1e9"/>
+  <rect x="580" y="460" width="160" height="56" rx="6" fill="#075e57" stroke="#075e57" stroke-width="1" fill-opacity="0.08"/>
+  <rect x="588" y="466" width="32" height="12" rx="2" fill="none" stroke="#075e57" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="604" y="475" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+  <text x="660" y="492" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Failed · retryable</text>
+  <text x="660" y="507" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">status: failed_retryable</text>
+</svg>
