@@ -8,11 +8,21 @@ import {
   type ZodTypeProvider,
   validatorCompiler,
 } from 'fastify-type-provider-zod';
+import { PHASE_ONE_UNAVAILABLE, type PhaseOneStartup } from './startup.js';
 
-export function createApp(): FastifyInstance {
+export interface CreateAppOptions {
+  phaseOne?: PhaseOneStartup;
+}
+
+export function createApp(options: CreateAppOptions = {}): FastifyInstance {
   const app = Fastify({ logger: false }).withTypeProvider<ZodTypeProvider>();
+  const phaseOne = options.phaseOne ?? PHASE_ONE_UNAVAILABLE;
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
+
+  if (phaseOne.status === 'ready') {
+    app.addHook('onClose', async () => phaseOne.firestore.close());
+  }
 
   app.get(
     '/health',

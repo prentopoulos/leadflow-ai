@@ -13,7 +13,7 @@ maps AI capabilities to current evidence. Read
 | RAG / document ingestion | deferred | Not required by the current MVP | Scope adds indexed documents or retrieval |
 | Semantic or response caching | deferred | No cache is planned | Cache or replay optimization is proposed |
 | Model training / feature pipelines | deferred | No training is planned; rubric scoring is deterministic | Scope adds training or feature serving |
-| Tool actions / external adapters | partial-local | The loopback Firestore Emulator boundary is implemented; NHTSA, ZIP, email-domain, model, auth, and outbound adapters remain absent | First additional adapter or destination change |
+| Tool actions / external adapters | partial-local | Validated API startup can construct only the exact loopback Firestore Emulator boundary with an explicit non-SSL host override; NHTSA, ZIP, email-domain, model, auth, and outbound adapters remain absent | First additional adapter or destination change |
 | Persistent state / replay | implemented-local | Versioned Firestore leads/runs/events/results, LangGraph checkpoints, bounded retry history, explicit compatible-state resume, ambiguous-write reconciliation, and process-restart reconstruction are exercised locally | State schema, checkpointer, retry, resume, or reconstruction change |
 | Multiple users / tenants | deferred | Firebase Auth is planned; roles and tenant boundaries remain TBD | Phase 2 auth/access design |
 | Generated code execution | deferred | Not part of the MVP | A code-execution tool is proposed |
@@ -67,7 +67,7 @@ evidence. Provider evaluation remains unauthorized until the provider, model, bu
 and cases are approved. The separately authorized connected dependency audit reported no known
 vulnerabilities and did not modify the lockfile.
 
-Phase 1 tasks 3.1–4.5 now provide local-only runtime evidence: strict Firestore repositories,
+Phase 1 tasks 3.1–5.1 now provide local-only runtime evidence: strict Firestore repositories,
 atomic intake, concurrency-safe lifecycle updates, a project-owned durable LangGraph checkpointer,
 the fixed qualification graph, and exactly one automatic retry only for the typed
 `SyntheticTransientFault`. Unit fixtures cover success after the first transient, exhaustion after
@@ -78,6 +78,10 @@ transactional event-write failure, ambiguous checkpoint/pending-write/result com
 one-result-per-run identities, and reconstruction through a newly created checkpoint adapter. The
 real isolated emulator confirms durable attempt/retry/resume events and checkpoint reconstruction
 across that adapter restart.
+API startup now separates process health from stateful configuration readiness: invalid or missing
+local configuration constructs no Admin SDK boundary, while the ready path requires the exact
+synthetic project and `127.0.0.1:8080` emulator target. `GET /health` remains process-scoped in both
+states and makes no emulator, workflow, model, cloud, or production-readiness claim.
 This is synthetic local runtime evidence, not provider, production, predictive, or external-tool
 evidence; the retained evaluator still reports provider/live cases as `not_run` until tasks 7.1–7.3
 replace the Phase 0 corpus.

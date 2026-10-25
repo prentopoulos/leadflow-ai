@@ -48,6 +48,10 @@ export function createEmulatorFirestoreBoundary(
     `leadflow-ai-emulator-${randomUUID()}`,
   );
   const database = initializeFirestore(app, {});
+  database.settings({
+    host: configuration.host,
+    ssl: false,
+  });
   return {
     app,
     database,

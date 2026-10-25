@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–4.5 are implemented and locally verified; 26 of 46
+verified dependency/toolchain slice. Tasks 1.1–5.1 are implemented and locally verified; 25 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -325,6 +325,28 @@ binding, which was replaced with an explicit copy/delete before the passing sequ
 Task 4.5 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 19 Vitest files/110 tests,
 and the real isolated Firestore emulator workflow/retry/restart-resume/verified-flush probe.
 
+## Implemented API startup readiness boundary
+
+- API configuration independently validates the loopback listener and `phase-1-local-v1` stateful
+  configuration. Stateful readiness requires the exact `demo-leadflow-ai-local` project, exact
+  `127.0.0.1:8080` emulator target, and strict reset flag; the safe example now uses the same
+  `GCLOUD_PROJECT` name consumed by the runtime boundary.
+- Missing or unsafe stateful configuration returns one non-sensitive `invalid_local_configuration`
+  state and never constructs Firebase Admin. Valid configuration is copied into the runtime
+  boundary rather than passing ambient environment values through.
+- The Admin Firestore client applies an explicit validated host/non-SSL override after initialization,
+  so even a mismatched ambient SDK setting cannot redirect the client toward cloud Firestore.
+  Closing Fastify closes the owned Admin app.
+- `GET /health` remains the original process-only schema whether stateful startup is ready or
+  unavailable; it makes no emulator connectivity, workflow, model, cloud, deployment, or production
+  claim.
+
+Task 5.1 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 19 Vitest files/116 tests,
+and the real isolated Firestore emulator boundary/workflow/recovery/verified-flush probe. The first
+typecheck rejected `host` in Firebase Admin's deliberately narrow initialization settings; the
+supported Firestore client `settings()` override now applies the validated host before any database
+operation, and the identical checks plus emulator probe passed.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
@@ -346,6 +368,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 5.1 by adding validated Phase 1 configuration/startup readiness that cannot fall through
-to cloud Firestore while keeping `GET /health` narrower than emulator/workflow readiness. With no
-remote, there is no draft PR or hosted CI.
+Begin task 5.2 by implementing `POST /v1/intake` with strict body/header validation, bounded request
+and trace IDs, atomic persistence before execution, idempotent replay/conflict behavior, and honest
+post-commit processing failures. With no remote, there is no draft PR or hosted CI.
