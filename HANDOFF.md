@@ -462,10 +462,33 @@ These slices establish dependency/tool availability, emulator lifecycle, domain 
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
 pinned Firestore checkpoint contract plus fixed qualification workflow and locally exercised
-crash/restart recovery. They do not yet establish the Phase 1 API/UI, diagrams, or production
-behavior. The
-evaluator still executes the retained Phase 0 fixture corpus; Phase 1 fixtures and independent
-evaluation remain tasks 7.1–7.3.
+crash/restart recovery. They do not establish deployed or production behavior. The evaluator still
+executes the retained Phase 0 fixture corpus; focused Phase 1 fixtures and independent evaluation
+remain task 7.1.
+
+## Implemented responsive operator shell and semantic intake
+
+- The Phase 0 presentation is replaced by the accepted calm operations-dossier workspace: warm
+  neutral surfaces, near-black ink, one teal accent, thin borders, quiet motion, and a continuous
+  desktop split that stacks in the same semantic order on mobile. The exact
+  `SIMULATION · Synthetic leads and outcomes` context remains sticky while scrolling.
+- The intake uses the shared `intake-v1` domain schema for local validation. ZIP is separated as the
+  only exact field verified from the dated Military.com source; every other input is grouped as a
+  LeadFlow demo field with fictional-name and reserved-example-domain guidance.
+- Consent is unchecked by default and states that it changes no score and creates or sends no Phase
+  1 outreach. Request details state their bounded, non-authoritative role. Validation errors produce
+  a focusable summary whose links move focus to the affected native control.
+- The adjacent run dossier is intentionally empty and states that no run appears before confirmed
+  persistence. It previews the evidence order without inventing lifecycle progress. The local
+  validation success state likewise says that nothing has been stored or processed.
+- The web package now declares the already-approved domain workspace dependency; the frozen offline
+  install linked it without adding an external package.
+
+Task 6.1 checks passed on 2026-10-25: scoped Prettier, ESLint, strict TypeScript, five web tests, and
+the production web build. Rendered local review covered the desktop top and validation-error state,
+plus the 390×844 top and bottom of the long stacked workspace; document width matched viewport width,
+the sticky synthetic strip remained visible, and browser warning/error logs were empty. Submission,
+stored run focus, polling, results, and resume remain tasks 6.2–6.3.
 
 ## External evidence and gates
 
@@ -479,6 +502,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 6.1 by replacing the Phase 0 shell with the accepted calm operations-dossier visual
-system and continuous responsive workspace while retaining the persistent synthetic context. With
-no remote, there is no draft PR or hosted CI.
+Begin task 6.2 by connecting the validated intake to `POST /v1/intake` with a stable idempotency key,
+safe local input/error handling, committed run identity, and deliberate focus movement to the stored
+run heading. With no remote, there is no draft PR or hosted CI.

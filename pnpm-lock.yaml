@@ -241,6 +241,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@leadflow-ai/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       react:
         specifier: 19.3.1
         version: 19.3.1
