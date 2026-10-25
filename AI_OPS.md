@@ -9,12 +9,12 @@ maps AI capabilities to current evidence. Read
 | Capability | Status | Reason / evidence or task | Recheck when |
 |---|---|---|---|
 | Hosted or local model inference | deferred | Claude or OpenAI backend adapter is planned; provider/model/budget are gated | Phase 1 provider selection or provider change |
-| Prompts and structured output | deferred | Qualification and outreach require versioned prompts plus validated JSON schemas | First Phase 1 prompt/schema/model task |
+| Prompts and structured output | partial-local | Qualification uses strict versioned structured schemas and a deterministic interpreter; prompts/models remain absent and gated | First prompt/model task or schema change |
 | RAG / document ingestion | deferred | Not required by the current MVP | Scope adds indexed documents or retrieval |
 | Semantic or response caching | deferred | No cache is planned | Cache or replay optimization is proposed |
 | Model training / feature pipelines | deferred | No training is planned; rubric scoring is deterministic | Scope adds training or feature serving |
-| Tool actions / external adapters | deferred | Read-only NHTSA, ZIP, email-domain, model, Firestore, and auth adapters are planned | First adapter task or destination change |
-| Persistent state / replay | deferred | Firestore lead and run state plus LangGraph checkpoints are planned | Phase 1 persistence design |
+| Tool actions / external adapters | partial-local | The loopback Firestore Emulator boundary is implemented; NHTSA, ZIP, email-domain, model, auth, and outbound adapters remain absent | First additional adapter or destination change |
+| Persistent state / replay | implemented-local | Versioned Firestore leads/runs/events/results plus LangGraph checkpoints and bounded retry history are exercised locally; explicit resume/reconstruction remain Phase 1 work | State schema, checkpointer, retry, or resume change |
 | Multiple users / tenants | deferred | Firebase Auth is planned; roles and tenant boundaries remain TBD | Phase 2 auth/access design |
 | Generated code execution | deferred | Not part of the MVP | A code-execution tool is proposed |
 | MCP / external tool servers | deferred | Not part of the runtime design | An MCP/runtime tool server is proposed |
@@ -26,22 +26,24 @@ maps AI capabilities to current evidence. Read
 | Record | Location / current status |
 |---|---|
 | Design choices: autonomy, pattern, framework, model tiers, hosting, fallback | Phase 0 foundation design records the local-only boundary; runtime/model choices remain Phase 1 work |
-| System bundle and last known-good version | Not established; first AI runtime phase |
+| System bundle and last known-good version | `system-bundle-v1` is persisted with code/tool/schema identity; latest verified workflow checkpoint is recorded in `HANDOFF.md` |
 | Evaluation plan, held-out cases and evaluator | `packages/evals`; versioned synthetic fixtures, evaluator, bundle identity, and explicit `not_run` outcomes established in Phase 0 |
 | Offline deterministic check command | Activate with `. .\scripts\activate-toolchain.ps1`, then run `pnpm check` |
 | Authorized provider-evaluation command and budget | Not authorized; paid API gate unresolved |
-| Run records / metrics / alerts | Phase 1/2 Firestore and dashboard design; not created yet |
+| Run records / metrics / alerts | Local run/event/result records are implemented; dashboard metrics and alerts remain Phase 1/2 work |
 | Release evidence and stop/recovery runbook | Phase 3; not created yet |
 | Operational owner and maintenance/recheck cadence | Peter; cadence TBD before deployment |
 
 ## Current operational limits
 
-- Lowest autonomy rung: sequential LangGraph workflow with three bounded specialist agents,
-  deterministic routing/security checks, and a human approval queue. No autonomous sending.
+- Current Phase 1 runtime: one fixed four-node qualification workflow with a deterministic
+  interpreter, deterministic score, score-independent synthetic simulation, and no tool authority.
+  The broader three-specialist/human-approval design remains later work. No autonomous sending.
 - Data: fictional identities and test contacts only until the real-data gate is resolved. Minimize
   fields sent to models; secrets and raw credentials never enter prompts or logs.
-- Models and paid tools: provider, model, token/time budgets, retry counts, concurrency, and spend
-  ceiling are TBD and gated. Ordinary CI must remain credential-free and deterministic.
+- Models and paid tools: provider, model, token/time budgets, concurrency, and spend ceiling are TBD
+  and gated. The local synthetic interpreter has exactly one typed transient retry; this grants no
+  retry authority to future provider/tool calls. Ordinary CI remains credential-free and deterministic.
 - External reads: NHTSA and Zippopotam.us calls are planned and must preserve source, subject,
   retrieval time, status, and failure evidence. Email checks do not prove identity or ownership.
 - State: a lead must exist before agent work starts; checkpoint, retry, failure, verification, and
@@ -64,3 +66,13 @@ This is deterministic scaffold evidence, not AI-runtime, live-provider, enrichme
 evidence. Provider evaluation remains unauthorized until the provider, model, budget, credentials,
 and cases are approved. The separately authorized connected dependency audit reported no known
 vulnerabilities and did not modify the lockfile.
+
+Phase 1 tasks 3.1–4.3 now provide local-only runtime evidence: strict Firestore repositories,
+atomic intake, concurrency-safe lifecycle updates, a project-owned durable LangGraph checkpointer,
+the fixed qualification graph, and exactly one automatic retry only for the typed
+`SyntheticTransientFault`. Unit fixtures cover success after the first transient, exhaustion after
+the second transient with `failed_retryable`, immediate terminal handling for unknown errors, safe
+telemetry, and absence of a third attempt. The real isolated emulator confirms durable attempt/retry
+events and checkpoints. This is synthetic local runtime evidence, not provider, production,
+predictive, or external-tool evidence; the retained evaluator still reports provider/live cases as
+`not_run` until tasks 7.1–7.3 replace the Phase 0 corpus.

@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–4.2 are implemented and locally verified; 29 of 46
+verified dependency/toolchain slice. Tasks 1.1–4.3 are implemented and locally verified; 28 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -259,11 +259,35 @@ emulator launch again could not bind its hub port; the allowed loopback run then
 rejection of reserved `__start__` map fields, leading to the lossless ordered channel-version
 encoding. The corrected emulator sequence passed.
 
+## Implemented bounded transient retry
+
+- `SyntheticTransientFault` is the sole automatically retryable fault type. The interpretation node
+  catches it, transactionally records `step.failed`, transitions through `retrying`, records
+  `step.retry_scheduled`, starts attempt two, and never invokes the interpreter a third time.
+- A successful second attempt continues the fixed graph with `attempt: 2` and `retryCount: 1` in
+  every later event. A second transient failure records both `step.failed` and `run.failed`, clears
+  the lease, and ends `failed_retryable` so task 4.4 can expose explicit operator resume.
+- Any untyped/unknown interpreter error receives a fixed privacy-safe `unknown_failure` envelope,
+  records the failed step and run termination, clears the lease, and ends `failed_terminal` without
+  a retry or raw exception text. The same terminal wrapper protects downstream node failures after
+  a step has durably started.
+- Graph state now includes only the safe error envelope needed for conditional failure routing; a
+  failed node routes directly to `END` and cannot start a downstream score/simulation/finalize node.
+
+Task 4.3 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 18 Vitest files/99 tests,
+runtime declaration build, and the real emulator retry probe with durable attempts, retry decision,
+completion, checkpoints, and verified flush. The first emulator assertion detached Firestore's
+`data()` method from its snapshot receiver; calling it on the document fixed the probe, and the
+identical emulator sequence passed. The normative durable-workflow spec and operator-flow spec make
+exhausted typed transient faults `failed_retryable`; one sentence in the accepted design says
+exhaustion is terminal, so the implementation follows the normative scenario and this planning-text
+discrepancy remains explicit for the next artifact update.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
 pinned Firestore checkpoint contract plus fixed qualification workflow. They do not yet establish
-retry/failure/resume orchestration, the Phase 1 API/UI, diagrams, or production behavior. The
+explicit resume/reconstruction orchestration, the Phase 1 API/UI, diagrams, or production behavior. The
 evaluator still executes the retained Phase 0 fixture corpus; Phase 1 fixtures and independent
 evaluation remain tasks 7.1–7.3.
 
@@ -279,6 +303,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 4.3 by adding the single typed transient retry path and verifying first-failure retry,
-second-failure exhaustion, non-retryable failure, attempt history, and absence of a silent third
-attempt. With no remote, there is no draft PR or hosted CI.
+Begin task 4.4 by implementing revision-checked explicit resume from persisted or retryable
+compatible state and verifying complete/running/terminal/stale/missing/incompatible/active-lease
+rejection paths. With no remote, there is no draft PR or hosted CI.

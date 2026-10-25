@@ -17,6 +17,15 @@ export interface QualificationInterpreter {
   ): Promise<QualificationInterpretation>;
 }
 
+export class SyntheticTransientFault extends Error {
+  readonly code = 'transient_interpreter_fault' as const;
+
+  constructor() {
+    super('Injected synthetic transient interpreter fault.');
+    this.name = 'SyntheticTransientFault';
+  }
+}
+
 export function qualificationProjectionFromLead(
   candidate: unknown,
 ): QualificationProjection {

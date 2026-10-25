@@ -11,6 +11,7 @@ import {
   LOCAL_RESET_CONFIRMATION,
   qualificationProjectionFromLead,
   resetLocalEmulatorData,
+  SyntheticTransientFault,
 } from '../packages/runtime/dist/index.js';
 
 const timestamp = '2026-10-24T20:00:00.000Z';
@@ -280,6 +281,76 @@ try {
     );
   }
 
+  const retryIntake = await intakeService.persist({
+    idempotencyKey: 'emulator-retry-probe-v1',
+    intake,
+    systemBundleId,
+  });
+  const retryClaim = await graphLifecycle.claim({
+    runId: retryIntake.runId,
+    expectedRevision: 0,
+    ownerId: 'emulator-worker-retry',
+    leaseDurationMs: 30_000,
+    ...context,
+  });
+  const retryLead = await repositories.leads.get(retryIntake.leadId);
+  if (retryLead === null) throw new Error('Emulator retry lead is missing.');
+  let interpreterCalls = 0;
+  const retryDelegate = new DeterministicQualificationInterpreter(graphClock);
+  const retryGraph = compileQualificationWorkflow({
+    interpreter: {
+      version: 'deterministic-interpreter-v1',
+      async interpret(projection) {
+        interpreterCalls += 1;
+        if (interpreterCalls === 1) throw new SyntheticTransientFault();
+        return retryDelegate.interpret(projection);
+      },
+    },
+    lifecycle: graphLifecycle,
+    repositories,
+    checkpointer: saver,
+    now: graphClock,
+  });
+  const retryOutput = await retryGraph.invoke(
+    initialQualificationGraphState({
+      runId: retryIntake.runId,
+      leadId: retryIntake.leadId,
+      traceId: context.traceId,
+      requestId: context.requestId,
+      systemBundleId,
+      runRevision: retryClaim.run.revision,
+      projection: qualificationProjectionFromLead(retryLead),
+    }),
+    {
+      configurable: {
+        thread_id: retryIntake.runId,
+        system_bundle_id: systemBundleId,
+      },
+    },
+  );
+  const retryRun = await repositories.runs.get(retryIntake.runId);
+  const retryEventsSnapshot = await boundary.database
+    .collection(`runs/${retryIntake.runId}/events`)
+    .get();
+  const retryEvents = retryEventsSnapshot.docs
+    .map((document) => repositories.events.parseStored(document.data()))
+    .sort((left, right) => left.sequence - right.sequence);
+  if (
+    interpreterCalls !== 2 ||
+    !retryOutput.finalized ||
+    retryOutput.runRevision !== 12 ||
+    retryRun?.status !== 'complete' ||
+    retryRun.attempt !== 2 ||
+    retryRun.retryCount !== 1 ||
+    retryEvents.filter(({ name }) => name === 'step.started').length !== 5 ||
+    retryEvents.filter(({ name }) => name === 'step.retry_scheduled').length !==
+      1
+  ) {
+    throw new Error(
+      'Emulator transient retry did not preserve its bounded attempt history.',
+    );
+  }
+
   const rootCheckpointId = '00000000-0000-6000-8000-000000000001';
   const childCheckpointId = '00000000-0000-6000-8000-000000000002';
   const checkpointConfig = {
@@ -373,6 +444,7 @@ try {
   });
   if (
     (await repositories.runs.get(first.runId)) !== null ||
+    (await repositories.runs.get(retryIntake.runId)) !== null ||
     (await repositories.systemBundles.get(systemBundleId)) !== null
   ) {
     throw new Error('Verified emulator flush left fixture records behind.');

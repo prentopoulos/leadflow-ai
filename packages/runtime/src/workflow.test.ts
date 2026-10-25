@@ -9,7 +9,9 @@ import type {
 import { IntakePersistenceService } from './intake.js';
 import {
   DeterministicQualificationInterpreter,
+  SyntheticTransientFault,
   qualificationProjectionFromLead,
+  type QualificationInterpreter,
 } from './interpreter.js';
 import { LifecyclePersistenceService } from './lifecycle.js';
 import { createFirestoreRepositories } from './repositories.js';
@@ -107,6 +109,101 @@ function tickingClock() {
       Date.UTC(2026, 9, 25, 0, 20, 0, milliseconds),
     ).toISOString();
   };
+}
+
+class InjectedInterpreter implements QualificationInterpreter {
+  readonly version = 'deterministic-interpreter-v1' as const;
+  calls = 0;
+
+  constructor(
+    private readonly failures: number,
+    private readonly delegate: DeterministicQualificationInterpreter,
+    private readonly failure: 'transient' | 'unknown' = 'transient',
+  ) {}
+
+  async interpret(
+    projection: Parameters<QualificationInterpreter['interpret']>[0],
+  ) {
+    this.calls += 1;
+    if (this.calls <= this.failures) {
+      if (this.failure === 'transient') throw new SyntheticTransientFault();
+      throw new Error('raw fixture detail must not be persisted');
+    }
+    return this.delegate.interpret(projection);
+  }
+}
+
+async function executeInjectedWorkflow(
+  createInterpreter: (clock: () => string) => InjectedInterpreter,
+) {
+  const store = new WorkflowMemoryStore();
+  const repositories = createFirestoreRepositories(store);
+  const initial = await new IntakePersistenceService({
+    atomicStore: store,
+    repositories,
+    idFactory: deterministicIds(),
+    now: () => '2026-10-25T00:19:00.000Z',
+  }).persist({
+    idempotencyKey: 'workflow-retry-test-intake',
+    intake,
+    systemBundleId: bundleId,
+  });
+  const clock = tickingClock();
+  const lifecycle = new LifecyclePersistenceService({
+    atomicStore: store,
+    repositories,
+    idFactory: deterministicIds(100),
+    now: clock,
+  });
+  const claimed = await lifecycle.claim({
+    runId: initial.runId,
+    expectedRevision: 0,
+    ownerId: 'workflow-worker',
+    leaseDurationMs: 300_000,
+    traceId,
+    requestId,
+    authorization: 'not_applicable',
+  });
+  const lead = await repositories.leads.get(initial.leadId);
+  if (lead === null) throw new Error('lead fixture missing');
+  const interpreter = createInterpreter(clock);
+  const graph = compileQualificationWorkflow({
+    interpreter,
+    lifecycle,
+    repositories,
+    checkpointer: new MemorySaver(),
+    idFactory: deterministicIds(200),
+    now: clock,
+  });
+  const output = await graph.invoke(
+    initialQualificationGraphState({
+      runId: initial.runId,
+      leadId: initial.leadId,
+      traceId,
+      requestId,
+      systemBundleId: bundleId,
+      runRevision: claimed.run.revision,
+      projection: qualificationProjectionFromLead(lead),
+    }),
+    { configurable: { thread_id: initial.runId } },
+  );
+  const run = await repositories.runs.get(initial.runId);
+  const events = [...store.documents.entries()]
+    .filter(([path]) => path.includes('/events/'))
+    .map(
+      ([, event]) =>
+        event as {
+          sequence: number;
+          name: string;
+          status: string;
+          step: string | null;
+          attempt: number;
+          retryCount: number;
+          safeError: unknown;
+        },
+    )
+    .sort((left, right) => left.sequence - right.sequence);
+  return { interpreter, output, run, events };
 }
 
 describe('qualification-graph-v1', () => {
@@ -248,5 +345,145 @@ describe('qualification-graph-v1', () => {
       finalized: true,
       runRevision: 9,
     });
+  });
+
+  it('persists one transient failure and completes on the single retry', async () => {
+    const result = await executeInjectedWorkflow(
+      (clock) =>
+        new InjectedInterpreter(
+          1,
+          new DeterministicQualificationInterpreter(clock),
+        ),
+    );
+
+    expect(result.interpreter.calls).toBe(2);
+    expect(result.output).toMatchObject({
+      finalized: true,
+      safeError: null,
+      runRevision: 12,
+    });
+    expect(result.run).toMatchObject({
+      status: 'complete',
+      revision: 12,
+      nextEventSequence: 14,
+      attempt: 2,
+      retryCount: 1,
+      safeError: null,
+    });
+    expect(result.events.map(({ name }) => name)).toEqual([
+      'lead.persisted',
+      'run.claimed',
+      'step.started',
+      'step.failed',
+      'step.retry_scheduled',
+      'step.started',
+      'step.completed',
+      'step.started',
+      'step.completed',
+      'step.started',
+      'simulation.completed',
+      'step.started',
+      'run.completed',
+    ]);
+    expect(result.events.slice(2, 6)).toMatchObject([
+      { attempt: 1, retryCount: 0 },
+      {
+        attempt: 1,
+        retryCount: 0,
+        safeError: { code: 'transient_interpreter_fault', retryable: true },
+      },
+      { attempt: 2, retryCount: 1 },
+      { attempt: 2, retryCount: 1 },
+    ]);
+  });
+
+  it('ends retryable after two transient failures without a third attempt', async () => {
+    const result = await executeInjectedWorkflow(
+      (clock) =>
+        new InjectedInterpreter(
+          2,
+          new DeterministicQualificationInterpreter(clock),
+        ),
+    );
+
+    expect(result.interpreter.calls).toBe(2);
+    expect(result.output).toMatchObject({
+      finalized: false,
+      interpretation: null,
+      runRevision: 7,
+      safeError: {
+        code: 'transient_interpreter_fault',
+        retryable: true,
+      },
+    });
+    expect(result.run).toMatchObject({
+      status: 'failed_retryable',
+      revision: 7,
+      nextEventSequence: 9,
+      attempt: 2,
+      retryCount: 1,
+      currentStep: 'interpret_qualification',
+      lease: null,
+    });
+    expect(result.events.slice(-2)).toMatchObject([
+      {
+        name: 'step.failed',
+        status: 'partial',
+        attempt: 2,
+        retryCount: 1,
+      },
+      {
+        name: 'run.failed',
+        status: 'failed_retryable',
+        attempt: 2,
+        retryCount: 1,
+      },
+    ]);
+    expect(
+      result.events.filter(({ name }) => name === 'step.started'),
+    ).toHaveLength(2);
+    expect(
+      result.events.some(({ step }) => step === 'score_qualification'),
+    ).toBe(false);
+  });
+
+  it('fails terminally without retrying an unknown interpreter error', async () => {
+    const result = await executeInjectedWorkflow(
+      (clock) =>
+        new InjectedInterpreter(
+          1,
+          new DeterministicQualificationInterpreter(clock),
+          'unknown',
+        ),
+    );
+
+    expect(result.interpreter.calls).toBe(1);
+    expect(result.output).toMatchObject({
+      finalized: false,
+      runRevision: 4,
+      safeError: {
+        code: 'unknown_failure',
+        category: 'runtime',
+        retryable: false,
+      },
+    });
+    expect(result.run).toMatchObject({
+      status: 'failed_terminal',
+      revision: 4,
+      nextEventSequence: 6,
+      attempt: 1,
+      retryCount: 0,
+      lease: null,
+    });
+    expect(result.events.map(({ name }) => name)).toEqual([
+      'lead.persisted',
+      'run.claimed',
+      'step.started',
+      'step.failed',
+      'run.failed',
+    ]);
+    expect(JSON.stringify(result.events)).not.toContain(
+      'raw fixture detail must not be persisted',
+    );
   });
 });

@@ -551,6 +551,7 @@ export const QualificationGraphStateSchema = z
     interpretation: QualificationInterpretationSchema.nullable(),
     qualification: QualificationResultSchema.nullable(),
     simulation: SimulationRecordSchema.nullable(),
+    safeError: SafeErrorSchema.nullable(),
     finalized: z.boolean(),
   })
   .strict();
