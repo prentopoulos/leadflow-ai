@@ -126,11 +126,15 @@ try {
     idempotencyKey: 'emulator-intake-probe-v1',
     intake,
     systemBundleId,
+    traceId: randomUUID(),
+    requestId: randomUUID(),
   });
   const replay = await intakeService.persist({
     idempotencyKey: 'emulator-intake-probe-v1',
     intake,
     systemBundleId,
+    traceId: randomUUID(),
+    requestId: randomUUID(),
   });
   if (
     !replay.replayed ||
@@ -145,6 +149,8 @@ try {
       idempotencyKey: 'emulator-intake-probe-v1',
       intake: { ...intake, zipCode: '90210' },
       systemBundleId,
+      traceId: randomUUID(),
+      requestId: randomUUID(),
     });
   } catch (error) {
     conflictRejected = error?.code === 'idempotency_conflict';
@@ -286,6 +292,8 @@ try {
     idempotencyKey: 'emulator-retry-probe-v1',
     intake,
     systemBundleId,
+    traceId: randomUUID(),
+    requestId: randomUUID(),
   });
   const retryClaim = await graphLifecycle.claim({
     runId: retryIntake.runId,
@@ -356,6 +364,8 @@ try {
     idempotencyKey: 'emulator-resume-probe-v1',
     intake,
     systemBundleId,
+    traceId: randomUUID(),
+    requestId: randomUUID(),
   });
   const resumeClaim = await graphLifecycle.claim({
     runId: resumeIntake.runId,

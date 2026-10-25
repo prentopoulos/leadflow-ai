@@ -111,6 +111,8 @@ async function persistedRun(store: SerialMemoryAtomicStore) {
     idempotencyKey: 'lifecycle-test-intake',
     intake,
     systemBundleId: bundleId,
+    traceId,
+    requestId,
   });
   return { repositories, response };
 }

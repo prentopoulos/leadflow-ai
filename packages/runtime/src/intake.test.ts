@@ -15,6 +15,10 @@ import { createFirestoreRepositories } from './repositories.js';
 
 const timestamp = '2026-10-24T20:00:00.000Z';
 const bundleId = '66666666-6666-4666-8666-666666666666';
+const correlation = {
+  traceId: '44444444-4444-4444-8444-444444444444',
+  requestId: '55555555-5555-4555-8555-555555555555',
+};
 
 const intake = {
   schemaVersion: 'intake-v1',
@@ -104,6 +108,7 @@ describe('atomic intake persistence', () => {
       idempotencyKey: 'intake-request-001',
       intake,
       systemBundleId: bundleId,
+      ...correlation,
     });
 
     expect(response).toMatchObject({
@@ -137,6 +142,8 @@ describe('atomic intake persistence', () => {
     const persistedEvent = store.documents.get(paths[3] ?? '');
     expect(persistedEvent).toMatchObject({
       name: 'lead.persisted',
+      traceId: correlation.traceId,
+      requestId: correlation.requestId,
       sequence: 1,
       runRevision: 0,
       status: 'persisted',
@@ -151,11 +158,13 @@ describe('atomic intake persistence', () => {
       idempotencyKey: 'intake-request-002',
       intake: { ...intake, givenName: '  Avery ', email: 'AVERY@EXAMPLE.COM' },
       systemBundleId: bundleId,
+      ...correlation,
     });
     const second = await service.persist({
       idempotencyKey: ' intake-request-002 ',
       intake,
       systemBundleId: bundleId,
+      ...correlation,
     });
 
     expect(second).toEqual({ ...first, replayed: true });
@@ -170,6 +179,7 @@ describe('atomic intake persistence', () => {
       idempotencyKey: 'intake-request-003',
       intake,
       systemBundleId: bundleId,
+      ...correlation,
     });
     const before = structuredClone([...store.documents]);
 
@@ -178,6 +188,7 @@ describe('atomic intake persistence', () => {
         idempotencyKey: 'intake-request-003',
         intake: { ...intake, zipCode: '90210' },
         systemBundleId: bundleId,
+        ...correlation,
       }),
     ).rejects.toBeInstanceOf(IdempotencyConflictError);
     expect([...store.documents]).toEqual(before);
@@ -191,6 +202,7 @@ describe('atomic intake persistence', () => {
         idempotencyKey: 'intake-request-004',
         intake,
         systemBundleId: bundleId,
+        ...correlation,
       }),
     ).rejects.toThrow(/injected/u);
     expect(store.documents).toHaveLength(0);
@@ -204,6 +216,7 @@ describe('atomic intake persistence', () => {
         idempotencyKey: 'bad key',
         intake,
         systemBundleId: bundleId,
+        ...correlation,
       }),
     ).rejects.toThrow();
     await expect(
@@ -211,6 +224,7 @@ describe('atomic intake persistence', () => {
         idempotencyKey: 'intake-request-005',
         intake: { ...intake, email: 'real@invalid.test' },
         systemBundleId: bundleId,
+        ...correlation,
       }),
     ).rejects.toThrow();
     expect(store.transactionCount).toBe(0);

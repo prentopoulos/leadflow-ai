@@ -157,6 +157,8 @@ async function executeInjectedWorkflow(
     idempotencyKey: 'workflow-retry-test-intake',
     intake,
     systemBundleId: bundleId,
+    traceId,
+    requestId,
   });
   const clock = tickingClock();
   const lifecycle = new LifecyclePersistenceService({
@@ -229,6 +231,8 @@ async function executeAmbiguousResultWrite(
     idempotencyKey: `workflow-ambiguous-${pathPrefix.replace('/', '')}`,
     intake,
     systemBundleId: bundleId,
+    traceId,
+    requestId,
   });
   const clock = tickingClock();
   const lifecycle = new LifecyclePersistenceService({
@@ -291,6 +295,8 @@ describe('qualification-graph-v1', () => {
       idempotencyKey: 'workflow-test-intake',
       intake,
       systemBundleId: bundleId,
+      traceId,
+      requestId,
     });
     const lifecycleClock = tickingClock();
     const lifecycle = new LifecyclePersistenceService({

@@ -49,6 +49,8 @@ export interface PersistIntakeRequest {
   idempotencyKey: string;
   intake: unknown;
   systemBundleId: string;
+  traceId: string;
+  requestId: string;
 }
 
 export interface IntakePersistenceDependencies {
@@ -78,8 +80,6 @@ export class IntakePersistenceService {
     const leadId = this.idFactory();
     const runId = this.idFactory();
     const eventId = this.idFactory();
-    const traceId = this.idFactory();
-    const requestId = this.idFactory();
 
     const idempotency =
       this.dependencies.repositories.idempotency.prepareCreate({
@@ -140,8 +140,8 @@ export class IntakePersistenceService {
       schemaVersion: 'event-v1',
       eventId,
       runId,
-      traceId,
-      requestId,
+      traceId: request.traceId,
+      requestId: request.requestId,
       sequence: 1,
       runRevision: 0,
       name: 'lead.persisted',

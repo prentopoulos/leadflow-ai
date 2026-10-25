@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–5.1 are implemented and locally verified; 25 of 46
+verified dependency/toolchain slice. Tasks 1.1–5.2 are implemented and locally verified; 24 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -347,6 +347,31 @@ typecheck rejected `host` in Firebase Admin's deliberately narrow initialization
 supported Firestore client `settings()` override now applies the validated host before any database
 operation, and the identical checks plus emulator probe passed.
 
+## Implemented intake HTTP boundary
+
+- `POST /v1/intake` validates the required visible-ASCII `Idempotency-Key` and strict `intake-v1`
+  payload before calling persistence. The shared schema normalizes names/test email and rejects real
+  contact domains, non-fictional identity class, unknown properties, and invalid field values.
+- The API creates bounded UUID request/trace identities and passes that same correlation pair through
+  the atomic intake event and optional post-commit processor. The response is emitted only after the
+  four-record transaction returns its schema-valid committed identity.
+- A new submission returns 202 and may begin processing only after commit. Exact replay returns the
+  original identity with 200 and does not start duplicate processing; conflicting key reuse returns
+  a fixed 409 response and changes no stored state.
+- Invalid input returns a fixed 400, missing stateful readiness and storage failure return a fixed
+  503, and no response includes raw backend exceptions or submitted contact/request text. A
+  processor failure after commit cannot rewrite the durable success into a false persistence error;
+  the stored `persisted`/later run state remains the authority.
+- Route construction remains dependency-injected until the combined built emulator-backed API smoke
+  is assembled in task 5.6; current server startup therefore fails the stateful route closed unless
+  the complete intake runtime is supplied. No cloud or external destination is introduced.
+
+Task 5.2 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 20 Vitest files/123 tests,
+the real emulator atomic-intake/correlation/workflow/recovery/verified-flush probe, and the complete
+offline gate. The first typecheck caught unknown Fastify error narrowing and exact-optional test
+construction; explicit narrowing and omission of the absent option resolved both before the passing
+sequence.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
@@ -368,6 +393,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 5.2 by implementing `POST /v1/intake` with strict body/header validation, bounded request
-and trace IDs, atomic persistence before execution, idempotent replay/conflict behavior, and honest
-post-commit processing failures. With no remote, there is no draft PR or hosted CI.
+Begin task 5.3 by implementing `GET /v1/runs/:runId` from bounded, strictly validated stored records
+with privacy separation, explicit stale/unavailable handling, and no fabricated progress. With no
+remote, there is no draft PR or hosted CI.

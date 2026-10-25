@@ -9,9 +9,17 @@ import {
   validatorCompiler,
 } from 'fastify-type-provider-zod';
 import { PHASE_ONE_UNAVAILABLE, type PhaseOneStartup } from './startup.js';
+import {
+  createErrorResponse,
+  registerIntakeRoute,
+  type IntakeRouteDependencies,
+  type RequestIdFactory,
+} from './intake-route.js';
 
 export interface CreateAppOptions {
   phaseOne?: PhaseOneStartup;
+  intake?: IntakeRouteDependencies;
+  requestIdFactory?: RequestIdFactory;
 }
 
 export function createApp(options: CreateAppOptions = {}): FastifyInstance {
@@ -19,6 +27,30 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
   const phaseOne = options.phaseOne ?? PHASE_ONE_UNAVAILABLE;
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
+  app.setErrorHandler((error, _request, reply) => {
+    const validation =
+      typeof error === 'object' &&
+      error !== null &&
+      'validation' in error &&
+      error.validation !== undefined;
+    const response = createErrorResponse(
+      validation
+        ? {
+            code: 'validation_failed',
+            category: 'validation',
+            retryable: false,
+            message: 'Request validation failed.',
+          }
+        : {
+            code: 'unknown_failure',
+            category: 'runtime',
+            retryable: false,
+            message: 'The request could not be completed.',
+          },
+      options.requestIdFactory,
+    );
+    return reply.code(validation ? 400 : 500).send(response);
+  });
 
   if (phaseOne.status === 'ready') {
     app.addHook('onClose', async () => phaseOne.firestore.close());
@@ -33,6 +65,8 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
     },
     async () => createHealthResponse(),
   );
+
+  registerIntakeRoute(app, phaseOne, options.intake, options.requestIdFactory);
 
   return app;
 }

@@ -124,6 +124,8 @@ async function fixture() {
     idempotencyKey: 'resume-test-intake',
     intake,
     systemBundleId: bundleId,
+    traceId,
+    requestId,
   });
   const clock = tickingClock();
   const lifecycle = new LifecyclePersistenceService({
