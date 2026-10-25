@@ -5,6 +5,7 @@ export * from './firestore.js';
 export * from './intake.js';
 export * from './interpreter.js';
 export * from './lifecycle.js';
+export * from './lifecycle-report.js';
 export * from './local-reset.js';
 export * from './repositories.js';
 export * from './resume.js';

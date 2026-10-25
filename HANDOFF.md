@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–7.1 are implemented and locally verified; 4 of 35
+verified dependency/toolchain slice. Tasks 1.1–7.2 are implemented and locally verified; 3 of 35
 compressed tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -581,6 +581,29 @@ Task 7.1 checks passed on 2026-10-25: scoped Prettier, ESLint, strict TypeScript
 self-tests, the evaluator build, one full combined 38-case evaluation, and strict OpenSpec
 validation. No provider, paid API, live source, cloud service, real data, or external action ran.
 
+## Implemented privacy-aware lifecycle reporting
+
+- Strict domain `LifecycleReportSchema`/`lifecycle-report-v1` and runtime `createLifecycleReport`
+  summarize only strict `event-v1` records from one system bundle. Contact-shaped extra fields,
+  mixed bundles, and duplicate run sequences are rejected.
+- The report counts each run's latest stored status, events, runs with retry, and safe-error events.
+  `stored_run_completion_rate` names complete runs as numerator; complete, `failed_retryable`, and
+  `failed_terminal` latest states as denominator; counts active-state exclusions; and reports `null`
+  with `insufficient_data` for an empty denominator. Schema refinements enforce rate arithmetic and
+  that status, duration, and usage coverage counts equal the run/event totals.
+- Duration and usage coverage retain unavailable counts instead of filling values; usage is
+  unavailable because no model or paid tool exists. The summary is synthetic local prototype
+  evidence, not an SLO, production reliability measure, or conversion metric.
+- `AI_OPS.md` now records the combined `phase-1.0` bundle-bound evaluation, lifecycle reporting
+  contract, explicit recovery behavior, deferred provider/live-tool boundaries, prototype limits, and
+  recheck triggers.
+
+Task 7.2 checks passed on 2026-10-25: scoped Prettier, ESLint with zero warnings, strict TypeScript,
+28 Vitest files/174 tests, production builds, and strict OpenSpec validation (5 passed, 0 failed).
+Git Bash could not resolve the pnpm shim; the identical commands passed from the PowerShell toolchain
+session. The repository is owned by a different Windows account, so Git commands in this session
+use a per-command `safe.directory` override; global Git configuration was not changed.
+
 ## External evidence and gates
 
 The dated Military.com research record is `docs/research/military-com-intake-2026-10-24.md`.
@@ -593,6 +616,7 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 7.2 by adding privacy-aware lifecycle reporting and updating `AI_OPS.md` with the current
-bundle-bound evaluation, recovery behavior, deferred provider/tool boundaries, prototype limits,
-and recheck triggers. With no remote, there is no draft PR or hosted CI.
+Begin task 8.1 by creating the canonical Structurizr context, container,
+persist-before-processing/recovery, and ERD views plus the compact README Mermaid summary, following
+the diagram-design and showcase skills and matching the implemented runtime, storage, trust, and
+deferred-system boundaries. With no remote, there is no draft PR or hosted CI.

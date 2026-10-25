@@ -27,10 +27,10 @@ maps AI capabilities to current evidence. Read
 |---|---|
 | Design choices: autonomy, pattern, framework, model tiers, hosting, fallback | Phase 0 foundation design records the local-only boundary; runtime/model choices remain Phase 1 work |
 | System bundle and last known-good version | `system-bundle-v1` is persisted with code/tool/schema identity; latest verified workflow checkpoint is recorded in `HANDOFF.md` |
-| Evaluation plan, held-out cases and evaluator | `packages/evals`; versioned synthetic fixtures, evaluator, bundle identity, and explicit `not_run` outcomes established in Phase 0 |
+| Evaluation plan, held-out cases and evaluator | `packages/evals`; combined `phase-1.0` corpus retains all Phase 0 IDs, adds fixed Phase 1 contracts, validates bundle freshness, and preserves explicit `not_run` outcomes |
 | Offline deterministic check command | Activate with `. .\scripts\activate-toolchain.ps1`, then run `pnpm check` |
 | Authorized provider-evaluation command and budget | Not authorized; paid API gate unresolved |
-| Run records / metrics / alerts | Local run/event/result records are implemented; dashboard metrics and alerts remain Phase 1/2 work |
+| Run records / metrics / alerts | Local run/event/result records plus `lifecycle-report-v1` privacy-aware summaries are implemented; dashboard queries, alert thresholds, retention, and production telemetry remain deferred |
 | Release evidence and stop/recovery runbook | Phase 3; not created yet |
 | Operational owner and maintenance/recheck cadence | Peter; cadence TBD before deployment |
 
@@ -50,6 +50,12 @@ maps AI capabilities to current evidence. Read
   approval states must be durable enough for the dashboard to show actual workflow state.
 - Outputs: score weights are fixed by the accepted rubric; model prose cannot alter the arithmetic.
   Outreach remains a draft requiring consent and human approval.
+- Lifecycle reporting: `lifecycle-report-v1` accepts only strict `event-v1` records from one system
+  bundle. Its stored-run completion rate uses complete runs as numerator; complete,
+  `failed_retryable`, and `failed_terminal` latest states as denominator; and names all active-state
+  exclusions. Empty denominators are `null` with `insufficient_data`. Duration and usage coverage
+  retain unavailable counts rather than filling values. This is a synthetic local prototype summary,
+  not a service-level objective, production reliability measure, or conversion metric.
 - Retention, deletion, telemetry sampling, model fallback, and production incident limits remain TBD
   for the phases that introduce them.
 
@@ -62,10 +68,10 @@ injection behavior, live enrichment, and agent retry/checkpoint behavior). The g
 recorded clean source state, Node 24.22.1, pnpm 12.15.0, source/lockfile/fixture digests, and null
 model, provider, prompt, and tool-contract fields.
 
-This is deterministic scaffold evidence, not AI-runtime, live-provider, enrichment, or production
-evidence. Provider evaluation remains unauthorized until the provider, model, budget, credentials,
-and cases are approved. The separately authorized connected dependency audit reported no known
-vulnerabilities and did not modify the lockfile.
+This historical Phase 0 result is deterministic scaffold evidence, not AI-runtime, live-provider,
+enrichment, or production evidence. Provider evaluation remains unauthorized until the provider,
+model, budget, credentials, and cases are approved. The separately authorized connected dependency
+audit reported no known vulnerabilities and did not modify the lockfile.
 
 Phase 1 tasks 3.1–5.6 now provide local-only runtime evidence: strict Firestore repositories,
 atomic intake, concurrency-safe lifecycle updates, a project-owned durable LangGraph checkpointer,
@@ -108,5 +114,26 @@ stateful surface closed. The isolated emulator probe exercises built loopback HT
 client timeouts and verifies health scope, invalid intake, persistence, completion, stored failure,
 resume/replay, intake replay/conflict, reset denial, listener shutdown, Admin cleanup, and final flush.
 This is synthetic local runtime evidence, not provider, production, predictive, or external-tool
-evidence; the retained evaluator still reports provider/live cases as `not_run` until tasks 7.1–7.3
-replace the Phase 0 corpus.
+evidence.
+
+The current `phase-1.0` combined evaluator retains all 24 Phase 0 case IDs and adds 14 Phase 1
+cases. Its latest local report ran 38 fixed synthetic cases: 31 passed, 0 failed, 7 were `not_run`,
+and 0 were stale. The report binds source/dirty-patch state, lockfile, fixtures, evaluator, schemas,
+rubric, interpreter, graph, checkpointer, simulator, configuration, environment, and absent-provider
+reasons into one system bundle. The seven unrun cases preserve hosted model/provider, live
+enrichment, cloud Firestore, real-personal-data, and production-readiness boundaries. A changed
+bundle digest marks affected evidence `stale`; the full emulator/runtime and rendered-local checks
+remain separate evidence lanes and must rerun together for the final candidate in task 9.1.
+
+Recovery remains local and explicit: the first transient interpreter fault gets one retry, exhausted
+transient work becomes `failed_retryable`, unknown/non-retryable faults become terminal, and only an
+eligible persisted or retryable run with the expected revision and compatible checkpoint can resume.
+Crashes, ambiguous writes, lease races, unavailable/malformed stored state, and resume conflicts
+remain visible rather than becoming success. Recheck this evidence on any event/run/checkpoint,
+rubric/interpreter/graph/simulator, retry/resume/lease, Firestore adapter, configuration, evaluator,
+or dependency change.
+
+No provider SDK, prompt, hosted model, live NHTSA/ZIP/email-domain adapter, insurer/quote integration,
+cloud database, authentication, real-personal-data path, outreach sender, or external tool server is
+enabled. Their first implementation, destination or authorization change requires the matching
+PROJECT gate plus renewed design, privacy, failure, budget, and evaluation evidence.

@@ -239,6 +239,122 @@ export const LifecycleEventSchema = z
   .strict();
 export type LifecycleEvent = z.infer<typeof LifecycleEventSchema>;
 
+export const LifecycleRateMetricSchema = z
+  .object({
+    name: z.literal('stored_run_completion_rate'),
+    value: z.number().min(0).max(1).nullable(),
+    numerator: z.number().int().nonnegative(),
+    denominator: z.number().int().nonnegative(),
+    exclusions: z.number().int().nonnegative(),
+    window: z.literal('latest_state_of_all_supplied_runs'),
+    minimumCount: z.literal(1),
+    evidenceClass: z.literal('synthetic-local'),
+    reason: z.literal('insufficient_data').nullable(),
+  })
+  .strict()
+  .superRefine((metric, context) => {
+    const expected =
+      metric.denominator === 0 ? null : metric.numerator / metric.denominator;
+    if (metric.value !== expected) {
+      context.addIssue({
+        code: 'custom',
+        path: ['value'],
+        message:
+          'completion-rate value must match its numerator and denominator',
+      });
+    }
+    if (
+      (metric.denominator === 0) !==
+      (metric.reason === 'insufficient_data')
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['reason'],
+        message: 'empty completion-rate denominator requires insufficient_data',
+      });
+    }
+  });
+
+export const LifecycleReportSchema = z
+  .object({
+    schemaVersion: z.literal('lifecycle-report-v1'),
+    generatedAt: UtcTimestampSchema,
+    systemBundleId: IdentifierSchema,
+    eventSchemaVersion: z.literal(PHASE_ONE_VERSIONS.event),
+    evidenceClass: z.literal('synthetic-local'),
+    runCount: z.number().int().nonnegative(),
+    eventCount: z.number().int().nonnegative(),
+    statusCounts: z
+      .object({
+        persisted: z.number().int().nonnegative(),
+        running: z.number().int().nonnegative(),
+        retrying: z.number().int().nonnegative(),
+        partial: z.number().int().nonnegative(),
+        failed_retryable: z.number().int().nonnegative(),
+        failed_terminal: z.number().int().nonnegative(),
+        complete: z.number().int().nonnegative(),
+      })
+      .strict(),
+    completionRate: LifecycleRateMetricSchema,
+    runsWithRetry: z.number().int().nonnegative(),
+    safeErrorEventCount: z.number().int().nonnegative(),
+    duration: z
+      .object({
+        observedEvents: z.number().int().nonnegative(),
+        unavailableEvents: z.number().int().nonnegative(),
+        totalMs: z.number().int().nonnegative(),
+        meanMs: z.number().nonnegative().nullable(),
+        maximumMs: z.number().int().nonnegative().nullable(),
+      })
+      .strict(),
+    usage: z
+      .object({
+        availableEvents: z.number().int().nonnegative(),
+        unavailableEvents: z.number().int().nonnegative(),
+        unavailableReason: z.literal('no_model_or_paid_tool').nullable(),
+      })
+      .strict(),
+    privacyBoundary: z.literal(
+      'lifecycle metadata only; excludes lead/contact/request/prompt/credential/raw-error payloads',
+    ),
+    limitations: z.array(z.string().min(1).max(240)).min(1).max(8),
+  })
+  .strict()
+  .superRefine((report, context) => {
+    const statusTotal = Object.values(report.statusCounts).reduce(
+      (total, count) => total + count,
+      0,
+    );
+    if (statusTotal !== report.runCount) {
+      context.addIssue({
+        code: 'custom',
+        path: ['statusCounts'],
+        message: 'latest status counts must equal run count',
+      });
+    }
+    if (
+      report.duration.observedEvents + report.duration.unavailableEvents !==
+      report.eventCount
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['duration'],
+        message: 'duration coverage must equal event count',
+      });
+    }
+    if (
+      report.usage.availableEvents + report.usage.unavailableEvents !==
+      report.eventCount
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['usage'],
+        message: 'usage coverage must equal event count',
+      });
+    }
+  });
+export type LifecycleReport = z.infer<typeof LifecycleReportSchema>;
+
 export const SerializedValueSchema = z
   .object({
     type: z.string().min(1).max(80),
