@@ -109,7 +109,7 @@ Do not treat the roadmap in PROJECT.md as an instruction to build all later phas
 - Skills/planning: frontmatter, local links, routing consistency, source digests where
   carried over, strict OpenSpec validation, whitespace and candidate-file inspection.
   Do not claim runtime verification from these checks.
-- Runtime: run `TBD in Phase 0` once implemented. Before Phase 0 finishes, inspect
+- Runtime: run `pnpm check` (after `. .\scripts\activate-toolchain.ps1`). Before Phase 0 finishes, inspect
   actual checks rather than assuming this command exists. Run meaningful regression/contract
   tests for the change. Pace checks by WORKFLOW.md § Efficient execution: leaf checks while
   editing, task-specific probes to close a task, one full gate per phase.
