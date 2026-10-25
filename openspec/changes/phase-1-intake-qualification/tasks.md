@@ -42,7 +42,7 @@
 ## 6. Operator intake and run detail
 
 - [x] 6.1 Build the responsive calm operations-dossier shell and semantic intake, keeping the persistent synthetic label, honest ZIP/demo-field grouping, test-contact guidance, explicit consent, accessible validation, and no Military.com visual imitation.
-- [ ] 6.2 Connect intake submission to the persisted response with stable idempotency, safe input/error handling, stored run identity, and deliberate focus movement.
+- [x] 6.2 Connect intake submission to the persisted response with stable idempotency, safe input/error handling, stored run identity, and deliberate focus movement.
 - [ ] 6.3 Render stored polling, lifecycle progress, qualification evidence, failures, eligible resume, and separately labeled non-predictive simulation without fabricated progress or focus theft.
 - [ ] 6.4 Cover the essential loading, validation, persistence, progress, failure/resume, complete, stale, and long-content paths with deterministic tests, then inspect and fix the running flow at desktop and 390px for keyboard, focus, semantics, and reduced motion.
 

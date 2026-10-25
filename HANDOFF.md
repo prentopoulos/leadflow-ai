@@ -490,6 +490,29 @@ plus the 390×844 top and bottom of the long stacked workspace; document width m
 the sticky synthetic strip remained visible, and browser warning/error logs were empty. Submission,
 stored run focus, polling, results, and resume remain tasks 6.2–6.3.
 
+## Implemented persisted intake submission
+
+- The browser posts the strict normalized `intake-v1` value to the relative `/v1/intake` boundary
+  with a client-generated UUID idempotency key. Vite development and local preview proxy only `/v1`
+  to the fixed loopback API default at `127.0.0.1:3001`; the browser still has no Firestore client.
+- One logical intake retains the same key through an unchanged retry. Editing the validated content
+  creates a new request identity on the next attempt, and a confirmed submission disables duplicate
+  storage until the operator starts another intake.
+- The client accepts only strict shared success/error response schemas. Network, malformed-response,
+  and unexpected client failures become fixed local messages without raw error or submitted-content
+  leakage. Failed submission keeps the form values, moves focus to the persistence error, and leaves
+  the dossier at `No stored run`.
+- A committed or replay-confirmed response replaces the empty state with only the returned run/lead
+  identity, revision, timestamp, and synthetic-local evidence label. Focus moves to the run heading
+  only after that response; no polling or elapsed-time progress is inferred yet.
+
+Task 6.2 checks passed on 2026-10-25: scoped Prettier, ESLint, strict TypeScript, nine web/client
+tests, and the production web build. Rendered local preview review exercised an unavailable API:
+the fixed persistence error received focus, the fictional test email remained in the browser, the
+run stayed absent, and browser logs contained no warning/error. Successful persisted/replay focus,
+identity rendering, disabled duplicate submission, and unchanged-retry key reuse are deterministic
+component/client tests; polling and full rendered state coverage remain tasks 6.3–6.4.
+
 ## External evidence and gates
 
 The dated Military.com research record is `docs/research/military-com-intake-2026-10-24.md`.
@@ -502,6 +525,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 6.2 by connecting the validated intake to `POST /v1/intake` with a stable idempotency key,
-safe local input/error handling, committed run identity, and deliberate focus movement to the stored
-run heading. With no remote, there is no draft PR or hosted CI.
+Begin task 6.3 by polling `GET /v1/runs/:runId` from the committed run identity and rendering stored
+lifecycle progress, qualification evidence, safe failures, eligible resume, and separately labeled
+simulation without inferring client-side progress. With no remote, there is no draft PR or hosted CI.

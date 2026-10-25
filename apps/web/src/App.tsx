@@ -2,8 +2,15 @@ import {
   IntakeSubmissionSchema,
   PHASE_ONE_VERSIONS,
   TEST_EMAIL_DOMAINS,
+  type IntakeAcceptedResponse,
+  type SafeError,
 } from '@leadflow-ai/domain';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
+import {
+  submitIntake,
+  type IntakeClient,
+  type IntakeClientResult,
+} from './intake-client.js';
 
 const coverageOptions = [
   ['balanced', 'Balanced coverage'],
@@ -90,11 +97,36 @@ function fieldA11y(field: FieldName, errors: FieldErrors, helpId?: string) {
   };
 }
 
-export function App() {
+function createIdempotencyKey() {
+  return crypto.randomUUID();
+}
+
+type SubmissionStatus = 'idle' | 'submitting' | 'failed' | 'stored';
+
+interface AppProps {
+  intakeClient?: IntakeClient;
+  idempotencyKeyFactory?: () => string;
+}
+
+export function App({
+  intakeClient = submitIntake,
+  idempotencyKeyFactory = createIdempotencyKey,
+}: AppProps = {}) {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [validationAttempt, setValidationAttempt] = useState(0);
-  const [isLocallyValid, setIsLocallyValid] = useState(false);
+  const [submissionStatus, setSubmissionStatus] =
+    useState<SubmissionStatus>('idle');
+  const [submissionError, setSubmissionError] = useState<SafeError | null>(
+    null,
+  );
+  const [accepted, setAccepted] = useState<IntakeAcceptedResponse | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
+  const submissionErrorRef = useRef<HTMLDivElement>(null);
+  const runHeadingRef = useRef<HTMLHeadingElement>(null);
+  const requestIdentityRef = useRef<{
+    fingerprint: string;
+    idempotencyKey: string;
+  } | null>(null);
 
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
@@ -102,7 +134,19 @@ export function App() {
     }
   }, [errors, validationAttempt]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    if (submissionStatus === 'failed') {
+      submissionErrorRef.current?.focus();
+    }
+  }, [submissionStatus]);
+
+  useEffect(() => {
+    if (accepted !== null) {
+      runHeadingRef.current?.focus();
+    }
+  }, [accepted]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const yearValue = String(formData.get('vehicleYear') ?? '').trim();
@@ -140,18 +184,59 @@ export function App() {
         }
       }
       setErrors(nextErrors);
-      setIsLocallyValid(false);
+      setSubmissionError(null);
+      setSubmissionStatus('idle');
       setValidationAttempt((attempt) => attempt + 1);
       return;
     }
 
     setErrors({});
-    setIsLocallyValid(true);
+    setSubmissionError(null);
+    setSubmissionStatus('submitting');
+
+    const fingerprint = JSON.stringify(result.data);
+    if (requestIdentityRef.current?.fingerprint !== fingerprint) {
+      requestIdentityRef.current = {
+        fingerprint,
+        idempotencyKey: idempotencyKeyFactory(),
+      };
+    }
+
+    let response: IntakeClientResult;
+    try {
+      response = await intakeClient(
+        result.data,
+        requestIdentityRef.current.idempotencyKey,
+      );
+    } catch {
+      response = {
+        status: 'rejected',
+        error: {
+          code: 'unknown_failure',
+          category: 'runtime',
+          retryable: true,
+          message:
+            'The local intake request could not be completed. Your input remains in this browser.',
+        },
+      };
+    }
+
+    if (response.status === 'rejected') {
+      setSubmissionError(response.error);
+      setSubmissionStatus('failed');
+      return;
+    }
+
+    setAccepted(response.value);
+    setSubmissionStatus('stored');
   }
 
   function handleReset() {
     setErrors({});
-    setIsLocallyValid(false);
+    setSubmissionError(null);
+    setSubmissionStatus('idle');
+    setAccepted(null);
+    requestIdentityRef.current = null;
   }
 
   return (
@@ -231,10 +316,28 @@ export function App() {
                 </div>
               ) : null}
 
-              {isLocallyValid ? (
+              {submissionError !== null ? (
+                <div
+                  className="submission-error"
+                  ref={submissionErrorRef}
+                  role="alert"
+                  tabIndex={-1}
+                >
+                  <p className="summary-label">Lead not stored</p>
+                  <h3>The local intake request did not complete.</h3>
+                  <p>{submissionError.message}</p>
+                  <small>
+                    {submissionError.retryable
+                      ? 'Retrying this unchanged intake uses the same request key.'
+                      : 'Review the intake before trying a new request.'}
+                  </small>
+                </div>
+              ) : null}
+
+              {submissionStatus === 'submitting' ? (
                 <div className="validation-status" role="status">
-                  <strong>Local validation complete.</strong>
-                  <span>Nothing has been stored or processed yet.</span>
+                  <strong>Storing the synthetic lead…</strong>
+                  <span>Qualification cannot begin before this commit.</span>
                 </div>
               ) : null}
 
@@ -473,11 +576,24 @@ export function App() {
               </fieldset>
 
               <div className="form-actions">
-                <button className="primary-action" type="submit">
-                  Validate synthetic intake
+                <button
+                  className="primary-action"
+                  type="submit"
+                  disabled={
+                    submissionStatus === 'submitting' ||
+                    submissionStatus === 'stored'
+                  }
+                >
+                  {submissionStatus === 'submitting'
+                    ? 'Storing lead…'
+                    : submissionStatus === 'stored'
+                      ? 'Lead stored'
+                      : 'Store synthetic lead'}
                 </button>
                 <button className="secondary-action" type="reset">
-                  Restore example
+                  {submissionStatus === 'stored'
+                    ? 'Start another intake'
+                    : 'Restore example'}
                 </button>
                 <p>Required fields are marked with an asterisk.</p>
               </div>
@@ -488,22 +604,61 @@ export function App() {
             <div className="section-heading">
               <div>
                 <p className="section-index">02 / Stored evidence</p>
-                <h2 id="run-dossier-title">Run dossier</h2>
+                <h2 id="run-dossier-title" ref={runHeadingRef} tabIndex={-1}>
+                  Run dossier
+                </h2>
               </div>
-              <span className="state-tag">No stored run</span>
+              <span className="state-tag">
+                {accepted === null
+                  ? 'No stored run'
+                  : `Stored · rev ${accepted.runRevision}`}
+              </span>
             </div>
 
-            <div className="empty-run">
-              <span className="empty-glyph" aria-hidden="true">
-                00
-              </span>
-              <h3>Waiting for a persisted lead.</h3>
-              <p>
-                This space will show the run only after the API confirms the
-                lead, run, idempotency record, and first lifecycle event were
-                stored.
-              </p>
-            </div>
+            {accepted === null ? (
+              <div className="empty-run">
+                <span className="empty-glyph" aria-hidden="true">
+                  00
+                </span>
+                <h3>Waiting for a persisted lead.</h3>
+                <p>
+                  This space will show the run only after the API confirms the
+                  lead, run, idempotency record, and first lifecycle event were
+                  stored.
+                </p>
+              </div>
+            ) : (
+              <div className="stored-run" role="status">
+                <p className="summary-label">
+                  {accepted.replayed
+                    ? 'Stored request replay confirmed'
+                    : 'Persistence confirmed'}
+                </p>
+                <h3>The lead is stored before processing.</h3>
+                <dl>
+                  <div>
+                    <dt>Run ID</dt>
+                    <dd>{accepted.runId}</dd>
+                  </div>
+                  <div>
+                    <dt>Lead ID</dt>
+                    <dd>{accepted.leadId}</dd>
+                  </div>
+                  <div>
+                    <dt>Committed</dt>
+                    <dd>{new Date(accepted.committedAt).toLocaleString()}</dd>
+                  </div>
+                  <div>
+                    <dt>Evidence</dt>
+                    <dd>{accepted.evidenceClass}</dd>
+                  </div>
+                </dl>
+                <p>
+                  The first stored run snapshot has not been loaded yet. No
+                  client-side progress is inferred from elapsed time.
+                </p>
+              </div>
+            )}
 
             <div className="dossier-index" aria-label="Run dossier contents">
               <p className="summary-label">Evidence order</p>

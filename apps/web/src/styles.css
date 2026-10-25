@@ -268,6 +268,7 @@ form {
 }
 
 .error-summary,
+.submission-error,
 .validation-status {
   margin-bottom: 1.5rem;
   border: 1px solid var(--error);
@@ -277,7 +278,8 @@ form {
   background: var(--error-soft);
 }
 
-.error-summary h3 {
+.error-summary h3,
+.submission-error h3 {
   margin: 0;
   font-size: 1.05rem;
 }
@@ -291,12 +293,24 @@ form {
   margin-top: 0.35rem;
 }
 
-.error-summary .summary-label {
+.error-summary .summary-label,
+.submission-error .summary-label {
   color: var(--error);
 }
 
 .error-summary a {
   color: var(--error);
+}
+
+.submission-error p:not(.summary-label),
+.submission-error small {
+  display: block;
+  margin: 0.6rem 0 0;
+  line-height: 1.5;
+}
+
+.submission-error small {
+  color: #6d3b36;
 }
 
 .validation-status {
@@ -490,6 +504,11 @@ button {
     border-color 120ms ease;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.66;
+}
+
 .primary-action {
   color: #f8fffd;
   border-color: var(--accent-dark);
@@ -543,11 +562,55 @@ button {
 }
 
 .empty-run p,
+.stored-run > p:last-child,
 .boundary-note > p:last-child {
   max-width: 48ch;
   margin: 1rem 0 0;
   color: var(--muted);
   line-height: 1.65;
+}
+
+.stored-run {
+  padding: clamp(2rem, 6vw, 4rem) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.stored-run h3 {
+  max-width: 18ch;
+  margin: 0;
+  font-size: clamp(1.45rem, 3vw, 2.4rem);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+}
+
+.stored-run dl {
+  margin: 1.75rem 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.stored-run dl > div {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.stored-run dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.stored-run dd {
+  min-width: 0;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
 }
 
 .dossier-index,

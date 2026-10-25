@@ -1,12 +1,31 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App.js';
 
 afterEach(cleanup);
+
+const accepted = {
+  status: 'accepted',
+  value: {
+    schemaVersion: 'intake-response-v1',
+    leadId: '11111111-1111-4111-8111-111111111111',
+    runId: '22222222-2222-4222-8222-222222222222',
+    runRevision: 0,
+    replayed: false,
+    committedAt: '2026-10-25T18:00:00.000Z',
+    evidenceClass: 'synthetic-local',
+  },
+} as const;
 
 describe('Phase 1 intake workspace', () => {
   it('renders the persistent synthetic context and honest operating boundary', () => {
@@ -64,7 +83,7 @@ describe('Phase 1 intake workspace', () => {
     fireEvent.change(email, { target: { value: 'real.person@gmail.com' } });
     fireEvent.change(zip, { target: { value: '12' } });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Validate synthetic intake' }),
+      screen.getByRole('button', { name: 'Store synthetic lead' }),
     );
 
     const summary = screen.getByRole('alert');
@@ -76,18 +95,73 @@ describe('Phase 1 intake workspace', () => {
     expect(email).toHaveFocus();
   });
 
-  it('confirms validation without claiming persistence or processing', () => {
-    render(<App />);
+  it('renders the committed identity and moves focus only after persistence', async () => {
+    const intakeClient = vi.fn(async () => accepted);
+    render(
+      <App
+        intakeClient={intakeClient}
+        idempotencyKeyFactory={() => 'intake-key-001'}
+      />,
+    );
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Validate synthetic intake' }),
+      screen.getByRole('button', { name: 'Store synthetic lead' }),
     );
 
-    const status = screen.getByRole('status');
-    expect(status).toHaveTextContent('Local validation complete.');
-    expect(status).toHaveTextContent(
-      'Nothing has been stored or processed yet.',
+    const runHeading = screen.getByRole('heading', { name: 'Run dossier' });
+    await waitFor(() => expect(runHeading).toHaveFocus());
+    expect(intakeClient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        schemaVersion: 'intake-v1',
+        identityClass: 'fictional',
+        email: 'avery.jordan@example.com',
+      }),
+      'intake-key-001',
     );
+    expect(
+      screen.getByText('The lead is stored before processing.'),
+    ).toBeInTheDocument();
+    expect(screen.getByText(accepted.value.runId)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Lead stored' })).toBeDisabled();
+  });
+
+  it('keeps safe local input and the same request key for an unchanged retry', async () => {
+    const intakeClient = vi
+      .fn()
+      .mockResolvedValueOnce({
+        status: 'rejected',
+        error: {
+          code: 'storage_unavailable',
+          category: 'storage',
+          retryable: true,
+          message: 'The intake could not be persisted.',
+        },
+      })
+      .mockResolvedValueOnce(accepted);
+    const idempotencyKeyFactory = vi.fn(() => 'stable-retry-key');
+    render(
+      <App
+        intakeClient={intakeClient}
+        idempotencyKeyFactory={idempotencyKeyFactory}
+      />,
+    );
+
+    const submit = screen.getByRole('button', {
+      name: 'Store synthetic lead',
+    });
+    fireEvent.click(submit);
+    const error = await screen.findByRole('alert');
+    expect(error).toHaveFocus();
+    expect(error).toHaveTextContent('The intake could not be persisted.');
+    expect(screen.getByLabelText(/Test email/i)).toHaveValue(
+      'avery.jordan@example.com',
+    );
+
+    fireEvent.click(submit);
+    await waitFor(() => expect(intakeClient).toHaveBeenCalledTimes(2));
+    expect(idempotencyKeyFactory).toHaveBeenCalledOnce();
+    expect(intakeClient.mock.calls[0]?.[1]).toBe('stable-retry-key');
+    expect(intakeClient.mock.calls[1]?.[1]).toBe('stable-retry-key');
   });
 
   it('declares 390px and reduced-motion safeguards', () => {
