@@ -3,6 +3,7 @@ import {
   createEmulatorFirestoreBoundary,
   createFirestoreRepositories,
   createIntakePersistenceService,
+  createLifecyclePersistenceService,
 } from '../packages/runtime/dist/index.js';
 
 const timestamp = '2026-10-24T20:00:00.000Z';
@@ -141,8 +142,62 @@ try {
     throw new Error('Emulator atomic intake records were not durable.');
   }
 
+  const context = {
+    traceId: randomUUID(),
+    requestId: randomUUID(),
+    authorization: 'not_applicable',
+  };
+  const claimService = createLifecyclePersistenceService(boundary.database, {
+    now: () => '2026-10-24T20:01:00.000Z',
+  });
+  const claimResults = await Promise.allSettled([
+    claimService.claim({
+      runId: first.runId,
+      expectedRevision: 0,
+      ownerId: 'emulator-worker-a',
+      leaseDurationMs: 1_000,
+      ...context,
+    }),
+    claimService.claim({
+      runId: first.runId,
+      expectedRevision: 0,
+      ownerId: 'emulator-worker-b',
+      leaseDurationMs: 1_000,
+      ...context,
+    }),
+  ]);
+  const successfulClaims = claimResults.filter(
+    ({ status }) => status === 'fulfilled',
+  );
+  if (successfulClaims.length !== 1) {
+    throw new Error('Emulator concurrent claim did not select one owner.');
+  }
+  const claimedRun = await repositories.runs.get(first.runId);
+  if (claimedRun?.revision !== 1 || claimedRun.nextEventSequence !== 3) {
+    throw new Error(
+      'Emulator claim revision or event sequence was not atomic.',
+    );
+  }
+
+  const reclaim = await createLifecyclePersistenceService(boundary.database, {
+    now: () => '2026-10-24T20:01:02.000Z',
+  }).reclaimExpiredLease({
+    runId: first.runId,
+    expectedRevision: 1,
+    ownerId: 'emulator-worker-recovery',
+    leaseDurationMs: 30_000,
+    ...context,
+  });
+  if (
+    reclaim.run.revision !== 2 ||
+    reclaim.event.sequence !== 3 ||
+    reclaim.event.name !== 'run.lease_reclaimed'
+  ) {
+    throw new Error('Emulator expired-lease reclaim broke lifecycle ordering.');
+  }
+
   console.log(
-    'Runtime Firestore repository and atomic-intake probes passed against the isolated emulator.',
+    'Runtime Firestore repository, atomic-intake, and lifecycle probes passed against the isolated emulator.',
   );
 } finally {
   await boundary.close();

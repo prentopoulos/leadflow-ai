@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–3.2 are implemented and locally verified; 34 of 46
+verified dependency/toolchain slice. Tasks 1.1–3.3 are implemented and locally verified; 33 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -149,12 +149,32 @@ and `pnpm emulator:runtime`. The first new unit run retained one failure caused 
 hard-coded test digest; replacing it with an independently calculated SHA-256 expectation made the
 same suite pass.
 
+## Implemented transactional lifecycle and leases
+
+- Lifecycle commits load and strictly validate the current run inside the transaction, require the
+  caller's expected revision, derive the next revision and event sequence from stored state, validate
+  the complete next run/event records, then update the run and create the append-only event in one
+  commit. Missing runs, stale revisions, invalid state transitions, duplicate event IDs, and malformed
+  stored state fail without a partial update.
+- First claim accepts only a revision-matched `persisted` run with no lease, creates a bounded lease,
+  transitions to `running`, and records `run.claimed`. Concurrent claims serialize through Firestore
+  so exactly one owner commits.
+- Expired-lease reclaim accepts only a revision-matched `running` run with an existing expired lease,
+  retains workflow attempt state, replaces ownership, and records `run.lease_reclaimed`; an active
+  lease is rejected. The reclaim service is internal and will be exposed only through the explicit
+  guarded resume path in task 4.4.
+
+Task 3.3 checks passed on 2026-10-24: Prettier, ESLint, strict TypeScript, 13 Vitest files/69 tests,
+and the real emulator probe for concurrent claim plus expired reclaim. The first typecheck retained a
+test-only mutex callback inference error; explicitly typing the release callback fixed it, and the
+same fail-fast sequence passed.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, and atomic intake/idempotency persistence only. They do not yet establish
-transactional later lifecycle events/claims, LangGraph execution/checkpoint compatibility, the
-Phase 1 API/UI, diagrams, or production behavior. The evaluator still executes the retained Phase 0
-fixture corpus; Phase 1 fixtures and independent evaluation remain tasks 7.1–7.3.
+LangGraph execution/checkpoint compatibility, the Phase 1 API/UI, diagrams, or production behavior.
+The evaluator still executes the retained Phase 0 fixture corpus; Phase 1 fixtures and independent
+evaluation remain tasks 7.1–7.3.
 
 ## External evidence and gates
 
@@ -168,6 +188,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 3.3 with transactionally revised append-only events and execution lease/claim/reclaim
-behavior, including monotonic sequence, duplicate, stale revision, concurrent claim, and expired
-lease tests. With no remote, there is no draft PR or hosted CI.
+Begin task 3.4 with the project-owned Firestore `BaseCheckpointSaver`, including pending-write
+idempotency, ordered listing, namespace/parent/bundle/schema identity, and pinned-interface contract
+tests. With no remote, there is no draft PR or hosted CI.

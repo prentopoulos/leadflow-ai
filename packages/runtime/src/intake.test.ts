@@ -69,6 +69,10 @@ class MemoryAtomicStore
         if (staged.has(path)) throw new Error('already exists');
         staged.set(path, structuredClone(data));
       },
+      update: (path, data) => {
+        if (!staged.has(path)) throw new Error('not found');
+        staged.set(path, structuredClone(data));
+      },
     });
     this.documents.clear();
     for (const [path, value] of staged) this.documents.set(path, value);

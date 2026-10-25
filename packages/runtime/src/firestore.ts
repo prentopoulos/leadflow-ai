@@ -66,6 +66,7 @@ export interface FirestoreDocumentStore {
 export interface FirestoreAtomicTransaction {
   get(path: string): Promise<unknown | null>;
   create(path: string, data: DocumentData): void;
+  update(path: string, data: DocumentData): void;
 }
 
 export interface FirestoreAtomicStore {
@@ -101,6 +102,9 @@ export class AdminFirestoreAtomicStore implements FirestoreAtomicStore {
         },
         create: (path, data) => {
           transaction.create(this.database.doc(path), data);
+        },
+        update: (path, data) => {
+          transaction.update(this.database.doc(path), data);
         },
       }),
     );
