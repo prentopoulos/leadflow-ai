@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–3.4 are implemented and locally verified; 32 of 46
+verified dependency/toolchain slice. Tasks 1.1–3.5 are implemented and locally verified; 31 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -194,6 +194,25 @@ dependency; the same offline command passed against the actual host cache. Initi
 also retained an unused helper/import and a typed metadata-index issue; both were removed/fixed
 before the passing sequence.
 
+## Implemented isolated fixtures and guarded reset
+
+- The runtime reset boundary requires an enabled feature, exact `127.0.0.1` requester, exact
+  `demo-leadflow-ai-local` project, exact `127.0.0.1:8080` emulator host, and the literal
+  `DELETE SYNTHETIC LEADFLOW LOCAL DATA` confirmation before constructing its one fixed emulator
+  flush request. Every denial occurs before `fetch`; emulator refusal reports failure without a
+  deletion claim.
+- Emulator mode construction is now separately testable: ordinary start, isolated exec, runtime
+  verification, and explicit export modes receive no implicit retain/import flags. Only explicit
+  retain mode adds export-on-exit and imports prior ignored state when its metadata exists.
+- The real runtime probe performs a guarded verified flush before fixture creation, runs repository,
+  intake, lifecycle, and checkpointer fixtures, performs a final guarded flush, and confirms the
+  seeded run and bundle no longer exist. Normal `emulators:exec` still exits without an export.
+
+Task 3.5 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 16 Vitest files/90 tests,
+and the real emulator pre/post-flush probe. The first typecheck retained an incorrect local import of
+the project-ID constant; importing it from the domain owner fixed the failure before the passing
+sequence.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
@@ -213,6 +232,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 3.5 with isolated emulator fixtures, verified flush, ephemeral/explicit-retain behavior,
-and the guarded local-reset denial/confirmed-deletion contract. With no remote, there is no draft PR
-or hosted CI.
+Begin task 4.1 with the minimum-projection `QualificationInterpreter` interface and deterministic
+`qualification-interpretation-v1` stub, with no model, prompt, provider, or tool call. With no remote,
+there is no draft PR or hosted CI.

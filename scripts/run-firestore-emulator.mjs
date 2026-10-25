@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { retainedStateArguments } from './firestore-emulator-modes.mjs';
 import { repoRoot, run } from './process-utils.mjs';
 
 const mode = process.argv[2];
@@ -110,11 +111,12 @@ if (mode === 'start') {
     '--only',
     'firestore',
     ...common,
-    `--export-on-exit=${retainedState}`,
+    ...retainedStateArguments({
+      mode,
+      retainedState,
+      retainedMetadataExists: existsSync(retainedMetadata),
+    }),
   ];
-  if (existsSync(retainedMetadata)) {
-    args.push(`--import=${retainedState}`);
-  }
 } else {
   args = ['emulators:export', retainedState, '--force', ...common];
 }

@@ -134,6 +134,7 @@ export const SafeErrorSchema = z
       'revision_conflict',
       'lease_active',
       'run_ineligible',
+      'reset_denied',
       'unknown_failure',
     ]),
     category: z.enum(['validation', 'storage', 'runtime', 'conflict']),

@@ -5,6 +5,8 @@ import {
   createFirestoreCheckpointSaver,
   createIntakePersistenceService,
   createLifecyclePersistenceService,
+  LOCAL_RESET_CONFIRMATION,
+  resetLocalEmulatorData,
 } from '../packages/runtime/dist/index.js';
 
 const timestamp = '2026-10-24T20:00:00.000Z';
@@ -59,6 +61,13 @@ const bundle = {
 };
 
 try {
+  await resetLocalEmulatorData({
+    enabled: true,
+    remoteAddress: '127.0.0.1',
+    projectId: 'demo-leadflow-ai-local',
+    firestoreHost: '127.0.0.1:8080',
+    confirmation: LOCAL_RESET_CONFIRMATION,
+  });
   const repositories = createFirestoreRepositories(boundary.database);
   await repositories.systemBundles.create(bundle);
   const stored = await repositories.systemBundles.get(systemBundleId);
@@ -285,9 +294,22 @@ try {
   ) {
     throw new Error('Checkpoint deletion crossed the thread-state boundary.');
   }
+  await resetLocalEmulatorData({
+    enabled: true,
+    remoteAddress: '127.0.0.1',
+    projectId: 'demo-leadflow-ai-local',
+    firestoreHost: '127.0.0.1:8080',
+    confirmation: LOCAL_RESET_CONFIRMATION,
+  });
+  if (
+    (await repositories.runs.get(first.runId)) !== null ||
+    (await repositories.systemBundles.get(systemBundleId)) !== null
+  ) {
+    throw new Error('Verified emulator flush left fixture records behind.');
+  }
 
   console.log(
-    'Runtime Firestore repository, intake, lifecycle, and checkpointer probes passed against the isolated emulator.',
+    'Runtime Firestore repository, intake, lifecycle, checkpointer, and verified-flush probes passed against the isolated emulator.',
   );
 } finally {
   await boundary.close();
