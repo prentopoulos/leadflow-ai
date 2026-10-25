@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–6.3 are implemented and locally verified; 6 of 35
+verified dependency/toolchain slice. Tasks 1.1–6.4 are implemented and locally verified; 5 of 35
 compressed tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -533,6 +533,29 @@ Task 6.3 checks passed on 2026-10-25: scoped Prettier, ESLint, strict TypeScript
 web/client tests, and the production web build. Task 6.4 retains the consolidated deterministic UI
 state matrix and rendered desktop/390px accessibility inspection.
 
+## Verified essential operator UI states
+
+- One explicit deterministic manifest covers loading, empty, validation error, persistence error,
+  in-progress, retrying, partial, retryable failure, terminal failure, complete, stale, and long
+  content. Existing intake tests and the consolidated run-dossier suite exercise every named state.
+- Polling tests verify that unavailable refresh retains the last confirmed revision and that a
+  progressing run can append 40 stored events without moving focus from the operator's control.
+  Terminal failure exposes no resume; retryable failure exposes the expected-revision action.
+- Development-only query fixtures provide loading, progress, failure, complete, stale, and long
+  renderings. They are prominently labeled `NOT STORED`, schema-validate the run payload, and are
+  eliminated from the production JavaScript build.
+- The rendered complete and long-content flow was inspected in the actual local browser at a
+  1280px desktop viewport and 390×844 mobile viewport. Desktop and mobile document scroll width
+  matched client width, focus moved to `run-dossier-title` only after fixture persistence, 32-event
+  history and simulation provenance remained readable, and the retry action was present in the
+  eligible mobile failure state. Browser warning/error logs were empty. The viewport override was
+  reset and the temporary loopback development server was stopped after inspection.
+
+Task 6.4 checks passed on 2026-10-25: scoped Prettier, ESLint, strict TypeScript, 21 focused
+web/client tests, the production web build, strict OpenSpec validation, and the rendered desktop/
+390px inspection above. Reduced-motion and visible-focus rules remain direct stylesheet assertions;
+polling focus continuity is a deterministic component test.
+
 ## External evidence and gates
 
 The dated Military.com research record is `docs/research/military-com-intake-2026-10-24.md`.
@@ -545,7 +568,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 6.4 by consolidating deterministic loading, validation, persistence, progress,
-failure/resume, complete, stale, and long-content state coverage, then inspect and fix the running
-flow at desktop and 390px for keyboard, focus, semantics, and reduced motion. With no remote, there
-is no draft PR or hosted CI.
+Begin task 7.1 by adding the single focused fixed Phase 1 fixture/evaluator suite across intake,
+persistence, rubric, recovery, simulator, privacy, reset, and UI contracts while retaining Phase 0
+cases and honest `not_run` boundaries. With no remote, there is no draft PR or hosted CI.

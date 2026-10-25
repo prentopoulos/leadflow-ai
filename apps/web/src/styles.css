@@ -44,6 +44,19 @@ body {
   background: var(--paper);
 }
 
+.development-fixture-notice {
+  margin: 0;
+  border-bottom: 1px solid #6d5510;
+  padding: 0.45rem 1rem;
+  color: #fff9df;
+  background: #6d5510;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
 button,
 input,
 select,

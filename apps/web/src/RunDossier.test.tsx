@@ -10,7 +10,7 @@ import {
 import type { RunDetailResponse } from '@leadflow-ai/domain';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RunDossier } from './RunDossier.js';
-import type { RunClient } from './run-client.js';
+import type { RunClient, RunResult } from './run-client.js';
 
 const ids = {
   lead: '11111111-1111-4111-8111-111111111111',
@@ -22,6 +22,21 @@ const ids = {
   result: '77777777-7777-4777-8777-777777777777',
 } as const;
 const timestamp = '2026-10-25T18:00:00.000Z';
+
+const phaseOneUiStateManifest = [
+  'loading',
+  'empty',
+  'validation_error',
+  'persistence_error',
+  'in_progress',
+  'retrying',
+  'partial',
+  'failed_retryable',
+  'failed_terminal',
+  'complete',
+  'stale',
+  'long_content',
+] as const;
 
 function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
   const failed = status === 'failed_retryable';
@@ -216,6 +231,77 @@ function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
 afterEach(cleanup);
 
 describe('run dossier', () => {
+  it('enumerates the complete deterministic Phase 1 UI state manifest', () => {
+    expect(phaseOneUiStateManifest).toEqual([
+      'loading',
+      'empty',
+      'validation_error',
+      'persistence_error',
+      'in_progress',
+      'retrying',
+      'partial',
+      'failed_retryable',
+      'failed_terminal',
+      'complete',
+      'stale',
+      'long_content',
+    ]);
+  });
+
+  it('renders loading without inventing a stored revision', () => {
+    const client: RunClient = {
+      get: vi.fn(
+        () => new Promise<RunResult<RunDetailResponse>>(() => undefined),
+      ),
+      resume: vi.fn(),
+    };
+    render(
+      <RunDossier
+        runId={ids.run}
+        initialRevision={0}
+        client={client}
+        maxPollAttempts={1}
+      />,
+    );
+
+    expect(screen.getByText('Stored · rev 0')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        name: /loading the first stored snapshot/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/revision 1/i)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['running', 'Running'],
+    ['retrying', 'Retrying'],
+    ['partial', 'Partial'],
+  ] as const)(
+    'renders the stored %s progress state',
+    async (status, heading) => {
+      const state = detail(status);
+      state.run.currentStep = 'interpret_qualification';
+      const client: RunClient = {
+        get: vi.fn(async () => ({ status: 'ok' as const, value: state })),
+        resume: vi.fn(),
+      };
+      render(
+        <RunDossier
+          runId={ids.run}
+          initialRevision={0}
+          client={client}
+          maxPollAttempts={1}
+        />,
+      );
+
+      expect(
+        await screen.findByRole('heading', { name: heading }),
+      ).toBeInTheDocument();
+      expect(screen.getByText('Interpret qualification')).toBeInTheDocument();
+    },
+  );
+
   it('renders stored lifecycle, explainable qualification, and non-predictive simulation', async () => {
     const client: RunClient = {
       get: vi.fn(async () => ({
@@ -297,5 +383,109 @@ describe('run dossier', () => {
     expect(
       screen.queryByRole('button', { name: /resume/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it('renders a terminal failure without an unavailable resume action', async () => {
+    const terminal = detail('failed_terminal');
+    terminal.run.safeError = {
+      code: 'invariant_failed',
+      category: 'runtime',
+      retryable: false,
+      message: 'Stored evidence failed an integrity check.',
+    };
+    const client: RunClient = {
+      get: vi.fn(async () => ({ status: 'ok' as const, value: terminal })),
+      resume: vi.fn(),
+    };
+    render(
+      <RunDossier
+        runId={ids.run}
+        initialRevision={0}
+        client={client}
+        maxPollAttempts={1}
+      />,
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Failed terminal' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Stored evidence failed an integrity check.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('retains the last confirmed revision when a later poll is unavailable', async () => {
+    const running = detail('running');
+    running.run.revision = 3;
+    const client: RunClient = {
+      get: vi
+        .fn()
+        .mockResolvedValueOnce({ status: 'ok' as const, value: running })
+        .mockResolvedValueOnce({
+          status: 'error' as const,
+          error: {
+            code: 'storage_unavailable',
+            category: 'storage',
+            retryable: true,
+            message: 'Newer stored run state is temporarily unavailable.',
+          },
+        }),
+      resume: vi.fn(),
+    };
+    render(
+      <RunDossier
+        runId={ids.run}
+        initialRevision={0}
+        client={client}
+        pollIntervalMs={1}
+        maxPollAttempts={2}
+      />,
+    );
+
+    expect(
+      await screen.findByText('Newer state is unavailable.'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Stored run · revision 3')).toBeInTheDocument();
+  });
+
+  it('keeps external control focus while polling appends long stored history', async () => {
+    const running = detail('running');
+    const complete = detail('complete');
+    complete.events = Array.from({ length: 40 }, (_, index) => ({
+      ...complete.events[0]!,
+      eventId: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+      sequence: index + 1,
+      runRevision: index,
+      name:
+        index === 39 ? ('run.completed' as const) : ('step.completed' as const),
+    }));
+    const client: RunClient = {
+      get: vi
+        .fn()
+        .mockResolvedValueOnce({ status: 'ok' as const, value: running })
+        .mockResolvedValueOnce({ status: 'ok' as const, value: complete }),
+      resume: vi.fn(),
+    };
+    render(
+      <>
+        <button type="button">Operator control</button>
+        <RunDossier
+          runId={ids.run}
+          initialRevision={0}
+          client={client}
+          pollIntervalMs={1}
+          maxPollAttempts={2}
+        />
+      </>,
+    );
+
+    const control = screen.getByRole('button', { name: 'Operator control' });
+    control.focus();
+    expect(
+      await screen.findByRole('heading', { name: 'High priority' }),
+    ).toBeInTheDocument();
+    expect(control).toHaveFocus();
+    expect(screen.getAllByRole('listitem').length).toBeGreaterThanOrEqual(40);
   });
 });
