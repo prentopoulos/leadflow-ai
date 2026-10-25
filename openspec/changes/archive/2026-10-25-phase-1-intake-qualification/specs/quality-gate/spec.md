@@ -53,31 +53,6 @@ and terminate every child process on success, failure, or timeout.
 - **WHEN** any child fails to start, times out, or exits unexpectedly
 - **THEN** the smoke command reports the failing process and still terminates the remaining children
 
-### Requirement: Emulator isolation and reset checks
-The gate SHALL use an isolated synthetic project/data scope, SHALL verify the flush result before
-cases, and SHALL directly test every guarded reset denial plus the allowed local reset path.
-
-#### Scenario: Prior emulator state exists
-- **WHEN** an integration suite starts with stale documents
-- **THEN** the verified flush removes them before fixtures run and a failed flush stops the suite
-
-#### Scenario: Reset targets an unsafe boundary
-- **WHEN** reset configuration is non-loopback, not the exact project, disabled, or unconfirmed
-- **THEN** the test proves no delete call was made
-
-### Requirement: Architecture and UI review checks
-The gate SHALL validate architecture sources/exports/local links and automated accessibility-sensitive
-contracts, while the phase review SHALL additionally inspect the rendered diagrams and actual UI at
-desktop and 390px normal/failure/long-content states.
-
-#### Scenario: Automated diagram validation runs
-- **WHEN** architecture checks execute
-- **THEN** Structurizr syntax, self-contained accessible diagram sources, SVG exports, geometry rules, component names, and documentation links are checked offline
-
-#### Scenario: Rendered review evidence is recorded
-- **WHEN** the phase is prepared for code review
-- **THEN** the review names the actual viewports/states and diagram exports inspected and records unresolved visual findings
-
 ### Requirement: Separate connected dependency audit
 The repository SHALL retain a separately named, owner-authorized dependency audit that contacts the
 package registry, uses a high-severity threshold, never fixes automatically, and leaves manifests,
@@ -103,3 +78,30 @@ bundle.
 #### Scenario: Required evidence is missing or stale
 - **WHEN** an applicable hard check lacks a current pass for the candidate bundle
 - **THEN** phase readiness remains on hold rather than treating absence as success
+
+## ADDED Requirements
+
+### Requirement: Emulator isolation and reset checks
+The gate SHALL use an isolated synthetic project/data scope, SHALL verify the flush result before
+cases, and SHALL directly test every guarded reset denial plus the allowed local reset path.
+
+#### Scenario: Prior emulator state exists
+- **WHEN** an integration suite starts with stale documents
+- **THEN** the verified flush removes them before fixtures run and a failed flush stops the suite
+
+#### Scenario: Reset targets an unsafe boundary
+- **WHEN** reset configuration is non-loopback, not the exact project, disabled, or unconfirmed
+- **THEN** the test proves no delete call was made
+
+### Requirement: Architecture and UI review checks
+The gate SHALL validate architecture sources/exports/local links and automated accessibility-sensitive
+contracts, while the phase review SHALL additionally inspect the rendered diagrams and actual UI at
+desktop and 390px normal/failure/long-content states.
+
+#### Scenario: Automated diagram validation runs
+- **WHEN** architecture checks execute
+- **THEN** Structurizr syntax, self-contained accessible diagram sources, SVG exports, geometry rules, component names, and documentation links are checked offline
+
+#### Scenario: Rendered review evidence is recorded
+- **WHEN** the phase is prepared for code review
+- **THEN** the review names the actual viewports/states and diagram exports inspected and records unresolved visual findings

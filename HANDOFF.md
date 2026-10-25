@@ -4,13 +4,13 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 
 ## Current checkpoint
 
-Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
-branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
-commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–7.2 are implemented and locally verified; 3 of 35
-compressed tasks remain. PROJECT.md records Phase 1 as `In progress`.
+Phase 0 and Phase 1 are complete and merged into `main`. Every Phase 1 task (35 of 35) passed. The
+OpenSpec change is archived as `2026-10-25-phase-1-intake-qualification`, and its requirements now
+live in `openspec/specs/`. PROJECT.md records Phase 1 as `Done`. No phase is in progress; the next
+step is proposing Phase 2 in a fresh session (see Next action). The sections below are the Phase 1
+implementation record.
 
-The accepted Phase 1 boundaries remain:
+The Phase 1 boundaries that Phase 2 inherits:
 
 - ZIP code is the only exact Military.com field verified from the public landing page; every other
   Phase 1 intake field is visibly a LeadFlow demo field and the parity gate remains open.
@@ -676,7 +676,10 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 8.1 by creating the canonical Structurizr context, container,
-persist-before-processing/recovery, and ERD views plus the compact README Mermaid summary, following
-the diagram-design and showcase skills and matching the implemented runtime, storage, trust, and
-deferred-system boundaries. With no remote, there is no draft PR or hosted CI.
+Start Phase 2 in a fresh session: clear the context and run `/next-phase`. It reads PROJECT.md's
+roadmap row for Phase 2, grills the open decisions with the informed answerer, and proposes a scoped
+change on a new branch with a spec-only `docs:` commit. Follow WORKFLOW.md § Efficient execution:
+nine or fewer tasks, leaf checks while editing, one full gate at the end. Render every diagram with
+`pnpm docs:diagrams` (diagram-design) and keep the README on the showcase method. Phase 2 work
+that touches recovery should first revisit the deferred review items above: the synchronous resume
+route and whole-subcollection checkpoint reads. With no remote, there is no draft PR or hosted CI.

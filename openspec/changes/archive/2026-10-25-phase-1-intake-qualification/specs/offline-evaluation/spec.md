@@ -5,7 +5,7 @@ The evaluation package SHALL store versioned, explicitly synthetic Phase 0 and P
 stable identifiers, cohort labels, expected assertions, applicability, evidence classification, and
 the system-bundle components required to reproduce each runnable result.
 
-#### Scenario: Phase 1 fixture metadata is validated
+#### Scenario: Fixture metadata is validated
 - **WHEN** the evaluator loads the Phase 1 dataset
 - **THEN** every case has a unique stable ID, schema-valid normal/edge/adversarial/failure cohort, synthetic evidence label, and declared requirement
 
@@ -44,9 +44,9 @@ provenance, authority, retry, reset, or evidence labels.
 - **WHEN** otherwise identical leads differ only in consent
 - **THEN** their score and priority expectations remain identical
 
-#### Scenario: Injection content is evaluated
-- **WHEN** fixture text instructs the runtime to change weights, consent, authority, tools, destinations, or evidence labels
-- **THEN** expected hard constraints and exposed capabilities remain unchanged
+#### Scenario: Consent is present
+- **WHEN** a consent-present fixture is evaluated
+- **THEN** its expected contract permits only a draft whose state awaits human approval
 
 ### Requirement: Adversarial and unavailable evidence cases
 The dataset SHALL include malformed schemas, invalid source labels, duplicate/idempotency conflicts,
@@ -66,6 +66,18 @@ emulator isolation, long content, and stale run-detail cases.
 - **WHEN** checkpoint, emulator response, or stored revision is missing, stale, malformed, or incompatible
 - **THEN** the expected outcome is unavailable/failed/held rather than a fabricated success
 
+#### Scenario: Injection content is evaluated
+- **WHEN** fixture content instructs the system to change rubric weights, consent, authority, or evidence labels
+- **THEN** the expected hard constraints remain unchanged
+
+#### Scenario: External evidence is unavailable
+- **WHEN** a fixture represents timeout, error, or an empty source response
+- **THEN** the expected status is unavailable or failed rather than a negative or successful fact
+
+#### Scenario: Run progress is incomplete
+- **WHEN** a fixture represents partial progress, duplicate events, an invalid transition, or agent failure
+- **THEN** the expected record preserves the condition and does not normalize it into success
+
 ### Requirement: Honest evaluation outcomes
 The harness SHALL record `pass`, `fail`, `not_run`, or `stale` per case, SHALL retain failures and
 declared cases, and SHALL NOT report deferred provider, live-source, cloud, real-data, or production
@@ -83,15 +95,21 @@ behavior as passed.
 - **WHEN** code, lockfile, schema, rubric, interpreter, graph, checkpointer, simulator, configuration, or evaluator changes after evidence was recorded
 - **THEN** affected prior evidence is `stale` until rerun
 
+#### Scenario: Future capability lacks an implementation
+- **WHEN** a case depends on a later-phase or unauthorized runtime boundary
+- **THEN** the harness records `not_run` with a reason rather than manufacturing a result
+
 ### Requirement: Evaluation bundle identity
 Each report SHALL identify code/dirty-patch state, Node/pnpm/Java and local tool versions, lockfile,
 source, schema, rubric, interpreter, graph, checkpointer, simulator, fixtures, evaluator,
 configuration, and environment while leaving absent model/provider/prompt/live-tool fields null with
 a reason.
 
-#### Scenario: Phase 1 report is generated
+#### Scenario: Local report is generated
 - **WHEN** the combined local harness completes
 - **THEN** the report is labeled synthetic-local, carries the complete bundle identity without secrets, and separates pure, emulator, UI, and not-run evidence
+
+## ADDED Requirements
 
 ### Requirement: Simulator correctness and limits
 The evaluator SHALL independently verify fixed-seed reproducibility, idempotent storage, score/
