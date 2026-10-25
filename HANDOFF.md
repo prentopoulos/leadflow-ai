@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–5.4 are implemented and locally verified; 22 of 46
+verified dependency/toolchain slice. Tasks 1.1–5.5 are implemented and locally verified; 21 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -413,6 +413,25 @@ same revision-race test and the corrected sequence passed.
 Task 5.4 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 23 Vitest files/144 tests,
 the retained real emulator persisted/retry/resume/run-detail probe, and the complete offline gate.
 
+## Implemented optional guarded reset HTTP boundary
+
+- The API registers `DELETE /v1/local-data` only when stateful startup is valid and the strict
+  `LEADFLOW_LOCAL_RESET_ENABLED=true` configuration is present. With missing, invalid, or disabled
+  configuration the route is absent and no reset dependency can run.
+- The strict request schema accepts only the exact synthetic project ID and
+  `DELETE SYNTHETIC LEADFLOW LOCAL DATA`; unknown properties are rejected. The caller cannot supply a
+  host, URL, collection, database, or other delete target.
+- The server adds the actual request IP plus validated loopback emulator host and enabled flag before
+  invoking the existing reset function, which independently rechecks every guard and has only one
+  fixed emulator flush endpoint. Denial and emulator refusal return safe 403/503 responses and never
+  claim deletion.
+- The successful response is a strict `local-reset-response-v1` record naming synthetic-local
+  evidence, the exact project/host, and confirmed deletion. Runtime emulator verification continues
+  to seed records, invoke the same guarded reset, and prove the records are gone.
+
+Task 5.5 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 24 Vitest files/150 tests,
+the retained real emulator guarded-reset/verified-flush probe, and the complete offline gate.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
@@ -434,6 +453,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 5.5 by exposing the optional local-data reset only behind the exact feature, requester,
-project, host, and confirmation guards, with no generic or production-capable delete surface. With
-no remote, there is no draft PR or hosted CI.
+Begin task 5.6 by wiring the built loopback API to the complete emulator-backed runtime and adding
+contract/smoke coverage for health, intake, completion/failure, resume, reset denial, timeouts, and
+process cleanup. With no remote, there is no draft PR or hosted CI.

@@ -17,6 +17,8 @@ export const PHASE_ONE_VERSIONS = {
 } as const;
 
 export const LEADFLOW_LOCAL_PROJECT_ID = 'demo-leadflow-ai-local' as const;
+export const LOCAL_RESET_CONFIRMATION =
+  'DELETE SYNTHETIC LEADFLOW LOCAL DATA' as const;
 export const TEST_EMAIL_DOMAINS = [
   'example.com',
   'example.org',
@@ -660,6 +662,23 @@ export const ResumeResponseSchema = z
   })
   .strict();
 export type ResumeResponse = z.infer<typeof ResumeResponseSchema>;
+
+export const LocalResetRequestSchema = z
+  .object({
+    projectId: z.literal(LEADFLOW_LOCAL_PROJECT_ID),
+    confirmation: z.literal(LOCAL_RESET_CONFIRMATION),
+  })
+  .strict();
+
+export const LocalResetResponseSchema = z
+  .object({
+    schemaVersion: z.literal('local-reset-response-v1'),
+    projectId: z.literal(LEADFLOW_LOCAL_PROJECT_ID),
+    firestoreHost: z.literal('127.0.0.1:8080'),
+    evidenceClass: z.literal('synthetic-local'),
+    deleted: z.literal(true),
+  })
+  .strict();
 
 export const ErrorResponseSchema = z
   .object({

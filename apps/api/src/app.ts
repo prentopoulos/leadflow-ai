@@ -21,12 +21,17 @@ import {
   registerResumeRoute,
   type ResumeRouteDependencies,
 } from './resume-route.js';
+import {
+  registerResetRoute,
+  type ResetRouteDependencies,
+} from './reset-route.js';
 
 export interface CreateAppOptions {
   phaseOne?: PhaseOneStartup;
   intake?: IntakeRouteDependencies;
   runs?: RunRouteDependencies;
   resume?: ResumeRouteDependencies;
+  reset?: ResetRouteDependencies;
   requestIdFactory?: RequestIdFactory;
 }
 
@@ -81,6 +86,12 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
     phaseOne,
     options.resume,
     options.requestIdFactory ?? randomUUID,
+  );
+  registerResetRoute(
+    app,
+    phaseOne,
+    options.requestIdFactory ?? randomUUID,
+    options.reset,
   );
 
   return app;

@@ -1,8 +1,10 @@
-import { LEADFLOW_LOCAL_PROJECT_ID } from '@leadflow-ai/domain';
+import {
+  LEADFLOW_LOCAL_PROJECT_ID,
+  LOCAL_RESET_CONFIRMATION,
+} from '@leadflow-ai/domain';
 import { LEADFLOW_FIRESTORE_EMULATOR_HOST } from './firestore.js';
 
-export const LOCAL_RESET_CONFIRMATION =
-  'DELETE SYNTHETIC LEADFLOW LOCAL DATA' as const;
+export { LOCAL_RESET_CONFIRMATION };
 
 export interface LocalResetRequest {
   enabled: boolean;

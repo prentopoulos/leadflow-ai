@@ -36,7 +36,7 @@
 - [x] 5.2 Implement schema-validated `POST /v1/intake` with required idempotency key, source/demo provenance, test-contact enforcement, committed-response semantics, and safe conflict/error responses.
 - [x] 5.3 Implement `GET /v1/runs/:runId` from stored lead/run/events/qualification/simulation records with bounded payloads, privacy separation, stale/unavailable representation, and no fabricated progress.
 - [x] 5.4 Implement `POST /v1/runs/:runId/resume` with expected revision, eligibility/lease checks, idempotent response, and safe race/error contracts.
-- [ ] 5.5 Implement the optional loopback-only `DELETE /v1/local-data` boundary with exact project/phrase/feature guards and no production-capable generic delete function.
+- [x] 5.5 Implement the optional loopback-only `DELETE /v1/local-data` boundary with exact project/phrase/feature guards and no production-capable generic delete function.
 - [ ] 5.6 Add API contract and built loopback smoke tests for health, intake persistence, run completion/failure, resume, reset denial, timeouts, and process cleanup.
 
 ## 6. Operator intake and run detail
