@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–3.1 are implemented and locally verified; 35 of 46
+verified dependency/toolchain slice. Tasks 1.1–3.2 are implemented and locally verified; 34 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -127,12 +127,34 @@ REST-preferred transport and failed before writing because it requested applicat
 credentials; the boundary now uses the standard emulator transport, and the identical probe passed
 without credentials.
 
+## Implemented atomic intake persistence
+
+- The bounded visible-ASCII idempotency key and strict `intake-v1` payload normalize and validate
+  before any transaction begins. The request digest is SHA-256 over a recursively canonicalized,
+  normalized intake; the stored key is a digest rather than the raw key.
+- One Firestore transaction reads the idempotency binding and, for a new request, creates exactly the
+  idempotency record, normalized fictional lead with fixed source/demo provenance, `persisted` run,
+  and privacy-safe sequence-1 `lead.persisted` event. Server IDs and the timestamp are stable across
+  Firestore transaction retries, and no workflow boundary is invoked by this service.
+- Replaying the same normalized intake/key returns the original lead/run IDs and committed timestamp
+  without duplicate documents. Reusing the key for different canonical intake raises the typed
+  `idempotency_conflict` and changes no record.
+- Unit transaction tests cover four-record commit, normalization-equivalent replay, content conflict,
+  injected rollback, invalid input/key rejection before transaction, canonical digest stability, and
+  event privacy. The real emulator probe covers new intake, replay, conflict, durable lead/run state,
+  and clean shutdown.
+
+Task 3.2 checks passed on 2026-10-24: Prettier, ESLint, strict TypeScript, 12 Vitest files/63 tests,
+and `pnpm emulator:runtime`. The first new unit run retained one failure caused by an incorrect
+hard-coded test digest; replacing it with an independently calculated SHA-256 expectation made the
+same suite pass.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
-deterministic rubric/lifecycle/simulator behavior, system identity, and the schema-validating Admin
-SDK repository boundary only. They do not yet establish atomic intake/event transactions, LangGraph
-execution/checkpoint compatibility, the Phase 1 API/UI, diagrams, or production behavior. The
-evaluator still executes the retained Phase 0 fixture corpus; Phase 1 fixtures and independent
-evaluation remain tasks 7.1–7.3.
+deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
+repository boundary, and atomic intake/idempotency persistence only. They do not yet establish
+transactional later lifecycle events/claims, LangGraph execution/checkpoint compatibility, the
+Phase 1 API/UI, diagrams, or production behavior. The evaluator still executes the retained Phase 0
+fixture corpus; Phase 1 fixtures and independent evaluation remain tasks 7.1–7.3.
 
 ## External evidence and gates
 
@@ -146,6 +168,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 3.2 with the atomic intake transaction for idempotency, lead, run, and first event,
-including same-request replay and conflicting-key behavior. With no remote, there is no draft PR or
-hosted CI.
+Begin task 3.3 with transactionally revised append-only events and execution lease/claim/reclaim
+behavior, including monotonic sequence, duplicate, stale revision, concurrent claim, and expired
+lease tests. With no remote, there is no draft PR or hosted CI.

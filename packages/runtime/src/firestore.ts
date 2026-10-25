@@ -63,6 +63,17 @@ export interface FirestoreDocumentStore {
   get(path: string): Promise<unknown | null>;
 }
 
+export interface FirestoreAtomicTransaction {
+  get(path: string): Promise<unknown | null>;
+  create(path: string, data: DocumentData): void;
+}
+
+export interface FirestoreAtomicStore {
+  runTransaction<T>(
+    operation: (transaction: FirestoreAtomicTransaction) => Promise<T>,
+  ): Promise<T>;
+}
+
 export class AdminFirestoreDocumentStore implements FirestoreDocumentStore {
   constructor(private readonly database: Firestore) {}
 
@@ -73,5 +84,25 @@ export class AdminFirestoreDocumentStore implements FirestoreDocumentStore {
   async get(path: string): Promise<unknown | null> {
     const snapshot = await this.database.doc(path).get();
     return snapshot.exists ? snapshot.data() : null;
+  }
+}
+
+export class AdminFirestoreAtomicStore implements FirestoreAtomicStore {
+  constructor(private readonly database: Firestore) {}
+
+  async runTransaction<T>(
+    operation: (transaction: FirestoreAtomicTransaction) => Promise<T>,
+  ): Promise<T> {
+    return this.database.runTransaction(async (transaction) =>
+      operation({
+        get: async (path) => {
+          const snapshot = await transaction.get(this.database.doc(path));
+          return snapshot.exists ? snapshot.data() : null;
+        },
+        create: (path, data) => {
+          transaction.create(this.database.doc(path), data);
+        },
+      }),
+    );
   }
 }

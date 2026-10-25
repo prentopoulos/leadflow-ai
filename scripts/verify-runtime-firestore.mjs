@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import {
   createEmulatorFirestoreBoundary,
   createFirestoreRepositories,
+  createIntakePersistenceService,
 } from '../packages/runtime/dist/index.js';
 
 const timestamp = '2026-10-24T20:00:00.000Z';
@@ -87,8 +88,61 @@ try {
     throw new Error('Emulator repository accepted malformed stored state.');
   }
 
+  const intakeService = createIntakePersistenceService(boundary.database);
+  const intake = {
+    schemaVersion: 'intake-v1',
+    identityClass: 'fictional',
+    givenName: 'Avery',
+    familyName: 'Example',
+    email: 'avery@example.com',
+    zipCode: '10001',
+    vehicleYear: 2024,
+    vehicleMake: 'Example Motors',
+    vehicleModel: 'Demo One',
+    coverageFocus: 'balanced',
+    requestIntent: 'compare_options',
+    needTimeline: 'within_30_days',
+    requestDetails: 'Synthetic emulator transaction probe.',
+    emailContactConsent: false,
+  };
+  const first = await intakeService.persist({
+    idempotencyKey: 'emulator-intake-probe-v1',
+    intake,
+    systemBundleId,
+  });
+  const replay = await intakeService.persist({
+    idempotencyKey: 'emulator-intake-probe-v1',
+    intake,
+    systemBundleId,
+  });
+  if (
+    !replay.replayed ||
+    replay.leadId !== first.leadId ||
+    replay.runId !== first.runId
+  ) {
+    throw new Error('Emulator idempotency replay changed the original IDs.');
+  }
+  let conflictRejected = false;
+  try {
+    await intakeService.persist({
+      idempotencyKey: 'emulator-intake-probe-v1',
+      intake: { ...intake, zipCode: '90210' },
+      systemBundleId,
+    });
+  } catch (error) {
+    conflictRejected = error?.code === 'idempotency_conflict';
+  }
+  if (!conflictRejected) {
+    throw new Error('Emulator idempotency conflict was not rejected.');
+  }
+  const storedLead = await repositories.leads.get(first.leadId);
+  const storedRun = await repositories.runs.get(first.runId);
+  if (storedLead === null || storedRun?.status !== 'persisted') {
+    throw new Error('Emulator atomic intake records were not durable.');
+  }
+
   console.log(
-    'Runtime Firestore repository probe passed against the isolated emulator.',
+    'Runtime Firestore repository and atomic-intake probes passed against the isolated emulator.',
   );
 } finally {
   await boundary.close();

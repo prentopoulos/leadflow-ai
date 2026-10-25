@@ -21,6 +21,13 @@ export const TEST_EMAIL_DOMAINS = [
   'example.net',
 ] as const;
 
+export const IdempotencyKeySchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(128)
+  .regex(/^[\x21-\x7e]+$/u, 'idempotency key must use visible ASCII');
+
 const UtcTimestampSchema = z.iso.datetime();
 const IdentifierSchema = z.string().uuid();
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
@@ -123,6 +130,7 @@ export const SafeErrorSchema = z
       'invariant_failed',
       'checkpoint_missing',
       'checkpoint_incompatible',
+      'idempotency_conflict',
       'revision_conflict',
       'lease_active',
       'run_ineligible',

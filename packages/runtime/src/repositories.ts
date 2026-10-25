@@ -55,6 +55,20 @@ export class ValidatedDocumentRepository<
     return { path: this.writePath(data), data };
   }
 
+  pathFor(...lookup: Lookup): string {
+    return this.readPath(...lookup);
+  }
+
+  parseStored(stored: unknown): T {
+    const parsed = this.schema.parse(stored);
+    if (!isDeepStrictEqual(stored, parsed)) {
+      throw new Error(
+        'Stored Firestore document requires normalization and was rejected.',
+      );
+    }
+    return parsed;
+  }
+
   async create(candidate: unknown): Promise<T> {
     const prepared = this.prepareCreate(candidate);
     await this.store.create(prepared.path, prepared.data);
@@ -64,13 +78,7 @@ export class ValidatedDocumentRepository<
   async get(...lookup: Lookup): Promise<T | null> {
     const stored = await this.store.get(this.readPath(...lookup));
     if (stored === null) return null;
-    const parsed = this.schema.parse(stored);
-    if (!isDeepStrictEqual(stored, parsed)) {
-      throw new Error(
-        'Stored Firestore document requires normalization and was rejected.',
-      );
-    }
-    return parsed;
+    return this.parseStored(stored);
   }
 }
 
