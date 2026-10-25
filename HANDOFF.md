@@ -6,8 +6,9 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
-commit `ba2a1d8` is the accepted spec baseline. Tasks 1.1–1.5 are implemented and locally verified;
-41 of 46 tasks remain. PROJECT.md records Phase 1 as `In progress`.
+commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
+verified dependency/toolchain slice. Tasks 1.1–2.5 are implemented and locally verified; 36 of 46
+tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
 
@@ -74,9 +75,39 @@ path; the repository wrapper disables that path and passed.
 The first pnpm-invoked tool verifier inherited a shell module path without `Get-FileHash`; checksum
 calculation now uses the .NET SHA-256 API and the same `pnpm tools:verify` command passed.
 
-This slice establishes dependency/tool availability and emulator lifecycle only. It does not yet
-establish Admin SDK persistence, LangGraph execution/checkpoint compatibility, qualification,
-simulator, API, Phase 1 UI, diagrams, or production behavior.
+## Implemented domain-contract slice
+
+- Strict, independently versioned Zod contracts cover fictional/test-contact intake, provenance,
+  leads, runs, privacy-safe lifecycle events, checkpoints, pending writes, idempotency,
+  qualification interpretations/results, simulation records, system bundles, API responses, and
+  safe errors. Unknown properties are rejected and the qualification projection must be a complete,
+  disjoint partition of complete and missing fields.
+- Pure `rubric-v1` implements the accepted 40/30/30 marketing-readiness arithmetic, criterion
+  evidence, exact priority thresholds, missing-information reporting, and fail-closed integrity
+  holds. Consent is neither a score input nor outbound authority.
+- Lifecycle helpers define the fixed transition graph, terminal/resume eligibility, revision and
+  event-sequence checks, and lease expiry semantics.
+- Pure `simulator-v1` derives a stable seed from run identity and simulator version only. Its
+  monotonic synthetic outcomes are score-independent and explicitly `not_live`/`not_predictive`;
+  the response-rate contract reports an unknown value for an empty denominator and retains named
+  exclusions.
+- The system bundle now records code/source/dirty-patch, lockfile, and fixture identities, every
+  Phase 1 contract version, Node/pnpm/Java/Firebase/Firestore Emulator/Structurizr and platform
+  identity, the exact local project, and explicit null-with-reason provider/model/prompt/live-tool
+  boundaries.
+
+Domain-slice leaf checks passed on 2026-10-24: Prettier, ESLint with zero warnings, strict
+TypeScript, 9 Vitest files/47 tests, production builds, and the retained Phase 0 evaluator
+(21 passed, 0 failed, 3 `not_run`). During implementation, ESLint first rejected one unused local
+schema constant; it was removed and the fail-fast leaf sequence then passed. The complete offline
+`pnpm check` gate also passed on the corrected candidate, including toolchain preflight, API/web
+loopback smokes, governance, and strict OpenSpec validation (5 passed, 0 failed).
+
+These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
+deterministic rubric/lifecycle/simulator behavior, and system identity only. They do not yet
+establish Admin SDK persistence, LangGraph execution/checkpoint compatibility, the Phase 1 API/UI,
+diagrams, or production behavior. The evaluator still executes the retained Phase 0 fixture corpus;
+Phase 1 fixtures and independent evaluation remain tasks 7.1–7.3.
 
 ## External evidence and gates
 
@@ -90,6 +121,5 @@ gates remain unresolved.
 
 ## Next action
 
-Commit the verified 1.1–1.5 slice as the first Phase 1 implementation commit, then begin task 2.1:
-freeze the Phase 1 versioned domain schemas and boundary cases before implementing rubric/runtime
-behavior. With no remote, there is no draft PR or hosted CI.
+Begin task 3.1 with the emulator-only Admin SDK boundary and schema-validating repositories. With no
+remote, there is no draft PR or hosted CI.

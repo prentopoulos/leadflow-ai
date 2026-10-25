@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SystemBundleDocumentSchema } from '@leadflow-ai/domain';
 
 export const DATASET_VERSION = 'phase-0.1' as const;
 export const EVALUATOR_VERSION = 'phase-0.1' as const;
@@ -39,25 +40,7 @@ export const EvalResultSchema = z.object({
 });
 export type EvalResult = z.infer<typeof EvalResultSchema>;
 
-export const SystemBundleSchema = z.object({
-  bundleVersion: z.literal('phase-0.1'),
-  codeRevision: z.string(),
-  dirty: z.boolean(),
-  sourceDigest: z.string(),
-  lockfileDigest: z.string().nullable(),
-  nodeVersion: z.string(),
-  pnpmVersion: z.string().nullable(),
-  configurationVersion: z.literal(CONFIGURATION_VERSION),
-  schemaVersion: z.literal('phase-0.1'),
-  fixtureVersion: z.literal(DATASET_VERSION),
-  fixtureDigest: z.string(),
-  evaluatorVersion: z.literal(EVALUATOR_VERSION),
-  model: z.null(),
-  provider: z.null(),
-  prompt: z.null(),
-  toolContract: z.null(),
-  environment: z.object({ platform: z.string(), architecture: z.string() }),
-});
+export const SystemBundleSchema = SystemBundleDocumentSchema;
 export type SystemBundle = z.infer<typeof SystemBundleSchema>;
 
 export const EvalReportSchema = z.object({

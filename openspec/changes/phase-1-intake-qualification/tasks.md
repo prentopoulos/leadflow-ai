@@ -8,11 +8,11 @@
 
 ## 2. Domain contracts, rubric, and versions
 
-- [ ] 2.1 Add independently versioned schemas for intake, reserved-example-domain contact data, lead, run, event, checkpoint metadata, pending writes, idempotency, qualification interpretation/result, simulation, API responses, and safe errors with unknown-property rejection and boundary tests.
-- [ ] 2.2 Implement `rubric-v1` as pure domain code with the exact timeline, clarity, completeness, evidence, arithmetic, consent-independence, priority-threshold, missing-information, and integrity-hold rules plus exhaustive boundary tests.
-- [ ] 2.3 Define allowed lifecycle transitions, run revisions/leases, event names/sequences, retry/resume eligibility, and terminal-state helpers with positive and invalid-transition tests.
-- [ ] 2.4 Extend the system bundle to identify schema, rubric, interpreter, graph, checkpointer, simulator, evaluator, configuration, code/patch, lockfile, runtime/tool, and environment versions while preserving null-with-reason provider/model/prompt/live-tool fields.
-- [ ] 2.5 Implement the pure `simulator-v1` seed/outcome/metric contracts and tests for repeatability, score independence, provenance, empty denominators, and no outbound capability.
+- [x] 2.1 Add independently versioned schemas for intake, reserved-example-domain contact data, lead, run, event, checkpoint metadata, pending writes, idempotency, qualification interpretation/result, simulation, API responses, and safe errors with unknown-property rejection and boundary tests.
+- [x] 2.2 Implement `rubric-v1` as pure domain code with the exact timeline, clarity, completeness, evidence, arithmetic, consent-independence, priority-threshold, missing-information, and integrity-hold rules plus exhaustive boundary tests.
+- [x] 2.3 Define allowed lifecycle transitions, run revisions/leases, event names/sequences, retry/resume eligibility, and terminal-state helpers with positive and invalid-transition tests.
+- [x] 2.4 Extend the system bundle to identify schema, rubric, interpreter, graph, checkpointer, simulator, evaluator, configuration, code/patch, lockfile, runtime/tool, and environment versions while preserving null-with-reason provider/model/prompt/live-tool fields.
+- [x] 2.5 Implement the pure `simulator-v1` seed/outcome/metric contracts and tests for repeatability, score independence, provenance, empty denominators, and no outbound capability.
 
 ## 3. Firestore repositories and checkpoints
 
