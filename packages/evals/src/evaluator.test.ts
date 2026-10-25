@@ -1,9 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateAll, evaluateCase } from './evaluator.js';
-import { PHASE_ZERO_CASES } from './fixtures.js';
-import { EvalCaseSchema, EvalReportSchema } from './schemas.js';
+import {
+  COMBINED_CASES,
+  PHASE_ONE_CASES,
+  PHASE_ZERO_CASES,
+} from './fixtures.js';
+import {
+  DATASET_VERSION,
+  EVALUATOR_VERSION,
+  EvalCaseSchema,
+  EvalReportSchema,
+} from './schemas.js';
 
-describe('Phase 0 evaluation scaffold', () => {
+describe('combined Phase 0 and Phase 1 evaluation', () => {
   it('has valid unique versioned synthetic cases', () => {
     const ids = PHASE_ZERO_CASES.map(
       (evaluationCase) => EvalCaseSchema.parse(evaluationCase).id,
@@ -12,13 +21,40 @@ describe('Phase 0 evaluation scaffold', () => {
     expect(ids.length).toBeGreaterThanOrEqual(20);
   });
 
+  it('adds fixed Phase 1 coverage without dropping a Phase 0 case', () => {
+    const combinedIds = new Set(COMBINED_CASES.map((item) => item.id));
+    expect(PHASE_ZERO_CASES.every((item) => combinedIds.has(item.id))).toBe(
+      true,
+    );
+    expect(PHASE_ONE_CASES).toHaveLength(14);
+    expect(COMBINED_CASES).toHaveLength(
+      PHASE_ZERO_CASES.length + PHASE_ONE_CASES.length,
+    );
+  });
+
   it('passes every runnable deterministic contract and keeps future work not_run', () => {
-    const results = evaluateAll(PHASE_ZERO_CASES);
+    const results = evaluateAll(COMBINED_CASES);
     expect(results.filter((result) => result.status === 'fail')).toEqual([]);
     expect(results.some((result) => result.status === 'not_run')).toBe(true);
     expect(
       results.every((result) => result.evidenceClass === 'synthetic-local'),
     ).toBe(true);
+    expect(results.every((result) => result.status !== 'stale')).toBe(true);
+    expect(
+      results.every(
+        (result) =>
+          result.datasetVersion === DATASET_VERSION &&
+          result.evaluatorVersion === EVALUATOR_VERSION,
+      ),
+    ).toBe(true);
+    expect(new Set(results.map((result) => result.evidenceScope))).toEqual(
+      new Set([
+        'pure-synthetic',
+        'local-emulator',
+        'rendered-local',
+        'not-run',
+      ]),
+    );
   });
 
   it('retains an intentional failing canary', () => {
@@ -29,6 +65,38 @@ describe('Phase 0 evaluation scaffold', () => {
     const mutated = structuredClone(baseline);
     (mutated.candidate as { total: number }).total = 99;
     expect(evaluateCase(mutated)).toMatchObject({ status: 'fail' });
+  });
+
+  it('marks bundle-bound evidence stale when a behavior input changes', () => {
+    const baseline = PHASE_ONE_CASES.find(
+      (item) => item.id === 'p1-bundle-freshness-detection',
+    );
+    if (!baseline) throw new Error('Freshness fixture missing.');
+    const mutated = structuredClone(baseline);
+    (mutated.candidate as { currentDigest: string }).currentDigest = 'b'.repeat(
+      64,
+    );
+    expect(evaluateCase(mutated)).toMatchObject({
+      status: 'stale',
+      reason: expect.stringContaining('must be rerun'),
+    });
+  });
+
+  it('fails a mutated Phase 1 recovery contract instead of preserving a favorable result', () => {
+    const baseline = PHASE_ONE_CASES.find(
+      (item) => item.id === 'p1-recovery-races-retries-and-unavailable-state',
+    );
+    if (!baseline) throw new Error('Recovery canary baseline missing.');
+    const mutated = structuredClone(baseline);
+    (
+      mutated.candidate as {
+        transientRetry: { thirdAttempt: boolean };
+      }
+    ).transientRetry.thirdAttempt = true;
+    expect(evaluateCase(mutated)).toMatchObject({
+      status: 'fail',
+      reason: expect.stringContaining('no third attempt'),
+    });
   });
 
   it('requires absent provider and model fields to remain explicit nulls with reasons', () => {
@@ -47,7 +115,7 @@ describe('Phase 0 evaluation scaffold', () => {
           patchDigest: digest,
         },
         lockfileDigest: digest,
-        fixtures: { version: 'phase-0.1', digest },
+        fixtures: { version: DATASET_VERSION, digest },
         versions: {
           intake: 'intake-v1',
           lead: 'lead-v1',
@@ -59,7 +127,7 @@ describe('Phase 0 evaluation scaffold', () => {
           graph: 'qualification-graph-v1',
           checkpointer: 'firestore-checkpointer-v1',
           simulator: 'simulator-v1',
-          evaluator: 'phase-0.1',
+          evaluator: EVALUATOR_VERSION,
           configuration: 'phase-1-local-v1',
         },
         environment: {
@@ -78,7 +146,19 @@ describe('Phase 0 evaluation scaffold', () => {
         prompt: { value: null, reason: 'not used' },
         liveToolContracts: { value: null, reason: 'deferred' },
       },
-      summary: { total: 0, passed: 0, failed: 0, notRun: 0 },
+      summary: {
+        total: 0,
+        passed: 0,
+        failed: 0,
+        notRun: 0,
+        stale: 0,
+        byScope: {
+          'pure-synthetic': 0,
+          'local-emulator': 0,
+          'rendered-local': 0,
+          'not-run': 0,
+        },
+      },
       results: [],
     });
     expect(parsed.success).toBe(true);

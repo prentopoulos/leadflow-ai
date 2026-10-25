@@ -3,8 +3,9 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PHASE_ZERO_CASES } from './fixtures.js';
+import { COMBINED_CASES } from './fixtures.js';
 import {
+  CONFIGURATION_VERSION,
   DATASET_VERSION,
   EVALUATOR_VERSION,
   type SystemBundle,
@@ -88,7 +89,7 @@ export async function createSystemBundle(): Promise<SystemBundle> {
   );
   const codeRevision =
     revision.status === 0 ? revision.stdout.trim() : 'unavailable';
-  const fixtureDigest = sha256(JSON.stringify(PHASE_ZERO_CASES));
+  const fixtureDigest = sha256(JSON.stringify(COMBINED_CASES));
   const identityDigest = sha256(
     JSON.stringify({
       codeRevision,
@@ -128,7 +129,7 @@ export async function createSystemBundle(): Promise<SystemBundle> {
       checkpointer: 'firestore-checkpointer-v1',
       simulator: 'simulator-v1',
       evaluator: EVALUATOR_VERSION,
-      configuration: 'phase-1-local-v1',
+      configuration: CONFIGURATION_VERSION,
     },
     environment: {
       node: process.version.replace(/^v/u, ''),

@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–6.4 are implemented and locally verified; 5 of 35
+verified dependency/toolchain slice. Tasks 1.1–7.1 are implemented and locally verified; 4 of 35
 compressed tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -556,6 +556,31 @@ web/client tests, the production web build, strict OpenSpec validation, and the 
 390px inspection above. Reduced-motion and visible-focus rules remain direct stylesheet assertions;
 polling focus continuity is a deterministic component test.
 
+## Implemented combined Phase 0 and Phase 1 evaluator
+
+- The fixed corpus is now `phase-1.0` and contains all 24 stable Phase 0 case IDs plus 14 Phase 1
+  cases. The formerly deferred `p0-future-agent-runtime` case is retained by ID and upgraded to the
+  runnable recovery contract now that retry/checkpoint behavior exists.
+- Focused Phase 1 cases independently cover strict fictional/test-contact intake and ZIP-only source
+  provenance; persist-before-processing and replay; exact rubric mappings, thresholds, consent
+  independence and integrity holds; crash/retry/checkpoint/revision/lease recovery; deterministic
+  score-independent simulation; safe telemetry and invalid evidence labels; guarded reset; the
+  complete UI state manifest; and bundle freshness.
+- Evaluator/report schemas are strict and version every result with dataset, evaluator, synthetic
+  evidence, and target scope. Report arithmetic validates that status and scope counts equal the
+  total. A deliberately changed bundle digest becomes `stale`; mutated Phase 0 scoring and Phase 1
+  recovery canaries fail instead of preserving favorable output.
+- The current generated, gitignored report contains 38 cases: 31 `pass`, 0 `fail`, 7 `not_run`, and
+  0 `stale`. Target-scope counts are 26 pure-synthetic, 4 local-emulator contracts, 1 rendered-local
+  UI contract, and 7 not-run boundaries. The seven unrun cases explicitly cover hosted model/
+  provider behavior, live enrichment, cloud Firestore, real personal data, and production readiness.
+  The evaluator is deterministic synthetic evidence; current emulator and rendered evidence remain
+  separately established by their focused checks and will be rerun together in task 9.1.
+
+Task 7.1 checks passed on 2026-10-25: scoped Prettier, ESLint, strict TypeScript, seven evaluator
+self-tests, the evaluator build, one full combined 38-case evaluation, and strict OpenSpec
+validation. No provider, paid API, live source, cloud service, real data, or external action ran.
+
 ## External evidence and gates
 
 The dated Military.com research record is `docs/research/military-com-intake-2026-10-24.md`.
@@ -568,6 +593,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 7.1 by adding the single focused fixed Phase 1 fixture/evaluator suite across intake,
-persistence, rubric, recovery, simulator, privacy, reset, and UI contracts while retaining Phase 0
-cases and honest `not_run` boundaries. With no remote, there is no draft PR or hosted CI.
+Begin task 7.2 by adding privacy-aware lifecycle reporting and updating `AI_OPS.md` with the current
+bundle-bound evaluation, recovery behavior, deferred provider/tool boundaries, prototype limits,
+and recheck triggers. With no remote, there is no draft PR or hosted CI.

@@ -1,9 +1,14 @@
 export { createSystemBundle } from './bundle.js';
 export { evaluateAll, evaluateCase } from './evaluator.js';
-export { PHASE_ZERO_CASES } from './fixtures.js';
+export {
+  COMBINED_CASES,
+  PHASE_ONE_CASES,
+  PHASE_ZERO_CASES,
+} from './fixtures.js';
 export {
   DATASET_VERSION,
   EVALUATOR_VERSION,
+  EvidenceScopeSchema,
   EvalCaseSchema,
   EvalReportSchema,
   EvalResultSchema,

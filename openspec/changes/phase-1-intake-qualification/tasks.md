@@ -48,7 +48,7 @@
 
 ## 7. Evaluation, telemetry, and AI operations
 
-- [ ] 7.1 Add one focused, fixed Phase 1 fixture/evaluator suite covering the accepted intake, persistence, rubric, workflow recovery, simulator, privacy, reset, and UI contracts while retaining Phase 0 cases and honest `not_run` boundaries.
+- [x] 7.1 Add one focused, fixed Phase 1 fixture/evaluator suite covering the accepted intake, persistence, rubric, workflow recovery, simulator, privacy, reset, and UI contracts while retaining Phase 0 cases and honest `not_run` boundaries.
 - [ ] 7.2 Add privacy-aware lifecycle reporting and update `AI_OPS.md` with bundle-bound evidence, recovery behavior, deferred provider/tool boundaries, prototype limits, and recheck triggers.
 
 ## 8. Architecture and source evidence
