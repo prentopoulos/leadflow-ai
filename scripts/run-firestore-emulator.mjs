@@ -4,9 +4,11 @@ import path from 'node:path';
 import { repoRoot, run } from './process-utils.mjs';
 
 const mode = process.argv[2];
-const allowedModes = new Set(['start', 'exec', 'retain', 'export']);
+const allowedModes = new Set(['start', 'exec', 'runtime', 'retain', 'export']);
 if (!allowedModes.has(mode)) {
-  throw new Error('Expected emulator mode: start, exec, retain, or export.');
+  throw new Error(
+    'Expected emulator mode: start, exec, runtime, retain, or export.',
+  );
 }
 
 const metadata = JSON.parse(
@@ -76,10 +78,30 @@ const retainedMetadata = path.join(
 );
 let args;
 
+if (mode === 'runtime') {
+  run(
+    process.execPath,
+    [
+      path.join(repoRoot, 'node_modules', 'typescript', 'bin', 'tsc'),
+      '-b',
+      '--force',
+      '--pretty',
+      'false',
+      path.join(repoRoot, 'packages', 'domain'),
+      path.join(repoRoot, 'packages', 'runtime'),
+    ],
+    { timeout: 120_000 },
+  );
+}
+
 if (mode === 'start') {
   args = ['emulators:start', '--only', 'firestore', ...common];
 } else if (mode === 'exec') {
   const probe = path.join(repoRoot, 'scripts', 'verify-firestore-emulator.mjs');
+  const command = `"${process.execPath}" "${probe}"`;
+  args = ['emulators:exec', '--only', 'firestore', ...common, command];
+} else if (mode === 'runtime') {
+  const probe = path.join(repoRoot, 'scripts', 'verify-runtime-firestore.mjs');
   const command = `"${process.execPath}" "${probe}"`;
   args = ['emulators:exec', '--only', 'firestore', ...common, command];
 } else if (mode === 'retain') {
@@ -98,5 +120,5 @@ if (mode === 'start') {
 }
 
 run(process.execPath, [firebaseCli, ...args], {
-  timeout: mode === 'exec' ? 120_000 : 86_400_000,
+  timeout: mode === 'exec' || mode === 'runtime' ? 120_000 : 86_400_000,
 });

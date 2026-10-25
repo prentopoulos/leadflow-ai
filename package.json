@@ -14,6 +14,7 @@
     "tools:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap-phase1-tools.ps1 -Offline",
     "emulator:start": "node scripts/run-firestore-emulator.mjs start",
     "emulator:exec": "node scripts/run-firestore-emulator.mjs exec",
+    "emulator:runtime": "node scripts/run-firestore-emulator.mjs runtime",
     "emulator:start:retain": "node scripts/run-firestore-emulator.mjs retain",
     "emulator:export": "node scripts/run-firestore-emulator.mjs export",
     "format": "prettier . --write",

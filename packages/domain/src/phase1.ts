@@ -100,6 +100,7 @@ export const IntakeFieldProvenanceSchema = z
     parityVerified: z.literal(false),
   })
   .strict();
+export type IntakeFieldProvenance = z.infer<typeof IntakeFieldProvenanceSchema>;
 
 export const LeadDocumentSchema = z
   .object({
@@ -245,6 +246,7 @@ export const CheckpointDocumentSchema = z
     createdAt: UtcTimestampSchema,
   })
   .strict();
+export type CheckpointDocument = z.infer<typeof CheckpointDocumentSchema>;
 
 export const PendingWriteDocumentSchema = z
   .object({
@@ -262,6 +264,7 @@ export const PendingWriteDocumentSchema = z
     createdAt: UtcTimestampSchema,
   })
   .strict();
+export type PendingWriteDocument = z.infer<typeof PendingWriteDocumentSchema>;
 
 export const IdempotencyRecordSchema = z
   .object({
@@ -273,6 +276,7 @@ export const IdempotencyRecordSchema = z
     createdAt: UtcTimestampSchema,
   })
   .strict();
+export type IdempotencyRecord = z.infer<typeof IdempotencyRecordSchema>;
 
 export const QualificationFieldSchema = z.enum([
   'givenName',
@@ -552,6 +556,7 @@ export const SystemBundleDocumentSchema = z
     liveToolContracts: UnavailableBoundarySchema,
   })
   .strict();
+export type SystemBundleDocument = z.infer<typeof SystemBundleDocumentSchema>;
 
 export const IntakeAcceptedResponseSchema = z
   .object({
@@ -564,6 +569,9 @@ export const IntakeAcceptedResponseSchema = z
     evidenceClass: z.literal('synthetic-local'),
   })
   .strict();
+export type IntakeAcceptedResponse = z.infer<
+  typeof IntakeAcceptedResponseSchema
+>;
 
 export const RunDetailResponseSchema = z
   .object({
@@ -577,6 +585,7 @@ export const RunDetailResponseSchema = z
     evidenceClass: z.literal('synthetic-local'),
   })
   .strict();
+export type RunDetailResponse = z.infer<typeof RunDetailResponseSchema>;
 
 export const ResumeResponseSchema = z
   .object({
@@ -587,6 +596,7 @@ export const ResumeResponseSchema = z
     replayed: z.boolean(),
   })
   .strict();
+export type ResumeResponse = z.infer<typeof ResumeResponseSchema>;
 
 export const ErrorResponseSchema = z
   .object({
@@ -595,3 +605,4 @@ export const ErrorResponseSchema = z
     requestId: IdentifierSchema,
   })
   .strict();
+export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;

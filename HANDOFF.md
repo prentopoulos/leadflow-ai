@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–2.5 are implemented and locally verified; 36 of 46
+verified dependency/toolchain slice. Tasks 1.1–3.1 are implemented and locally verified; 35 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -103,11 +103,36 @@ schema constant; it was removed and the fail-fast leaf sequence then passed. The
 `pnpm check` gate also passed on the corrected candidate, including toolchain preflight, API/web
 loopback smokes, governance, and strict OpenSpec validation (5 passed, 0 failed).
 
+## Implemented emulator persistence boundary
+
+- Runtime startup validates the exact `demo-leadflow-ai-local` project and
+  `127.0.0.1:8080` emulator host before creating a uniquely named Admin SDK app. Protocols,
+  alternative loopback spellings/ports, missing values, and any other project fail before a
+  database call, so the boundary cannot fall through to cloud Firestore.
+- Create-only repositories cover `leads`, `runs`, nested run `events`, `idempotency`,
+  `systemBundles`, `qualificationResults`, and `simulationRecords`. Every candidate write is parsed
+  before reaching Firestore; every loaded document is strictly parsed and is rejected if parsing
+  would normalize the stored value.
+- The repository contract exposes prepared validated creates for the atomic transaction work that
+  follows and rejects unsafe path segments. Unit tests exercise every owned collection path,
+  valid round trips, invalid writes, malformed/normalization-dependent reads, missing records, and
+  unsafe identifiers.
+- `pnpm emulator:runtime` compiles the domain/runtime packages and runs a real create/read probe
+  against the pinned isolated emulator. It verifies create-only duplicate rejection, strict malformed
+  read rejection, and clean Admin SDK/emulator shutdown.
+
+Task 3.1 checks passed on 2026-10-24: Prettier, ESLint, strict TypeScript, 11 Vitest files/57 tests,
+production build, and the real `pnpm emulator:runtime` probe. The first probe used Firebase Admin's
+REST-preferred transport and failed before writing because it requested application-default
+credentials; the boundary now uses the standard emulator transport, and the identical probe passed
+without credentials.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
-deterministic rubric/lifecycle/simulator behavior, and system identity only. They do not yet
-establish Admin SDK persistence, LangGraph execution/checkpoint compatibility, the Phase 1 API/UI,
-diagrams, or production behavior. The evaluator still executes the retained Phase 0 fixture corpus;
-Phase 1 fixtures and independent evaluation remain tasks 7.1–7.3.
+deterministic rubric/lifecycle/simulator behavior, system identity, and the schema-validating Admin
+SDK repository boundary only. They do not yet establish atomic intake/event transactions, LangGraph
+execution/checkpoint compatibility, the Phase 1 API/UI, diagrams, or production behavior. The
+evaluator still executes the retained Phase 0 fixture corpus; Phase 1 fixtures and independent
+evaluation remain tasks 7.1–7.3.
 
 ## External evidence and gates
 
@@ -121,5 +146,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 3.1 with the emulator-only Admin SDK boundary and schema-validating repositories. With no
-remote, there is no draft PR or hosted CI.
+Begin task 3.2 with the atomic intake transaction for idempotency, lead, run, and first event,
+including same-request replay and conflicting-key behavior. With no remote, there is no draft PR or
+hosted CI.
