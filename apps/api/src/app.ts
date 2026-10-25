@@ -15,10 +15,12 @@ import {
   type IntakeRouteDependencies,
   type RequestIdFactory,
 } from './intake-route.js';
+import { registerRunRoute, type RunRouteDependencies } from './run-route.js';
 
 export interface CreateAppOptions {
   phaseOne?: PhaseOneStartup;
   intake?: IntakeRouteDependencies;
+  runs?: RunRouteDependencies;
   requestIdFactory?: RequestIdFactory;
 }
 
@@ -67,6 +69,7 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
   );
 
   registerIntakeRoute(app, phaseOne, options.intake, options.requestIdFactory);
+  registerRunRoute(app, phaseOne, options.runs, options.requestIdFactory);
 
   return app;
 }

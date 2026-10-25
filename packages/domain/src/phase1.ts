@@ -127,6 +127,7 @@ export const SafeErrorSchema = z
   .object({
     code: z.enum([
       'validation_failed',
+      'run_not_found',
       'storage_unavailable',
       'transient_interpreter_fault',
       'invariant_failed',

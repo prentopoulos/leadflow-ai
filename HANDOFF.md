@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–5.2 are implemented and locally verified; 24 of 46
+verified dependency/toolchain slice. Tasks 1.1–5.3 are implemented and locally verified; 23 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -372,6 +372,28 @@ offline gate. The first typecheck caught unknown Fastify error narrowing and exa
 construction; explicit narrowing and omission of the absent option resolved both before the passing
 sequence.
 
+## Implemented stored run-detail HTTP boundary
+
+- `RunDetailService` loads the strict run, separate lead, ordered append-only events, and referenced
+  qualification/simulation records from Firestore. It rejects missing or cross-run references and
+  requires completed runs to retain both durable results.
+- A snapshot must contain exactly `nextEventSequence - 1` contiguous events, each matching the run
+  and bundle and never exceeding the run revision. Event history is capped at 200 records; oversized
+  histories fail visibly rather than being silently truncated.
+- The service rereads the run after assembly and rejects any revision or content change, so a poll
+  racing workflow progress receives retryable snapshot-unavailable rather than a mixed or fabricated
+  state. A successful response carries its own `retrievedAt` timestamp for later stale-state labeling.
+- `GET /v1/runs/:runId` validates the UUID before storage, returns the shared bounded response, and
+  maps missing, unstable, integrity, unavailable-runtime, and unknown storage states to fixed safe
+  404/503 contracts. Contact and request details remain only in the lead object; strict event parsing
+  rejects any attempted payload leakage.
+
+Task 5.3 checks passed on 2026-10-25: Prettier, ESLint, strict TypeScript, 22 Vitest files/134 tests,
+the complete offline gate, and a real emulator snapshot of the completed run with eleven ordered
+events, linked qualification/simulation records, stable revision, and checked event privacy. The
+first lint pass caught a mutable-holder declaration in the race fixture; a const holder preserved the
+same revision-race test and the corrected sequence passed.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
 repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
@@ -393,6 +415,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 5.3 by implementing `GET /v1/runs/:runId` from bounded, strictly validated stored records
-with privacy separation, explicit stale/unavailable handling, and no fabricated progress. With no
-remote, there is no draft PR or hosted CI.
+Begin task 5.4 by implementing `POST /v1/runs/:runId/resume` with a strict expected revision,
+eligibility/lease/checkpoint enforcement, idempotent response behavior, and safe race/error
+contracts. With no remote, there is no draft PR or hosted CI.

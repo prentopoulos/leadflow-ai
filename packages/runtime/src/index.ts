@@ -8,4 +8,5 @@ export * from './lifecycle.js';
 export * from './local-reset.js';
 export * from './repositories.js';
 export * from './resume.js';
+export * from './run-detail.js';
 export * from './workflow.js';

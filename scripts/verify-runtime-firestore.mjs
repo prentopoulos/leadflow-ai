@@ -5,6 +5,7 @@ import {
   createFirestoreCheckpointSaver,
   createIntakePersistenceService,
   createLifecyclePersistenceService,
+  createRunDetailService,
   compileQualificationWorkflow,
   DeterministicQualificationInterpreter,
   initialQualificationGraphState,
@@ -273,6 +274,22 @@ try {
   ) {
     throw new Error(
       'Emulator qualification graph did not durably finalize its run and results.',
+    );
+  }
+  const storedDetail = await createRunDetailService(boundary.database).get(
+    first.runId,
+  );
+  if (
+    storedDetail.run.revision !== 10 ||
+    storedDetail.events.length !== 11 ||
+    storedDetail.events.at(-1)?.name !== 'run.completed' ||
+    storedDetail.qualification?.runId !== first.runId ||
+    storedDetail.simulation?.runId !== first.runId ||
+    JSON.stringify(storedDetail.events).includes(intake.email) ||
+    JSON.stringify(storedDetail.events).includes(intake.requestDetails)
+  ) {
+    throw new Error(
+      'Emulator run-detail snapshot was incomplete or crossed its privacy boundary.',
     );
   }
   const graphCheckpoints = [];
