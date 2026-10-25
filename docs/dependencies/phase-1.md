@@ -11,6 +11,7 @@ exact-pinned so the ordinary quality gate can run from installed dependencies an
 | Component | Exact version/artifact | Licence | Compatibility and purpose |
 |---|---|---|---|
 | LangGraph.js | `@langchain/langgraph` `1.5.2` | MIT | Requires Node 18+ and `@langchain/core` `^1.1.48`; Node 24.22.1 and core 1.3.0 satisfy that range. Supplies the fixed `StateGraph` workflow and `BaseCheckpointSaver` contract. |
+| LangGraph checkpoint contract | `@langchain/langgraph-checkpoint` `1.2.1` | MIT | Exact transitive version selected by LangGraph 1.5.2 and promoted to a direct dependency because the project-owned Firestore saver implements its public interface and uses its write-index/order helpers. |
 | LangChain core | `@langchain/core` `1.3.0` | MIT | Requires Node 20+; used only for LangGraph runtime/configuration types. No model integration package is selected. |
 | Firebase Admin SDK | `firebase-admin` `14.5.0` | Apache-2.0 | Requires Node 22+; Node 24.22.1 is supported. It is server-only and will be configured to fail closed unless the local emulator host and synthetic project ID validate. |
 | Firebase CLI | `firebase-tools` `15.34.1` | MIT | Declares Node 20, 22, or 24 support. It owns the local Emulator Suite lifecycle and is a root development dependency, not an application runtime dependency. |

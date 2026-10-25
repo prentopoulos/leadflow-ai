@@ -265,7 +265,7 @@ export const PendingWriteDocumentSchema = z
     checkpointId: z.string().min(1).max(200),
     taskId: z.string().min(1).max(200),
     taskPath: z.string().max(400),
-    writeIndex: z.number().int().nonnegative(),
+    writeIndex: z.number().int().min(-4),
     channel: z.string().min(1).max(120),
     value: SerializedValueSchema,
     systemBundleId: IdentifierSchema,

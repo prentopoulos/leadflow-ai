@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Phase 0 is merged into `main` at merge commit `642f70d`. Phase 1 implementation is in progress on
 branch `phase-1-intake-qualification` in OpenSpec change `phase-1-intake-qualification`; planning
 commit `ba2a1d8` is the accepted spec baseline. Implementation checkpoint `93c20ec` contains the
-verified dependency/toolchain slice. Tasks 1.1–3.3 are implemented and locally verified; 33 of 46
+verified dependency/toolchain slice. Tasks 1.1–3.4 are implemented and locally verified; 32 of 46
 tasks remain. PROJECT.md records Phase 1 as `In progress`.
 
 The accepted Phase 1 boundaries remain:
@@ -169,12 +169,37 @@ and the real emulator probe for concurrent claim plus expired reclaim. The first
 test-only mutex callback inference error; explicitly typing the release callback fixed it, and the
 same fail-fast sequence passed.
 
+## Implemented Firestore LangGraph checkpointer
+
+- `FirestoreCheckpointSaver` directly implements the pinned
+  `@langchain/langgraph-checkpoint` 1.2.1 `BaseCheckpointSaver` contract. That already-selected
+  transitive package is now an exact direct runtime dependency because the adapter imports its
+  public serializer, write-index, and ordering contracts; the dependency record and frozen lockfile
+  identify it explicitly.
+- `put`, `getTuple`, and `list` preserve run/thread, namespace, checkpoint, parent, schema, system
+  bundle, channel-version, and typed serializer identity. Checkpoint IDs are immutable/idempotent,
+  listing follows LangGraph's descending ID plus `before`/filter/limit semantics, and malformed or
+  bundle-incompatible stored records fail visibly.
+- `putWrites` keys logical writes by bundle/namespace/checkpoint/task/write index. Ordinary replay is
+  first-write idempotent, special error/scheduled/interrupt/resume slots use LangGraph's negative
+  indices and replacement semantics, and returned pending writes use the pinned task-path/task-ID/
+  numeric-index comparator.
+- `deleteThread` satisfies the abstract interface while deleting only the requested run's checkpoint
+  and pending-write subcollections; it leaves the run, events, and unrelated subcollections intact.
+
+Task 3.4 checks passed on 2026-10-25: frozen offline dependency relink, Prettier, ESLint, strict
+TypeScript, 14 Vitest files/75 tests, and the real emulator checkpoint round-trip/order/delete probe.
+The restricted shell again lacked the workstation's offline metadata for the promoted direct
+dependency; the same offline command passed against the actual host cache. Initial static checks
+also retained an unused helper/import and a typed metadata-index issue; both were removed/fixed
+before the passing sequence.
+
 These slices establish dependency/tool availability, emulator lifecycle, domain contracts,
 deterministic rubric/lifecycle/simulator behavior, system identity, the schema-validating Admin SDK
-repository boundary, and atomic intake/idempotency persistence only. They do not yet establish
-LangGraph execution/checkpoint compatibility, the Phase 1 API/UI, diagrams, or production behavior.
-The evaluator still executes the retained Phase 0 fixture corpus; Phase 1 fixtures and independent
-evaluation remain tasks 7.1–7.3.
+repository boundary, atomic intake/idempotency persistence, transactional lifecycle/leases, and the
+pinned Firestore checkpoint contract only. They do not yet establish the compiled LangGraph
+workflow, the Phase 1 API/UI, diagrams, or production behavior. The evaluator still executes the
+retained Phase 0 fixture corpus; Phase 1 fixtures and independent evaluation remain tasks 7.1–7.3.
 
 ## External evidence and gates
 
@@ -188,6 +213,6 @@ gates remain unresolved.
 
 ## Next action
 
-Begin task 3.4 with the project-owned Firestore `BaseCheckpointSaver`, including pending-write
-idempotency, ordered listing, namespace/parent/bundle/schema identity, and pinned-interface contract
-tests. With no remote, there is no draft PR or hosted CI.
+Begin task 3.5 with isolated emulator fixtures, verified flush, ephemeral/explicit-retain behavior,
+and the guarded local-reset denial/confirmed-deletion contract. With no remote, there is no draft PR
+or hosted CI.

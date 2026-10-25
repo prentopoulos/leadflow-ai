@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import {
   createEmulatorFirestoreBoundary,
   createFirestoreRepositories,
+  createFirestoreCheckpointSaver,
   createIntakePersistenceService,
   createLifecyclePersistenceService,
 } from '../packages/runtime/dist/index.js';
@@ -196,8 +197,97 @@ try {
     throw new Error('Emulator expired-lease reclaim broke lifecycle ordering.');
   }
 
+  const saver = createFirestoreCheckpointSaver(
+    boundary.database,
+    systemBundleId,
+  );
+  const rootCheckpointId = '00000000-0000-6000-8000-000000000001';
+  const childCheckpointId = '00000000-0000-6000-8000-000000000002';
+  const checkpointConfig = {
+    configurable: {
+      thread_id: first.runId,
+      checkpoint_ns: 'qualification',
+      system_bundle_id: systemBundleId,
+    },
+  };
+  const rootConfig = await saver.put(
+    checkpointConfig,
+    {
+      v: 4,
+      id: rootCheckpointId,
+      ts: '2026-10-24T20:02:00.000Z',
+      channel_values: { state: 'root' },
+      channel_versions: { state: 1 },
+      versions_seen: {},
+    },
+    { source: 'input', step: -1, parents: {} },
+    { state: 1 },
+  );
+  const childConfig = await saver.put(
+    rootConfig,
+    {
+      v: 4,
+      id: childCheckpointId,
+      ts: '2026-10-24T20:02:01.000Z',
+      channel_values: { state: 'child' },
+      channel_versions: { state: 2 },
+      versions_seen: {},
+    },
+    { source: 'loop', step: 0, parents: {} },
+    { state: 2 },
+  );
+  await saver.putWrites(
+    childConfig,
+    [
+      ['second', 2],
+      ['third', 3],
+    ],
+    'task-z',
+    'z-path',
+  );
+  await saver.putWrites(childConfig, [['first', 1]], 'task-a', 'a-path');
+  await saver.putWrites(
+    childConfig,
+    [['second', 'ignored duplicate']],
+    'task-z',
+    'z-path',
+  );
+  const checkpointTuple = await saver.getTuple(childConfig);
+  if (
+    checkpointTuple?.checkpoint.id !== childCheckpointId ||
+    checkpointTuple.parentConfig?.configurable?.checkpoint_id !==
+      rootCheckpointId ||
+    JSON.stringify(checkpointTuple.pendingWrites) !==
+      JSON.stringify([
+        ['task-a', 'first', 1],
+        ['task-z', 'second', 2],
+        ['task-z', 'third', 3],
+      ])
+  ) {
+    throw new Error(
+      'Emulator checkpoint tuple did not preserve identity or ordering.',
+    );
+  }
+  const checkpointIds = [];
+  for await (const tuple of saver.list(checkpointConfig)) {
+    checkpointIds.push(tuple.checkpoint.id);
+  }
+  if (
+    JSON.stringify(checkpointIds) !==
+    JSON.stringify([childCheckpointId, rootCheckpointId])
+  ) {
+    throw new Error('Emulator checkpoint listing order was incorrect.');
+  }
+  await saver.deleteThread(first.runId);
+  if (
+    (await saver.getTuple(childConfig)) !== undefined ||
+    (await repositories.runs.get(first.runId)) === null
+  ) {
+    throw new Error('Checkpoint deletion crossed the thread-state boundary.');
+  }
+
   console.log(
-    'Runtime Firestore repository, atomic-intake, and lifecycle probes passed against the isolated emulator.',
+    'Runtime Firestore repository, intake, lifecycle, and checkpointer probes passed against the isolated emulator.',
   );
 } finally {
   await boundary.close();

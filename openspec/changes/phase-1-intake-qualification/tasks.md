@@ -19,7 +19,7 @@
 - [x] 3.1 Build the emulator-only Admin SDK boundary and repositories for leads, runs, events, idempotency, bundles, qualification results, and simulation records with schema validation on every read/write.
 - [x] 3.2 Implement the atomic intake transaction that creates idempotency, lead, run, and first `lead.persisted` event before returning, including same-request replay and conflicting-key tests.
 - [x] 3.3 Implement transactionally revised append-only events and execution lease/claim/reclaim behavior with monotonic sequence, duplicate, stale revision, concurrent claim, and expired-lease tests.
-- [ ] 3.4 Implement the project-owned Firestore `BaseCheckpointSaver` for `put`, `putWrites`, `getTuple`, and `list`, including namespace/parent/bundle/schema identity, pending-write idempotency, ordering, and pinned-interface contract tests.
+- [x] 3.4 Implement the project-owned Firestore `BaseCheckpointSaver` for `put`, `putWrites`, `getTuple`, and `list`, including namespace/parent/bundle/schema identity, pending-write idempotency, ordering, and pinned-interface contract tests.
 - [ ] 3.5 Add isolated emulator fixture setup/verified flush, ephemeral default behavior, explicit gitignored retain flow, and guarded local reset with direct denial and confirmed-deletion tests.
 
 ## 4. Qualification workflow and recovery
