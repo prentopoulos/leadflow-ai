@@ -27,9 +27,7 @@ export function Cover() {
           </p>
           <h1 id="cover-title">LeadFlow AI</h1>
           <p className="cover-lede">
-            Turns a fictional auto-insurance inquiry into a stored, scored and
-            enriched lead, with an email draft a person can approve. It never
-            sends email.
+            Scores and enriches fictional insurance leads. Nothing is ever sent.
           </p>
           <p className="cover-status">
             <span aria-hidden="true" className="cover-status-dot" />
