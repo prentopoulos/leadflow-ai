@@ -11,7 +11,7 @@ export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 
 const PhaseOneConfigSchema = z
   .object({
-    configurationVersion: z.literal('phase-1-local-v1'),
+    configurationVersion: z.literal('phase-2-local-v1'),
     projectId: z.literal(LEADFLOW_LOCAL_PROJECT_ID),
     firestoreHost: z.literal(LEADFLOW_FIRESTORE_EMULATOR_HOST),
     localResetEnabled: z
@@ -36,7 +36,7 @@ export function loadPhaseOneConfig(
   environment: NodeJS.ProcessEnv = process.env,
 ): PhaseOneConfig {
   return PhaseOneConfigSchema.parse({
-    configurationVersion: 'phase-1-local-v1',
+    configurationVersion: 'phase-2-local-v1',
     projectId: environment.GCLOUD_PROJECT,
     firestoreHost: environment.FIRESTORE_EMULATOR_HOST,
     localResetEnabled: environment.LEADFLOW_LOCAL_RESET_ENABLED,

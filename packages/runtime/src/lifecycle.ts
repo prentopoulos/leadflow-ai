@@ -70,6 +70,15 @@ export interface NextRunState {
   qualificationResultId: string | null;
   simulationRecordId: string | null;
   safeError: SafeError | null;
+  // Phase 2 links. Omitted fields keep their stored values.
+  enrichmentMode?: RunDocument['enrichmentMode'];
+  enrichmentEvidenceIds?: RunDocument['enrichmentEvidenceIds'];
+  emailCheckId?: RunDocument['emailCheckId'];
+  evidenceCompleteness?: RunDocument['evidenceCompleteness'];
+  draftId?: RunDocument['draftId'];
+  draftSkipReason?: RunDocument['draftSkipReason'];
+  verificationResultId?: RunDocument['verificationResultId'];
+  holds?: RunDocument['holds'];
 }
 
 export interface CommitRunEventRequest extends EventContext {
@@ -79,6 +88,7 @@ export interface CommitRunEventRequest extends EventContext {
   eventName: LifecycleEvent['name'];
   step: LifecycleEvent['step'];
   durationMs: number | null;
+  externalCall?: LifecycleEvent['externalCall'];
 }
 
 export interface ClaimRunRequest extends EventContext {
@@ -321,7 +331,7 @@ export class LifecyclePersistenceService {
       nextEventSequence: current.nextEventSequence + 1,
     });
     const event = this.dependencies.repositories.events.prepareCreate({
-      schemaVersion: 'event-v1',
+      schemaVersion: 'event-v2',
       eventId,
       runId: current.runId,
       traceId: request.traceId,
@@ -339,6 +349,7 @@ export class LifecyclePersistenceService {
       safeError: request.next.safeError,
       systemBundleId: current.systemBundleId,
       evidenceClass: 'synthetic-local',
+      externalCall: request.externalCall ?? null,
       usage: null,
       usageUnavailableReason: 'no_model_or_paid_tool',
     });

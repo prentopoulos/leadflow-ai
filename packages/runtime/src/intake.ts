@@ -91,7 +91,7 @@ export class IntakePersistenceService {
         createdAt,
       });
     const lead = this.dependencies.repositories.leads.prepareCreate({
-      schemaVersion: 'lead-v1',
+      schemaVersion: 'lead-v2',
       leadId,
       createdAt,
       intake,
@@ -118,7 +118,7 @@ export class IntakePersistenceService {
       evidenceClass: 'synthetic',
     });
     const run = this.dependencies.repositories.runs.prepareCreate({
-      schemaVersion: 'run-v1',
+      schemaVersion: 'run-v2',
       runId,
       leadId,
       createdAt,
@@ -137,7 +137,7 @@ export class IntakePersistenceService {
       systemBundleId: request.systemBundleId,
     });
     const event = this.dependencies.repositories.events.prepareCreate({
-      schemaVersion: 'event-v1',
+      schemaVersion: 'event-v2',
       eventId,
       runId,
       traceId: request.traceId,

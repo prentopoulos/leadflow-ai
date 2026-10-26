@@ -21,7 +21,7 @@ const requestId = '55555555-5555-4555-8555-555555555555';
 const initialTime = '2026-10-24T20:00:00.000Z';
 
 const intake = {
-  schemaVersion: 'intake-v1',
+  schemaVersion: 'intake-v2',
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',
@@ -35,6 +35,7 @@ const intake = {
   needTimeline: 'within_30_days',
   requestDetails: 'Synthetic fixture request.',
   emailContactConsent: false,
+  consentRecord: null,
 } as const;
 
 class SerialMemoryAtomicStore
@@ -134,6 +135,14 @@ function nextState(
     lease: run.lease,
     qualificationResultId: run.qualificationResultId,
     simulationRecordId: run.simulationRecordId,
+    enrichmentMode: null,
+    enrichmentEvidenceIds: [],
+    emailCheckId: null,
+    evidenceCompleteness: 'not_evaluated',
+    draftId: null,
+    draftSkipReason: null,
+    verificationResultId: null,
+    holds: [],
     safeError: run.safeError,
     ...overrides,
   };

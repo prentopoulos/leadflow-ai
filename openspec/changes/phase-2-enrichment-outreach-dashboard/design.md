@@ -111,11 +111,11 @@ Each decision names who made it: **owner** (Peter, 2026-10-25) or the settled ba
   unverified evidence are never inputs. A future model composer is one adapter behind the same port
   and the same verifier.
 - Content (owner): subject and body built from template slots; every slot carries provenance
-  `intake | verified_evidence | fixed_copy` (and an evidence ID where relevant). The body includes the
-  follow-up action from a fixed priority map (high "Review today", standard "Review this week",
-  nurture "Add to nurture list") and a fixed, visibly non-sendable notice: "Before any send, CAN-SPAM
-  requires an advertisement disclosure, a valid physical postal address and a working opt-out." No
-  address is ever filled in.
+  `intake | verified_evidence | fixed_copy` (and an evidence ID where relevant). The draft carries
+  an operator-facing follow-up action from a fixed priority map (high "Review today", standard
+  "Review this week", nurture "Add to nurture list"), and its body ends with a fixed, visibly
+  non-sendable notice: "Not sendable as written. Before any send, CAN-SPAM requires an advertisement
+  disclosure, a valid physical postal address and a working opt-out." No address is ever filled in.
 - When (owner): a draft is composed only when consent is true and qualification is not held, for
   every priority. Otherwise the run records `draft.skipped` with the reason.
 - Revisions and reviews (owner): each revision is immutable with a content SHA-256. An operator edit
@@ -172,9 +172,10 @@ Each decision names who made it: **owner** (Peter, 2026-10-25) or the settled ba
   superseded attempt's evidence remains stored and marked superseded rather than deleted.
 - The whole-subcollection checkpoint read stays deferred until cloud use (HANDOFF review item).
 - Telemetry (settled, default): `event-v2` stays the system of record and adds enrichment, draft,
-  verification and review events. External-call fields follow OpenTelemetry HTTP client names:
-  `http.request.method`, `server.address`, `http.response.status_code`, `error.type`, plus duration.
-  No OpenTelemetry SDK is added.
+  verification and review events. External-call fields are stored in camelCase (Firestore field
+  paths) and map one-to-one to the OpenTelemetry HTTP client names `http.request.method`,
+  `server.address`, `http.response.status_code` and `error.type`, plus duration, through
+  `OTEL_HTTP_CLIENT_ATTRIBUTES`. No OpenTelemetry SDK is added.
 
 ### API and access boundary
 

@@ -95,8 +95,9 @@ helper and needs the Python launcher (`py -3.13`, or set `LEADFLOW_PYTHON`).
 
 ## Local application boundary
 
-Development listeners must remain on `127.0.0.1`. Phase 1 uses no hosted model, live enrichment,
-authentication, cloud Firestore, external communication, or other credentialed service.
+Development listeners must remain on `127.0.0.1`. Phase 2 adds owner-authorized read-only GETs to
+`vpic.nhtsa.dot.gov` and `api.zippopotam.us` only; there is still no hosted model, authentication,
+cloud Firestore, external communication, or other credentialed service.
 
 ## Known shell workarounds
 
@@ -105,5 +106,10 @@ authentication, cloud Firestore, external communication, or other credentialed s
 - If Git reports `dubious ownership` because the checkout belongs to another Windows account, pass
   a one-command override such as `git -c safe.directory=C:/Users/Peter/Documents/leadflow_ai status`
   rather than changing global configuration, unless the owner adds the directory permanently.
+- Windows PowerShell 5.1 turns any native stderr line into a `NativeCommandError`, so a passing
+  `pnpm exec vitest` can still report failure. To capture a leaf check's output, run the tool's Node
+  entry directly through `cmd /c` with a redirect, for example
+  `cmd /c "node node_modulesitestitest.mjs run packages/domain > out.txt 2>&1"`, and read
+  `$LASTEXITCODE`. Run `openspec validate` from Git Bash, where its spinner on stderr is harmless.
 - Diagram tooling runs under the Python launcher: `py -3.13` for the diagram-design self-check and
   SVG export, and `py -3.10` where Playwright is installed.

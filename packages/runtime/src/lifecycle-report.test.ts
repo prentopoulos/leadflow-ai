@@ -17,7 +17,7 @@ function event(input: {
   systemBundleId?: string;
 }): LifecycleEvent {
   return {
-    schemaVersion: 'event-v1',
+    schemaVersion: 'event-v2',
     eventId: input.eventId,
     runId: input.runId,
     traceId: '44444444-4444-4444-8444-444444444444',
@@ -35,6 +35,7 @@ function event(input: {
     safeError: input.safeError ?? null,
     systemBundleId: input.systemBundleId ?? bundleId,
     evidenceClass: 'synthetic-local',
+    externalCall: null,
     usage: null,
     usageUnavailableReason: 'no_model_or_paid_tool',
   };

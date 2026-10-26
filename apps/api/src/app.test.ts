@@ -36,7 +36,7 @@ describe('API skeleton', () => {
         LEADFLOW_LOCAL_RESET_ENABLED: 'false',
       }),
     ).toEqual({
-      configurationVersion: 'phase-1-local-v1',
+      configurationVersion: 'phase-2-local-v1',
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
       localResetEnabled: false,

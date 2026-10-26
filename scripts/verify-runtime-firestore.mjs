@@ -23,7 +23,7 @@ const systemBundleId = randomUUID();
 const boundary = createEmulatorFirestoreBoundary();
 
 const bundle = {
-  schemaVersion: 'system-bundle-v1',
+  schemaVersion: 'system-bundle-v2',
   systemBundleId,
   createdAt: timestamp,
   code: {
@@ -35,18 +35,23 @@ const bundle = {
   lockfileDigest: digest,
   fixtures: { version: 'emulator-contract-probe-v1', digest },
   versions: {
-    intake: 'intake-v1',
-    lead: 'lead-v1',
-    run: 'run-v1',
-    event: 'event-v1',
+    intake: 'intake-v2',
+    lead: 'lead-v2',
+    run: 'run-v2',
+    event: 'event-v2',
     checkpoint: 'checkpoint-v1',
     rubric: 'rubric-v1',
     interpreter: 'deterministic-interpreter-v1',
-    graph: 'qualification-graph-v1',
+    graph: 'phase-2-graph-v1',
     checkpointer: 'firestore-checkpointer-v1',
     simulator: 'simulator-v1',
+    enrichmentAdapters: 'enrichment-adapters-v1',
+    composer: 'deterministic-template-v1',
+    verificationRules: 'verification-rules-v1',
+    decisionLanguage: 'decision-language-v1',
+    metricsDefinitions: 'metrics-definitions-v1',
     evaluator: 'emulator-contract-probe-v1',
-    configuration: 'phase-1-local-v1',
+    configuration: 'phase-2-local-v1',
   },
   environment: {
     node: process.version.replace(/^v/u, ''),
@@ -62,9 +67,11 @@ const bundle = {
   provider: { value: null, reason: 'provider gate unresolved' },
   model: { value: null, reason: 'model gate unresolved' },
   prompt: { value: null, reason: 'no model prompt in Phase 1' },
+  enrichmentMode: 'recorded',
   liveToolContracts: {
-    value: null,
-    reason: 'live enrichment and outbound tools are deferred',
+    hosts: ['vpic.nhtsa.dot.gov', 'api.zippopotam.us'],
+    authorization:
+      'owner-authorized read-only GET, 2026-10-25 (PROJECT.md Phase 2 decisions)',
   },
 };
 
@@ -110,7 +117,7 @@ try {
 
   const intakeService = createIntakePersistenceService(boundary.database);
   const intake = {
-    schemaVersion: 'intake-v1',
+    schemaVersion: 'intake-v2',
     identityClass: 'fictional',
     givenName: 'Avery',
     familyName: 'Example',
@@ -124,6 +131,7 @@ try {
     needTimeline: 'within_30_days',
     requestDetails: 'Synthetic emulator transaction probe.',
     emailContactConsent: false,
+    consentRecord: null,
   };
   const first = await intakeService.persist({
     idempotencyKey: 'emulator-intake-probe-v1',
@@ -434,7 +442,7 @@ try {
   const apiStartup = {
     status: 'ready',
     configuration: {
-      configurationVersion: 'phase-1-local-v1',
+      configurationVersion: 'phase-2-local-v1',
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
       localResetEnabled: false,

@@ -26,7 +26,7 @@ const traceId = '44444444-4444-4444-8444-444444444444';
 const requestId = '55555555-5555-4555-8555-555555555555';
 
 const intake = {
-  schemaVersion: 'intake-v1',
+  schemaVersion: 'intake-v2',
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',
@@ -40,6 +40,7 @@ const intake = {
   needTimeline: 'within_30_days',
   requestDetails: 'Synthetic workflow fixture.',
   emailContactConsent: false,
+  consentRecord: null,
 } as const;
 
 class WorkflowMemoryStore
@@ -282,7 +283,7 @@ async function executeAmbiguousResultWrite(
   };
 }
 
-describe('qualification-graph-v1', () => {
+describe('phase-2-graph-v1', () => {
   it('executes the fixed four nodes with durable ordered events and checkpoints', async () => {
     const store = new WorkflowMemoryStore();
     const repositories = createFirestoreRepositories(store);
@@ -343,7 +344,7 @@ describe('qualification-graph-v1', () => {
     );
 
     expect(output).toMatchObject({
-      schemaVersion: 'qualification-graph-state-v1',
+      schemaVersion: 'phase-2-graph-state-v1',
       runId: initial.runId,
       leadId: initial.leadId,
       runRevision: 9,

@@ -1,5 +1,5 @@
 import {
-  EnrichmentEvidenceSchema,
+  Phase0EnrichmentEvidenceSchema,
   EvidenceClassSchema,
   IntakeSubmissionSchema,
   MarketingReadinessScoreSchema,
@@ -65,7 +65,7 @@ export function evaluateCase(evaluationCase: EvalCase): EvalResult {
         const schema =
           parsedCase.expected.schema === 'run-state'
             ? RunStateSchema
-            : EnrichmentEvidenceSchema;
+            : Phase0EnrichmentEvidenceSchema;
         demand(
           !schema.safeParse(parsedCase.candidate).success,
           'invalid structured output is rejected',
@@ -121,7 +121,9 @@ export function evaluateCase(evaluationCase: EvalCase): EvalResult {
         break;
       }
       case 'enrichment-contract': {
-        const value = EnrichmentEvidenceSchema.parse(parsedCase.candidate);
+        const value = Phase0EnrichmentEvidenceSchema.parse(
+          parsedCase.candidate,
+        );
         demand(
           value.status === parsedCase.expected.status,
           'unavailable or failed evidence remains explicit',

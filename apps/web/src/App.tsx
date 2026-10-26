@@ -1,7 +1,10 @@
 import {
+  CONSENT_WORDINGS,
+  CURRENT_CONSENT_WORDING_VERSION,
   IntakeSubmissionSchema,
-  PHASE_ONE_VERSIONS,
+  CONTRACT_VERSIONS,
   TEST_EMAIL_DOMAINS,
+  currentConsentRecord,
   type IntakeAcceptedResponse,
   type SafeError,
 } from '@leadflow-ai/domain';
@@ -154,8 +157,9 @@ export function App({
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const yearValue = String(formData.get('vehicleYear') ?? '').trim();
+    const consentGiven = formData.get('emailContactConsent') === 'on';
     const candidate = {
-      schemaVersion: PHASE_ONE_VERSIONS.intake,
+      schemaVersion: CONTRACT_VERSIONS.intake,
       identityClass: 'fictional' as const,
       givenName: String(formData.get('givenName') ?? ''),
       familyName: String(formData.get('familyName') ?? ''),
@@ -168,7 +172,8 @@ export function App({
       requestIntent: getOptionalText(formData, 'requestIntent'),
       needTimeline: getOptionalText(formData, 'needTimeline'),
       requestDetails: getOptionalText(formData, 'requestDetails'),
-      emailContactConsent: formData.get('emailContactConsent') === 'on',
+      emailContactConsent: consentGiven,
+      consentRecord: consentGiven ? currentConsentRecord() : null,
     };
     const result = IntakeSubmissionSchema.safeParse(candidate);
 
@@ -568,11 +573,12 @@ export function App({
                   />
                   <div>
                     <label htmlFor="emailContactConsent">
-                      Record email contact consent
+                      {CONSENT_WORDINGS[CURRENT_CONSENT_WORDING_VERSION].text}
                     </label>
                     <p id="consent-help">
-                      Off by default. Consent contributes no score and Phase 1
-                      creates or sends no outreach.
+                      Off by default. Consent adds no score; it only allows a
+                      draft for human review, and nothing is ever sent. Wording{' '}
+                      {CURRENT_CONSENT_WORDING_VERSION}.
                     </p>
                     <FieldError field="emailContactConsent" errors={errors} />
                   </div>

@@ -367,7 +367,7 @@ export const PHASE_ONE_CASES = [
     kind: 'phase1-intake-contract',
     candidate: {
       valid: {
-        schemaVersion: 'intake-v1',
+        schemaVersion: 'intake-v2',
         identityClass: 'fictional',
         givenName: 'Avery',
         familyName: 'Jordan',
@@ -381,6 +381,7 @@ export const PHASE_ONE_CASES = [
         needTimeline: 'days_31_to_90',
         requestDetails: 'Synthetic evaluation fixture.',
         emailContactConsent: false,
+        consentRecord: null,
       },
       rejected: [
         { email: 'person@gmail.com' },

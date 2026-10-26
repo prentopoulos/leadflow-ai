@@ -42,13 +42,13 @@ function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
   const failed = status === 'failed_retryable';
   const complete = status === 'complete';
   return {
-    schemaVersion: 'run-detail-response-v1',
+    schemaVersion: 'run-detail-response-v2',
     lead: {
-      schemaVersion: 'lead-v1',
+      schemaVersion: 'lead-v2',
       leadId: ids.lead,
       createdAt: timestamp,
       intake: {
-        schemaVersion: 'intake-v1',
+        schemaVersion: 'intake-v2',
         identityClass: 'fictional',
         givenName: 'Avery',
         familyName: 'Jordan',
@@ -62,6 +62,7 @@ function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
         needTimeline: 'days_31_to_90',
         requestDetails: 'Synthetic test request.',
         emailContactConsent: false,
+        consentRecord: null,
       },
       provenance: {
         sourceId: 'military-com-auto-landing',
@@ -86,7 +87,7 @@ function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
       evidenceClass: 'synthetic',
     },
     run: {
-      schemaVersion: 'run-v1',
+      schemaVersion: 'run-v2',
       runId: ids.run,
       leadId: ids.lead,
       createdAt: timestamp,
@@ -108,6 +109,14 @@ function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
       lease: null,
       qualificationResultId: complete ? ids.result : null,
       simulationRecordId: complete ? `simulation:${ids.run}` : null,
+      enrichmentMode: null,
+      enrichmentEvidenceIds: [],
+      emailCheckId: null,
+      evidenceCompleteness: 'not_evaluated',
+      draftId: null,
+      draftSkipReason: null,
+      verificationResultId: null,
+      holds: [],
       safeError: failed
         ? {
             code: 'transient_interpreter_fault',
@@ -121,7 +130,7 @@ function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
     },
     events: [
       {
-        schemaVersion: 'event-v1',
+        schemaVersion: 'event-v2',
         eventId: ids.event,
         runId: ids.run,
         traceId: ids.trace,
@@ -139,6 +148,7 @@ function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
         safeError: null,
         systemBundleId: ids.bundle,
         evidenceClass: 'synthetic-local',
+        externalCall: null,
         usage: null,
         usageUnavailableReason: 'no_model_or_paid_tool',
       },
@@ -223,6 +233,10 @@ function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
           notices: ['not_live', 'not_predictive'],
         }
       : null,
+    enrichment: [],
+    emailCheck: null,
+    draft: null,
+    verification: null,
     retrievedAt: '2026-10-25T18:00:01.000Z',
     evidenceClass: 'synthetic-local',
   };

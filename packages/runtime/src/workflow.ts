@@ -7,7 +7,7 @@ import {
   type BaseCheckpointSaver,
 } from '@langchain/langgraph';
 import {
-  PHASE_ONE_VERSIONS,
+  CONTRACT_VERSIONS,
   QualificationGraphStateSchema,
   scoreQualification,
   simulateOutcome,
@@ -23,7 +23,7 @@ import {
 import type { LifecyclePersistenceService, NextRunState } from './lifecycle.js';
 import type { FirestoreRepositories } from './repositories.js';
 
-export const QUALIFICATION_GRAPH_VERSION = 'qualification-graph-v1' as const;
+export const QUALIFICATION_GRAPH_VERSION = 'phase-2-graph-v1' as const;
 export const QUALIFICATION_GRAPH_NODES = [
   'interpretQualification',
   'scoreQualification',
@@ -344,7 +344,7 @@ export function compileQualificationWorkflow(
         if (state.qualification === null) {
           throw new Error('Qualification result is unavailable.');
         }
-        const simulationRecordId = `${state.runId}:${PHASE_ONE_VERSIONS.simulator}`;
+        const simulationRecordId = `${state.runId}:${CONTRACT_VERSIONS.simulator}`;
         const storedSimulation =
           await dependencies.repositories.simulationRecords.get(
             simulationRecordId,
@@ -458,12 +458,18 @@ export function initialQualificationGraphState(input: {
   systemBundleId: string;
   runRevision: number;
   projection: QualificationGraphState['projection'];
+  emailContactConsent?: boolean;
 }): QualificationGraphState {
   return QualificationGraphStateSchema.parse({
-    schemaVersion: PHASE_ONE_VERSIONS.graphState,
+    schemaVersion: CONTRACT_VERSIONS.graphState,
+    emailContactConsent: false,
     ...input,
     interpretation: null,
     qualification: null,
+    enrichmentEvidenceIds: [],
+    emailCheckId: null,
+    draftRevisionId: null,
+    verificationResultId: null,
     simulation: null,
     safeError: null,
     finalized: false,

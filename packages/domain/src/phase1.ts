@@ -1,19 +1,32 @@
 import { z } from 'zod';
 
-export const PHASE_ONE_VERSIONS = {
-  intake: 'intake-v1',
-  lead: 'lead-v1',
-  run: 'run-v1',
-  event: 'event-v1',
+export const CONTRACT_VERSIONS = {
+  intake: 'intake-v2',
+  lead: 'lead-v2',
+  run: 'run-v2',
+  event: 'event-v2',
   checkpoint: 'checkpoint-v1',
   pendingWrite: 'pending-write-v1',
   idempotency: 'idempotency-v1',
   qualificationProjection: 'qualification-projection-v1',
   interpretation: 'qualification-interpretation-v1',
-  graphState: 'qualification-graph-state-v1',
+  graphState: 'phase-2-graph-state-v1',
   rubric: 'rubric-v1',
   simulator: 'simulator-v1',
-  systemBundle: 'system-bundle-v1',
+  systemBundle: 'system-bundle-v2',
+  graph: 'phase-2-graph-v1',
+  configuration: 'phase-2-local-v1',
+  enrichmentEvidence: 'enrichment-evidence-v1',
+  enrichmentAdapters: 'enrichment-adapters-v1',
+  emailCheck: 'email-check-v1',
+  outreachDraft: 'outreach-draft-v1',
+  draftReview: 'draft-review-v1',
+  composer: 'deterministic-template-v1',
+  verificationResult: 'verification-result-v1',
+  verificationRules: 'verification-rules-v1',
+  decisionLanguage: 'decision-language-v1',
+  metricsDefinitions: 'metrics-definitions-v1',
+  metricsReport: 'metrics-report-v1',
 } as const;
 
 export const LEADFLOW_LOCAL_PROJECT_ID = 'demo-leadflow-ai-local' as const;
@@ -67,9 +80,46 @@ export const CoverageFocusSchema = z.enum([
   'not_sure',
 ]);
 
+// The server owns consent wording. A submission names the version and the
+// SHA-256 of the exact text shown; both must match this table. The digest is
+// a constant so the browser bundle needs no hashing; a test recomputes it.
+export const CONSENT_WORDINGS = {
+  'email-consent-v1': {
+    text: 'The fictional lead agrees that a LeadFlow operator may prepare an email about this auto-insurance inquiry for human review. Nothing is sent automatically.',
+    sha256: 'ff54a7e1c6739a1b326a32a50fd131632458f0cb62e62808ed77c1e4c400e052',
+  },
+} as const;
+export type ConsentWordingVersion = keyof typeof CONSENT_WORDINGS;
+export const CURRENT_CONSENT_WORDING_VERSION: ConsentWordingVersion =
+  'email-consent-v1';
+export const ConsentWordingVersionSchema = z.enum(['email-consent-v1']);
+
+export const ConsentRecordSchema = z
+  .object({
+    wordingVersion: ConsentWordingVersionSchema,
+    wordingSha256: Sha256Schema,
+  })
+  .strict()
+  .refine(
+    (record) =>
+      CONSENT_WORDINGS[record.wordingVersion].sha256 === record.wordingSha256,
+    {
+      path: ['wordingSha256'],
+      message: 'consent digest must match the server-owned wording',
+    },
+  );
+export type ConsentRecord = z.infer<typeof ConsentRecordSchema>;
+
+export function currentConsentRecord(): ConsentRecord {
+  return {
+    wordingVersion: CURRENT_CONSENT_WORDING_VERSION,
+    wordingSha256: CONSENT_WORDINGS[CURRENT_CONSENT_WORDING_VERSION].sha256,
+  };
+}
+
 export const IntakeSubmissionSchema = z
   .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.intake),
+    schemaVersion: z.literal(CONTRACT_VERSIONS.intake),
     identityClass: z.literal('fictional'),
     givenName: z.string().trim().min(1).max(80),
     familyName: z.string().trim().min(1).max(80),
@@ -83,8 +133,18 @@ export const IntakeSubmissionSchema = z
     needTimeline: NeedTimelineSchema.nullable().default(null),
     requestDetails: z.string().trim().max(1_000).nullable().default(null),
     emailContactConsent: z.boolean().default(false),
+    consentRecord: ConsentRecordSchema.nullable().default(null),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    if (value.emailContactConsent !== (value.consentRecord !== null)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['consentRecord'],
+        message: 'a consent record is required exactly when consent is true',
+      });
+    }
+  });
 export type IntakeSubmission = z.infer<typeof IntakeSubmissionSchema>;
 
 export const IntakeFieldProvenanceSchema = z
@@ -115,7 +175,7 @@ export type IntakeFieldProvenance = z.infer<typeof IntakeFieldProvenanceSchema>;
 
 export const LeadDocumentSchema = z
   .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.lead),
+    schemaVersion: z.literal(CONTRACT_VERSIONS.lead),
     leadId: IdentifierSchema,
     createdAt: UtcTimestampSchema,
     intake: IntakeSubmissionSchema,
@@ -163,6 +223,9 @@ export type RunStatus = z.infer<typeof RunStatusSchema>;
 export const WorkflowStepSchema = z.enum([
   'interpret_qualification',
   'score_qualification',
+  'enrich_lead',
+  'compose_draft',
+  'verify_outputs',
   'simulate_outcome',
   'finalize_run',
 ]);
@@ -176,9 +239,22 @@ export const ExecutionLeaseSchema = z
   })
   .strict();
 
+export const EnrichmentModeSchema = z.enum(['live', 'recorded', 'mock']);
+export type EnrichmentMode = z.infer<typeof EnrichmentModeSchema>;
+export const EvidenceCompletenessSchema = z.enum([
+  'not_evaluated',
+  'complete',
+  'partial',
+]);
+export const RunHoldSchema = z.enum(['draft_verification_blocked']);
+export const DraftSkipReasonSchema = z.enum([
+  'no_consent',
+  'qualification_held',
+]);
+
 export const RunDocumentSchema = z
   .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.run),
+    schemaVersion: z.literal(CONTRACT_VERSIONS.run),
     runId: IdentifierSchema,
     leadId: IdentifierSchema,
     createdAt: UtcTimestampSchema,
@@ -189,10 +265,18 @@ export const RunDocumentSchema = z
     attempt: z.number().int().min(0).max(2),
     retryCount: z.number().int().min(0).max(1),
     currentStep: WorkflowStepSchema.nullable(),
-    completedSteps: z.array(WorkflowStepSchema).max(4),
+    completedSteps: z.array(WorkflowStepSchema).max(7),
     lease: ExecutionLeaseSchema.nullable(),
     qualificationResultId: IdentifierSchema.nullable(),
     simulationRecordId: z.string().min(1).max(200).nullable(),
+    enrichmentMode: EnrichmentModeSchema.nullable().default(null),
+    enrichmentEvidenceIds: z.array(IdentifierSchema).max(2).default([]),
+    emailCheckId: IdentifierSchema.nullable().default(null),
+    evidenceCompleteness: EvidenceCompletenessSchema.default('not_evaluated'),
+    draftId: IdentifierSchema.nullable().default(null),
+    draftSkipReason: DraftSkipReasonSchema.nullable().default(null),
+    verificationResultId: IdentifierSchema.nullable().default(null),
+    holds: z.array(RunHoldSchema).max(1).default([]),
     safeError: SafeErrorSchema.nullable(),
     systemBundleId: IdentifierSchema,
   })
@@ -211,11 +295,49 @@ export const LifecycleEventNameSchema = z.enum([
   'simulation.completed',
   'run.completed',
   'run.failed',
+  'enrichment.attempt_failed',
+  'enrichment.retry_scheduled',
+  'enrichment.lookup_completed',
+  'email_check.completed',
+  'draft.composed',
+  'draft.skipped',
+  'verification.completed',
+  'draft.revised',
+  'draft.reviewed',
 ]);
+
+// External-call telemetry. Field names are camelCase for Firestore field
+// paths; OTEL_HTTP_CLIENT_ATTRIBUTES maps them to OpenTelemetry names.
+export const ExternalCallTelemetrySchema = z
+  .object({
+    httpRequestMethod: z.literal('GET'),
+    serverAddress: z.enum(['vpic.nhtsa.dot.gov', 'api.zippopotam.us']),
+    httpResponseStatusCode: z.number().int().min(100).max(599).nullable(),
+    errorType: z
+      .enum([
+        'timeout',
+        'network',
+        'rate_limited',
+        'server_error',
+        'client_error',
+        'malformed',
+      ])
+      .nullable(),
+    durationMs: z.number().int().nonnegative(),
+    evidenceClass: EnrichmentModeSchema,
+  })
+  .strict();
+export type ExternalCallTelemetry = z.infer<typeof ExternalCallTelemetrySchema>;
+export const OTEL_HTTP_CLIENT_ATTRIBUTES = {
+  httpRequestMethod: 'http.request.method',
+  serverAddress: 'server.address',
+  httpResponseStatusCode: 'http.response.status_code',
+  errorType: 'error.type',
+} as const;
 
 export const LifecycleEventSchema = z
   .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.event),
+    schemaVersion: z.literal(CONTRACT_VERSIONS.event),
     eventId: IdentifierSchema,
     runId: IdentifierSchema,
     traceId: IdentifierSchema,
@@ -233,6 +355,7 @@ export const LifecycleEventSchema = z
     safeError: SafeErrorSchema.nullable(),
     systemBundleId: IdentifierSchema,
     evidenceClass: z.literal('synthetic-local'),
+    externalCall: ExternalCallTelemetrySchema.nullable().default(null),
     usage: z.null(),
     usageUnavailableReason: z.literal('no_model_or_paid_tool'),
   })
@@ -280,7 +403,7 @@ export const LifecycleReportSchema = z
     schemaVersion: z.literal('lifecycle-report-v1'),
     generatedAt: UtcTimestampSchema,
     systemBundleId: IdentifierSchema,
-    eventSchemaVersion: z.literal(PHASE_ONE_VERSIONS.event),
+    eventSchemaVersion: z.literal(CONTRACT_VERSIONS.event),
     evidenceClass: z.literal('synthetic-local'),
     runCount: z.number().int().nonnegative(),
     eventCount: z.number().int().nonnegative(),
@@ -364,7 +487,7 @@ export const SerializedValueSchema = z
 
 export const CheckpointDocumentSchema = z
   .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.checkpoint),
+    schemaVersion: z.literal(CONTRACT_VERSIONS.checkpoint),
     runId: IdentifierSchema,
     threadId: IdentifierSchema,
     namespace: z.string().max(120),
@@ -388,7 +511,7 @@ export type CheckpointDocument = z.infer<typeof CheckpointDocumentSchema>;
 
 export const PendingWriteDocumentSchema = z
   .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.pendingWrite),
+    schemaVersion: z.literal(CONTRACT_VERSIONS.pendingWrite),
     runId: IdentifierSchema,
     threadId: IdentifierSchema,
     namespace: z.string().max(120),
@@ -406,7 +529,7 @@ export type PendingWriteDocument = z.infer<typeof PendingWriteDocumentSchema>;
 
 export const IdempotencyRecordSchema = z
   .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.idempotency),
+    schemaVersion: z.literal(CONTRACT_VERSIONS.idempotency),
     keyDigest: Sha256Schema,
     requestDigest: Sha256Schema,
     leadId: IdentifierSchema,
@@ -435,7 +558,7 @@ const qualificationFields = QualificationFieldSchema.options;
 
 export const QualificationProjectionSchema = z
   .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.qualificationProjection),
+    schemaVersion: z.literal(CONTRACT_VERSIONS.qualificationProjection),
     leadId: IdentifierSchema,
     givenName: z.string().trim().min(1).max(80),
     familyName: z.string().trim().min(1).max(80),
@@ -456,7 +579,7 @@ export type QualificationProjection = z.infer<
 
 export const QualificationInterpretationSchema = z
   .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.interpretation),
+    schemaVersion: z.literal(CONTRACT_VERSIONS.interpretation),
     interpreterVersion: z.literal('deterministic-interpreter-v1'),
     leadId: IdentifierSchema,
     interpretedAt: UtcTimestampSchema,
@@ -551,7 +674,7 @@ const QualificationCriterionSchema = (maximum: number) =>
 export const QualificationResultSchema = z
   .object({
     schemaVersion: z.literal('qualification-result-v1'),
-    rubricVersion: z.literal(PHASE_ONE_VERSIONS.rubric),
+    rubricVersion: z.literal(CONTRACT_VERSIONS.rubric),
     interpreterVersion: z.literal('deterministic-interpreter-v1'),
     resultId: IdentifierSchema,
     runId: IdentifierSchema,
@@ -621,7 +744,7 @@ export type QualificationResult = z.infer<typeof QualificationResultSchema>;
 export const SimulationRecordSchema = z
   .object({
     schemaVersion: z.literal('simulation-record-v1'),
-    simulatorVersion: z.literal(PHASE_ONE_VERSIONS.simulator),
+    simulatorVersion: z.literal(CONTRACT_VERSIONS.simulator),
     seedVersion: z.literal('seed-v1'),
     simulationRecordId: z.string().min(1).max(200),
     runId: IdentifierSchema,
@@ -657,34 +780,13 @@ export const SimulationRecordSchema = z
   });
 export type SimulationRecord = z.infer<typeof SimulationRecordSchema>;
 
-export const QualificationGraphStateSchema = z
-  .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.graphState),
-    runId: IdentifierSchema,
-    leadId: IdentifierSchema,
-    traceId: IdentifierSchema,
-    requestId: IdentifierSchema,
-    systemBundleId: IdentifierSchema,
-    runRevision: z.number().int().nonnegative(),
-    projection: QualificationProjectionSchema,
-    interpretation: QualificationInterpretationSchema.nullable(),
-    qualification: QualificationResultSchema.nullable(),
-    simulation: SimulationRecordSchema.nullable(),
-    safeError: SafeErrorSchema.nullable(),
-    finalized: z.boolean(),
-  })
-  .strict();
-export type QualificationGraphState = z.infer<
-  typeof QualificationGraphStateSchema
->;
-
 const UnavailableBoundarySchema = z
   .object({ value: z.null(), reason: z.string().min(1).max(160) })
   .strict();
 
 export const SystemBundleDocumentSchema = z
   .object({
-    schemaVersion: z.literal(PHASE_ONE_VERSIONS.systemBundle),
+    schemaVersion: z.literal(CONTRACT_VERSIONS.systemBundle),
     systemBundleId: IdentifierSchema,
     createdAt: UtcTimestampSchema,
     code: z
@@ -704,18 +806,23 @@ export const SystemBundleDocumentSchema = z
       .strict(),
     versions: z
       .object({
-        intake: z.literal(PHASE_ONE_VERSIONS.intake),
-        lead: z.literal(PHASE_ONE_VERSIONS.lead),
-        run: z.literal(PHASE_ONE_VERSIONS.run),
-        event: z.literal(PHASE_ONE_VERSIONS.event),
-        checkpoint: z.literal(PHASE_ONE_VERSIONS.checkpoint),
-        rubric: z.literal(PHASE_ONE_VERSIONS.rubric),
+        intake: z.literal(CONTRACT_VERSIONS.intake),
+        lead: z.literal(CONTRACT_VERSIONS.lead),
+        run: z.literal(CONTRACT_VERSIONS.run),
+        event: z.literal(CONTRACT_VERSIONS.event),
+        checkpoint: z.literal(CONTRACT_VERSIONS.checkpoint),
+        rubric: z.literal(CONTRACT_VERSIONS.rubric),
         interpreter: z.literal('deterministic-interpreter-v1'),
-        graph: z.literal('qualification-graph-v1'),
+        graph: z.literal(CONTRACT_VERSIONS.graph),
         checkpointer: z.literal('firestore-checkpointer-v1'),
-        simulator: z.literal(PHASE_ONE_VERSIONS.simulator),
+        simulator: z.literal(CONTRACT_VERSIONS.simulator),
+        enrichmentAdapters: z.literal(CONTRACT_VERSIONS.enrichmentAdapters),
+        composer: z.literal(CONTRACT_VERSIONS.composer),
+        verificationRules: z.literal(CONTRACT_VERSIONS.verificationRules),
+        decisionLanguage: z.literal(CONTRACT_VERSIONS.decisionLanguage),
+        metricsDefinitions: z.literal(CONTRACT_VERSIONS.metricsDefinitions),
         evaluator: z.string().min(1),
-        configuration: z.literal('phase-1-local-v1'),
+        configuration: z.literal(CONTRACT_VERSIONS.configuration),
       })
       .strict(),
     environment: z
@@ -734,7 +841,18 @@ export const SystemBundleDocumentSchema = z
     provider: UnavailableBoundarySchema,
     model: UnavailableBoundarySchema,
     prompt: UnavailableBoundarySchema,
-    liveToolContracts: UnavailableBoundarySchema,
+    enrichmentMode: EnrichmentModeSchema,
+    liveToolContracts: z
+      .object({
+        hosts: z.tuple([
+          z.literal('vpic.nhtsa.dot.gov'),
+          z.literal('api.zippopotam.us'),
+        ]),
+        authorization: z.literal(
+          'owner-authorized read-only GET, 2026-10-25 (PROJECT.md Phase 2 decisions)',
+        ),
+      })
+      .strict(),
   })
   .strict();
 export type SystemBundleDocument = z.infer<typeof SystemBundleDocumentSchema>;
@@ -753,20 +871,6 @@ export const IntakeAcceptedResponseSchema = z
 export type IntakeAcceptedResponse = z.infer<
   typeof IntakeAcceptedResponseSchema
 >;
-
-export const RunDetailResponseSchema = z
-  .object({
-    schemaVersion: z.literal('run-detail-response-v1'),
-    lead: LeadDocumentSchema,
-    run: RunDocumentSchema,
-    events: z.array(LifecycleEventSchema).max(200),
-    qualification: QualificationResultSchema.nullable(),
-    simulation: SimulationRecordSchema.nullable(),
-    retrievedAt: UtcTimestampSchema,
-    evidenceClass: z.literal('synthetic-local'),
-  })
-  .strict();
-export type RunDetailResponse = z.infer<typeof RunDetailResponseSchema>;
 
 export const ResumeResponseSchema = z
   .object({

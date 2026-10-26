@@ -151,11 +151,15 @@ export class RunDetailService {
     }
 
     return RunDetailResponseSchema.parse({
-      schemaVersion: 'run-detail-response-v1',
+      schemaVersion: 'run-detail-response-v2',
       lead,
       run,
       events,
       qualification,
+      enrichment: [],
+      emailCheck: null,
+      draft: null,
+      verification: null,
       simulation,
       retrievedAt: this.now(),
       evidenceClass: 'synthetic-local',

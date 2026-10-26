@@ -58,7 +58,7 @@ workflow completion.
 The runtime SHALL store `enrichment-evidence-v1`, `email-check-v1`, `outreach-draft-v1`,
 `draft-review-v1`, and `verification-result-v1` records validated on every read and write and linked
 from a `run-v2` document, with `event-v2` events for lookups, retries, draft composition or skip,
-verification, and reviews that use OpenTelemetry HTTP attribute names and carry no contact, ZIP,
+verification, and reviews whose external-call fields map to OpenTelemetry HTTP attribute names and carry no contact, ZIP,
 vehicle, request, or raw-body values.
 
 #### Scenario: Run detail is assembled

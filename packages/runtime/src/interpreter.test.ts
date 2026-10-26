@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { currentConsentRecord } from '@leadflow-ai/domain';
 import {
   DeterministicQualificationInterpreter,
   qualificationProjectionFromLead,
@@ -7,11 +8,11 @@ import {
 
 const timestamp = '2026-10-25T00:15:00.000Z';
 const lead = {
-  schemaVersion: 'lead-v1',
+  schemaVersion: 'lead-v2',
   leadId: '11111111-1111-4111-8111-111111111111',
   createdAt: timestamp,
   intake: {
-    schemaVersion: 'intake-v1',
+    schemaVersion: 'intake-v2',
     identityClass: 'fictional',
     givenName: 'Avery',
     familyName: 'Example',
@@ -25,6 +26,7 @@ const lead = {
     needTimeline: 'within_30_days',
     requestDetails: 'Synthetic fixture request.',
     emailContactConsent: true,
+    consentRecord: currentConsentRecord(),
   },
   provenance: {
     sourceId: 'military-com-auto-landing',

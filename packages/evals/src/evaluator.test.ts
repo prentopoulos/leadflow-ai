@@ -120,7 +120,7 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
       label: 'synthetic-local',
       generatedAt: new Date().toISOString(),
       bundle: {
-        schemaVersion: 'system-bundle-v1',
+        schemaVersion: 'system-bundle-v2',
         systemBundleId: '11111111-1111-4111-8111-111111111111',
         createdAt: '2026-10-24T20:00:00.000Z',
         code: {
@@ -132,18 +132,23 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
         lockfileDigest: digest,
         fixtures: { version: DATASET_VERSION, digest },
         versions: {
-          intake: 'intake-v1',
-          lead: 'lead-v1',
-          run: 'run-v1',
-          event: 'event-v1',
+          intake: 'intake-v2',
+          lead: 'lead-v2',
+          run: 'run-v2',
+          event: 'event-v2',
           checkpoint: 'checkpoint-v1',
           rubric: 'rubric-v1',
           interpreter: 'deterministic-interpreter-v1',
-          graph: 'qualification-graph-v1',
+          graph: 'phase-2-graph-v1',
           checkpointer: 'firestore-checkpointer-v1',
           simulator: 'simulator-v1',
+          enrichmentAdapters: 'enrichment-adapters-v1',
+          composer: 'deterministic-template-v1',
+          verificationRules: 'verification-rules-v1',
+          decisionLanguage: 'decision-language-v1',
+          metricsDefinitions: 'metrics-definitions-v1',
           evaluator: EVALUATOR_VERSION,
-          configuration: 'phase-1-local-v1',
+          configuration: 'phase-2-local-v1',
         },
         environment: {
           node: '24.22.1',
@@ -159,7 +164,12 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
         model: { value: null, reason: 'gate unresolved' },
         provider: { value: null, reason: 'gate unresolved' },
         prompt: { value: null, reason: 'not used' },
-        liveToolContracts: { value: null, reason: 'deferred' },
+        enrichmentMode: 'recorded',
+        liveToolContracts: {
+          hosts: ['vpic.nhtsa.dot.gov', 'api.zippopotam.us'],
+          authorization:
+            'owner-authorized read-only GET, 2026-10-25 (PROJECT.md Phase 2 decisions)',
+        },
       },
       summary: {
         total: 0,

@@ -1,5 +1,5 @@
 import {
-  PHASE_ONE_VERSIONS,
+  CONTRACT_VERSIONS,
   SimulationRecordSchema,
   type SimulationRecord,
 } from './phase1.js';
@@ -22,7 +22,7 @@ function xorshift32(seed: number): number {
 }
 
 export function simulationSeed(runId: string): number {
-  return fnv1a32(`${runId}:${PHASE_ONE_VERSIONS.simulator}:seed-v1`);
+  return fnv1a32(`${runId}:${CONTRACT_VERSIONS.simulator}:seed-v1`);
 }
 
 export function simulateOutcome(input: {
@@ -36,9 +36,9 @@ export function simulateOutcome(input: {
   const appointment = responded && roll >= 6;
   return SimulationRecordSchema.parse({
     schemaVersion: 'simulation-record-v1',
-    simulatorVersion: PHASE_ONE_VERSIONS.simulator,
+    simulatorVersion: CONTRACT_VERSIONS.simulator,
     seedVersion: 'seed-v1',
-    simulationRecordId: `${input.runId}:${PHASE_ONE_VERSIONS.simulator}`,
+    simulationRecordId: `${input.runId}:${CONTRACT_VERSIONS.simulator}`,
     runId: input.runId,
     generatedAt: input.generatedAt,
     seed,

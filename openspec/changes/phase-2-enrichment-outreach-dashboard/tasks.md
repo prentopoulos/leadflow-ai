@@ -1,6 +1,6 @@
 ## 1. Contracts, versions and dependencies
 
-- [ ] 1.1 Record recharts, lucide-react and the shadcn/ui components with their peers (exact versions, licences, release dates, alternatives) in `docs/dependencies/phase-2.md`, install them exact-pinned under the frozen lockfile, and add the Phase 2 domain schemas (`intake-v2` with the server-owned consent wording table, `lead-v2`, `run-v2`, `event-v2`, `enrichment-evidence-v1`, `email-check-v1`, `outreach-draft-v1`, `draft-review-v1`, `verification-result-v1`, `metrics-definitions-v1`, `metrics-report-v1`, `system-bundle-v2`) with boundary tests.
+- [x] 1.1 Record recharts, lucide-react and the shadcn/ui components with their peers (exact versions, licences, release dates, alternatives) in `docs/dependencies/phase-2.md`, install them exact-pinned under the frozen lockfile, and add the Phase 2 domain schemas (`intake-v2` with the server-owned consent wording table, `lead-v2`, `run-v2`, `event-v2`, `enrichment-evidence-v1`, `email-check-v1`, `outreach-draft-v1`, `draft-review-v1`, `verification-result-v1`, `metrics-definitions-v1`, `metrics-report-v1`, `system-bundle-v2`) with boundary tests.
 
 ## 2. Live enrichment
 

@@ -62,7 +62,7 @@ export function createLifecycleReport(input: {
     schemaVersion: 'lifecycle-report-v1',
     generatedAt: input.generatedAt,
     systemBundleId: input.systemBundleId,
-    eventSchemaVersion: 'event-v1',
+    eventSchemaVersion: 'event-v2',
     evidenceClass: 'synthetic-local',
     runCount: latestByRun.size,
     eventCount: events.length,

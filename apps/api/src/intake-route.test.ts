@@ -18,7 +18,7 @@ const accepted: IntakeAcceptedResponse = {
   evidenceClass: 'synthetic-local',
 };
 const intake = {
-  schemaVersion: 'intake-v1',
+  schemaVersion: 'intake-v2',
   identityClass: 'fictional',
   givenName: ' Avery ',
   familyName: 'Example',
@@ -32,6 +32,7 @@ const intake = {
   needTimeline: 'within_30_days',
   requestDetails: 'Synthetic API fixture.',
   emailContactConsent: false,
+  consentRecord: null,
 } as const;
 
 const apps = new Set<ReturnType<typeof createApp>>();
@@ -45,7 +46,7 @@ function readyStartup(): PhaseOneStartup {
   return {
     status: 'ready',
     configuration: {
-      configurationVersion: 'phase-1-local-v1',
+      configurationVersion: 'phase-2-local-v1',
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
       localResetEnabled: false,

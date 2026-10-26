@@ -41,13 +41,13 @@ const accepted = {
 
 function completeDetail(): RunDetailResponse {
   return {
-    schemaVersion: 'run-detail-response-v1',
+    schemaVersion: 'run-detail-response-v2',
     lead: {
-      schemaVersion: 'lead-v1',
+      schemaVersion: 'lead-v2',
       leadId: ids.lead,
       createdAt: timestamp,
       intake: {
-        schemaVersion: 'intake-v1',
+        schemaVersion: 'intake-v2',
         identityClass: 'fictional',
         givenName: 'Avery',
         familyName: 'Jordan',
@@ -61,6 +61,7 @@ function completeDetail(): RunDetailResponse {
         needTimeline: 'days_31_to_90',
         requestDetails: 'Synthetic interface fixture.',
         emailContactConsent: false,
+        consentRecord: null,
       },
       provenance: {
         sourceId: 'military-com-auto-landing',
@@ -85,7 +86,7 @@ function completeDetail(): RunDetailResponse {
       evidenceClass: 'synthetic',
     },
     run: {
-      schemaVersion: 'run-v1',
+      schemaVersion: 'run-v2',
       runId: ids.run,
       leadId: ids.lead,
       createdAt: timestamp,
@@ -105,12 +106,20 @@ function completeDetail(): RunDetailResponse {
       lease: null,
       qualificationResultId: ids.result,
       simulationRecordId: `simulation:${ids.run}`,
+      enrichmentMode: null,
+      enrichmentEvidenceIds: [],
+      emailCheckId: null,
+      evidenceCompleteness: 'not_evaluated',
+      draftId: null,
+      draftSkipReason: null,
+      verificationResultId: null,
+      holds: [],
       safeError: null,
       systemBundleId: ids.bundle,
     },
     events: [
       {
-        schemaVersion: 'event-v1',
+        schemaVersion: 'event-v2',
         eventId: ids.event,
         runId: ids.run,
         traceId: ids.trace,
@@ -128,11 +137,12 @@ function completeDetail(): RunDetailResponse {
         safeError: null,
         systemBundleId: ids.bundle,
         evidenceClass: 'synthetic-local',
+        externalCall: null,
         usage: null,
         usageUnavailableReason: 'no_model_or_paid_tool',
       },
       {
-        schemaVersion: 'event-v1',
+        schemaVersion: 'event-v2',
         eventId: '88888888-8888-4888-8888-888888888888',
         runId: ids.run,
         traceId: ids.trace,
@@ -150,6 +160,7 @@ function completeDetail(): RunDetailResponse {
         safeError: null,
         systemBundleId: ids.bundle,
         evidenceClass: 'synthetic-local',
+        externalCall: null,
         usage: null,
         usageUnavailableReason: 'no_model_or_paid_tool',
       },
@@ -230,6 +241,10 @@ function completeDetail(): RunDetailResponse {
       evidenceClass: 'synthetic',
       notices: ['not_live', 'not_predictive'],
     },
+    enrichment: [],
+    emailCheck: null,
+    draft: null,
+    verification: null,
     retrievedAt: '2026-10-25T18:00:01.000Z',
     evidenceClass: 'synthetic-local',
   };
