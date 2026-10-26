@@ -1182,7 +1182,7 @@ button:disabled {
 .run-item > button:hover,
 .run-item.is-selected > button {
   border-color: var(--accent);
-  border-left-width: 4px;
+  background: var(--accent-soft);
 }
 
 .run-item-heading {
@@ -1413,16 +1413,13 @@ button:disabled {
 }
 
 .evidence-list > li {
-  border-left: 3px solid var(--line-strong);
-  padding-left: 0.85rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.75rem;
 }
 
-.evidence-list > li.evidence-found {
-  border-left-color: var(--accent);
-}
-
-.evidence-list > li.evidence-unavailable {
-  border-left-color: var(--error);
+.evidence-list > li.evidence-unavailable .state-tag {
+  border-color: var(--error);
+  color: var(--error);
 }
 
 .evidence-heading {
@@ -1513,8 +1510,9 @@ button:disabled {
 }
 
 .draft-boundary {
-  border-left: 3px solid var(--accent);
-  padding-left: 0.75rem;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 0.5rem 0;
   font-size: 0.82rem;
   font-weight: 650;
 }

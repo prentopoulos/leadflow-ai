@@ -1,29 +1,33 @@
-workspace "LeadFlow AI" "Phase 1 local intake-to-qualification prototype. Unrendered source of truth for component names; rendered views live in docs/diagrams." {
+workspace "LeadFlow AI" "Phase 2 local intake, enrichment, draft-review and metrics prototype. Unrendered source of truth for component names; rendered views live in docs/diagrams." {
 
     !identifiers hierarchical
 
     model {
-        operator = person "Operator" "Submits fictional intake and reviews stored runs."
+        operator = person "Operator" "Submits fictional intake, reviews drafts and reads stored metrics."
 
-        leadflow = softwareSystem "LeadFlow AI" "Local synthetic intake, durable qualification workflow and run dossier." {
-            web = container "Operator dossier" "Intake form, run state, score, evidence and simulation views." "React, Vite" "Web"
+        leadflow = softwareSystem "LeadFlow AI" "Local synthetic intake, durable workflow, consent-gated drafts, human review and metrics." {
+            web = container "Operator dossier" "Intake, runs and approval queue, run dossier with evidence and draft review, and metrics." "React, Vite, Recharts" "Web"
             api = container "API process" "Loopback Node process that persists intake before any workflow step." "Node 24" {
-                routes = component "Fastify API" "Health, intake, run detail, resume and guarded reset routes." "Fastify"
-                runtime = component "Qualification runtime" "Fixed LangGraph workflow with leases, bounded retry, explicit resume and a Firestore checkpointer." "LangGraph.js"
-                domain = component "Domain contracts" "Strict schemas, rubric-v1, the deterministic interpreter stub and simulator-v1." "Zod"
+                routes = component "Fastify API" "Host/Origin-checked intake, runs, metrics, draft review, resume and guarded reset routes." "Fastify"
+                runtime = component "Workflow runtime" "Seven-node LangGraph workflow in a background executor: qualify, enrich, compose, verify, simulate, finalize." "LangGraph.js"
+                domain = component "Domain contracts" "Strict schemas, rubric-v1, the deterministic interpreter, the draft template, verification rules and metric definitions." "Zod"
             }
-            firestore = container "Firestore Emulator" "Sole durable store for leads, runs, events, checkpoints, idempotency, bundles, results and simulation records." "Firestore Emulator 1.22.0, 127.0.0.1:8080" "Database"
+            firestore = container "Firestore Emulator" "Sole durable store for leads, runs, events, checkpoints, evidence, drafts, reviews, verification and results." "Firestore Emulator 1.22.0, 127.0.0.1:8080" "Database"
             evaluator = container "Offline evaluator" "Runs the fixed synthetic case corpus against the system bundle." "Node CLI" "Tool"
         }
 
-        deferred = softwareSystem "Deferred services" "Model provider, live enrichment, cloud Firestore and Auth. Not enabled in Phase 1." "Deferred"
+        vpic = softwareSystem "NHTSA vPIC" "Public vehicle API; GetModelsForMakeYear only." "External"
+        zippopotam = softwareSystem "Zippopotam.us" "Public ZIP lookup (GeoNames data); /us/{zip} only." "External"
+        deferred = softwareSystem "Deferred services" "Model provider, Firebase Auth and cloud Firestore. Not enabled." "Deferred"
 
         operator -> leadflow.web "Submits synthetic intake and reviews runs"
         leadflow.web -> leadflow.api.routes "Calls /v1 routes" "HTTP, loopback"
         leadflow.api.routes -> leadflow.firestore "Commits intake, claims runs and reads run detail" "Admin SDK, emulator"
         leadflow.api.routes -> leadflow.api.runtime "Starts or resumes the workflow after commit"
         leadflow.api.runtime -> leadflow.firestore "Writes checkpoints, events, results and simulation records" "Admin SDK, emulator"
-        leadflow.api.runtime -> leadflow.api.domain "Interprets, scores and simulates with"
+        leadflow.api.runtime -> leadflow.api.domain "Scores, composes, verifies and simulates with"
+        leadflow.api.runtime -> vpic "Reads model listings for make and year" "HTTPS GET, owner-authorized"
+        leadflow.api.runtime -> zippopotam "Reads places for a ZIP Code" "HTTPS GET, owner-authorized"
         leadflow.evaluator -> leadflow.api.domain "Checks fixed synthetic cases against"
         leadflow.api.runtime -> deferred "Not enabled; gated by PROJECT.md" "" "Deferred"
     }
@@ -64,9 +68,21 @@ workspace "LeadFlow AI" "Phase 1 local intake-to-qualification prototype. Unrend
             autoLayout lr
         }
 
+        dynamic leadflow.api "enrichment-review" "Enrichment, drafting, verification and human review." {
+            1: leadflow.api.runtime -> vpic "GET models for the lead's make and year"
+            2: leadflow.api.runtime -> zippopotam "GET places for the lead's ZIP Code"
+            3: leadflow.api.runtime -> leadflow.firestore "Stores evidence, the consent-gated draft and its verification"
+            4: leadflow.web -> leadflow.api.routes "POST a review bound to the revision digest"
+            5: leadflow.api.routes -> leadflow.firestore "Stores the review and its run event in one transaction"
+            autoLayout lr
+        }
+
         styles {
             element "Database" {
                 shape cylinder
+            }
+            element "External" {
+                border solid
             }
             element "Deferred" {
                 border dashed

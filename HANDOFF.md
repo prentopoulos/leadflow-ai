@@ -45,8 +45,19 @@ Branch `phase-2-enrichment-outreach-dashboard`, OpenSpec change
   now ignored; filter changes waited for the next 3 s poll; reseeding after a code change replayed
   the previous bundle's leads; the Phase 1 simulation panel overflowed the dossier at 390 px; score
   summaries were under 24 px; the sticky strip needed scroll padding.
-- Next step: task 7.1 (freeze `phase-2.0` evaluation cases, update AI_OPS), then 8.1 diagrams and
-  README, then 9.1, whose consolidated review includes the design-eval pass before readiness.
+- Task 7.1 froze 13 `phase-2.0` cases (51 in all: 35 pass, 0 fail, 16 `not_run`, 0 stale) and
+  updated AI_OPS.md.
+- Task 8.1 extends the Structurizr model (vPIC and Zippopotam.us external systems, enrichment and
+  review dynamic view), redraws the architecture diagram, adds `review-flow` and
+  `data-model-outreach`, and rewrites the README with the showcase method, source credits and the
+  no-send boundary. It also replaced three Phase 2 one-sided accent borders flagged by the design
+  hook. Checks passed: diagram render, `check-docs` (links, freshness, model/schema drift,
+  Structurizr) and the web tests (5 files/26 tests).
+- Open for 9.1's design-eval: the Phase 1 one-sided callout borders (`.safe-error`,
+  `.missing-information`, `.integrity-hold` in `apps/web/src/styles.css`).
+- Next step: task 9.1 — full `pnpm check`, `pnpm emulator:runtime`, a live local run, one
+  consolidated branch review including design-eval, fixes, PROJECT/AI_OPS/HANDOFF updates, and
+  archiving the change. Merge to `main` only on the owner's go-ahead.
 - Capture leaf-check output with `cmd /c "node node_modules\...> file 2>&1"` (docs/development.md).
 
 ## Phase 1 record
@@ -725,9 +736,6 @@ gates remain unresolved.
 
 ## Next action
 
-Continue task 6.1 on branch `phase-2-enrichment-outreach-dashboard` using the existing OpenSpec
-change. Read the frontend-product and design instructions before editing the operator UI. Build the
-runs/approval-queue view, extended dossier, stored metrics dashboard, 3 s polling, and deterministic
-40-lead local seed command. Finish with the running desktop/390 px accessibility inspection and
-design-eval required by the task. Keep leaf checks scoped; the complete offline gate remains task 9.1.
-No remote exists, so there is no draft PR or hosted CI.
+Continue with task 9.1 on branch `phase-2-enrichment-outreach-dashboard` (see the Phase 2
+checkpoint above). Tasks 1.1–8.1 are committed. No remote exists, so there is no draft PR or hosted
+CI.

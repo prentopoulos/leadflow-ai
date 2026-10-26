@@ -51,21 +51,26 @@ function architecture() {
     [364, 376],
     [364, 456],
   ]);
-  d.label('SCORES', 394, 416);
+  d.label('RULES', 394, 416);
   d.path([
     [424, 334],
     [608, 334],
     [608, 240],
   ]);
-  d.label('CHECKPOINTS', 650, 287);
+  d.label('RECORDS', 650, 287);
+  d.path([
+    [424, 362],
+    [760, 362],
+  ]);
+  d.label('READ-ONLY GET', 592, 376);
   d.path(
     [
-      [424, 362],
-      [760, 362],
+      [424, 500],
+      [760, 500],
     ],
     { dashed: true },
   );
-  d.label('NOT ENABLED', 640, 376);
+  d.label('NOT ENABLED', 592, 514);
   d.path([
     [176, 484],
     [244, 484],
@@ -79,7 +84,7 @@ function architecture() {
     kind: 'input',
     tag: 'PERSON',
     name: 'Operator',
-    sub: 'fictional intake only',
+    sub: 'fictional leads',
   });
   d.node({
     x: 36,
@@ -88,7 +93,7 @@ function architecture() {
     kind: 'backend',
     tag: 'WEB',
     name: 'Operator dossier',
-    sub: 'React · Vite',
+    sub: 'runs · metrics',
   });
   d.node({
     x: 244,
@@ -97,7 +102,7 @@ function architecture() {
     kind: 'backend',
     tag: 'API',
     name: 'Fastify API',
-    sub: '127.0.0.1:3001 · /v1',
+    sub: '127.0.0.1:3001 · Host/Origin',
   });
   d.node({
     x: 528,
@@ -114,18 +119,28 @@ function architecture() {
     w: 180,
     kind: 'backend',
     tag: 'GRAPH',
-    name: 'Qualification runtime',
-    sub: 'LangGraph.js · leases',
+    name: 'Workflow runtime',
+    sub: 'LangGraph.js · 7 nodes',
   });
   d.node({
     x: 760,
-    y: 308,
+    y: 320,
+    w: 160,
+    h: 80,
+    kind: 'input',
+    tag: 'EXTERNAL',
+    name: 'Enrichment sources',
+    sub: ['NHTSA vPIC', 'Zippopotam.us', 'owner-authorized'],
+  });
+  d.node({
+    x: 760,
+    y: 460,
     w: 160,
     h: 80,
     kind: 'optional',
     tag: 'DEFERRED',
     name: 'Deferred services',
-    sub: ['model provider', 'live enrichment', 'cloud · Auth'],
+    sub: ['model provider', 'Firebase Auth', 'cloud Firestore'],
   });
   d.node({
     x: 36,
@@ -134,7 +149,7 @@ function architecture() {
     kind: 'store',
     tag: 'CLI',
     name: 'Offline evaluator',
-    sub: 'fixed synthetic cases',
+    sub: 'phase-2.0 cases',
   });
   d.node({
     x: 244,
@@ -143,16 +158,16 @@ function architecture() {
     kind: 'backend',
     tag: 'RULES',
     name: 'Domain contracts',
-    sub: 'rubric-v1 · simulator-v1',
+    sub: 'rubric · template · rules',
   });
 
   return page({
     diagram: d,
-    eyebrow: 'Architecture · Phase 1',
+    eyebrow: 'Architecture · Phase 2',
     title: 'LeadFlow AI local architecture',
-    desc: 'An operator uses the dossier, which calls a loopback Fastify API; the API commits intake to the Firestore Emulator before the LangGraph runtime scores it with domain contracts, while model, enrichment, cloud and Auth services stay deferred outside the workstation boundary.',
+    desc: 'An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while the model provider, Firebase Auth and cloud Firestore stay deferred.',
     intro:
-      'Everything inside the boundary runs on one workstation against synthetic data. The intake transaction commits before any workflow step runs.',
+      'Everything inside the boundary runs on one workstation against synthetic data. The only outbound calls are read-only GETs to the two authorized enrichment sources; nothing is ever sent.',
   });
 }
 
@@ -537,6 +552,278 @@ function dataModel() {
   });
 }
 
+function reviewFlow() {
+  const d = new Diagram({ slug: 'review-flow', width: 960, height: 600 });
+  const row = { main: 120, branch: 280, end: 440 };
+  const col = [40, 220, 400, 580, 760];
+
+  const across = (from, to, label, options = {}) => {
+    d.path(
+      [
+        [col[from] + 140, row.main + 28],
+        [col[to], row.main + 28],
+      ],
+      options,
+    );
+    if (label) {
+      d.label(label, (col[from] + 140 + col[to]) / 2, row.main + 14, {
+        role: options.role === 'accent' ? 'accent' : 'soft',
+      });
+    }
+  };
+  across(0, 1);
+  across(1, 2);
+  across(2, 3);
+  across(3, 4, 'PASS', { role: 'accent' });
+
+  const down = (x, from, to, label, labelX = x + 44) => {
+    d.path([
+      [x, from],
+      [x, to],
+    ]);
+    d.label(label, labelX, (from + to) / 2);
+  };
+  down(470, row.main + 56, row.branch, 'NO CONSENT', 424);
+  down(620, row.main + 56, row.branch, 'RULE FAILS', 576);
+  down(830, row.main + 56, row.branch, 'DECIDE', 870);
+  down(830, row.branch + 56, row.end, 'APPROVED', 874);
+  d.path(
+    [
+      [760, row.branch + 36],
+      [690, row.branch + 36],
+      [690, row.main + 56],
+    ],
+    { dashed: true },
+  );
+  d.label('NEW REVISION', 724, 228);
+
+  const node = (x, y, kind, tag, name, sub) =>
+    d.node({ x, y, w: 140, kind, tag, name, sub });
+  node(col[0], row.main, 'backend', 'SCORE', 'Qualify', 'rubric-v1 · priority');
+  node(col[1], row.main, 'backend', 'ENRICH', 'Enrich', 'vPIC · ZIP · email');
+  node(
+    col[2],
+    row.main,
+    'backend',
+    'COMPOSE',
+    'Compose draft',
+    'template · slots',
+  );
+  node(col[3], row.main, 'backend', 'VERIFY', 'Verify', '8 rules');
+  node(col[4], row.main, 'focal', 'QUEUE', 'Pending review', 'run complete');
+  node(344, row.branch, 'optional', 'SKIP', 'No draft', 'no consent · held');
+  node(
+    548,
+    row.branch,
+    'optional',
+    'HOLD',
+    'Draft blocked',
+    'not in the queue',
+  );
+  node(760, row.branch, 'input', 'OPERATOR', 'Human review', 'unauthenticated');
+  node(760, row.end, 'store', 'RESULT', 'Manual use only', 'never sent');
+
+  d.callout(
+    [
+      'An unavailable source still completes the run, flagged as partial evidence.',
+      'Approval is bound to the revision digest; no product path sends email.',
+    ],
+    40,
+    552,
+  );
+
+  return page({
+    diagram: d,
+    eyebrow: 'Flow · Phase 2',
+    title: 'Enrichment to human review',
+    desc: 'After scoring, the workflow enriches the lead, composes a template draft only with recorded consent, and verifies it against eight rules; a passing draft completes the run in pending review, a failing one is held, and a human approves, rejects or edits it as a new revision, after which an approved draft is for manual use only and is never sent.',
+    intro:
+      'Every branch is stored: skipped drafts, blocked drafts and each revision and decision remain inspectable in the run dossier.',
+  });
+}
+
+function phaseTwoRecords() {
+  const d = new Diagram({
+    slug: 'data-model-outreach',
+    width: 960,
+    height: 560,
+    maxNodes: 6,
+  });
+  const entity = ({ x, y, name, paths, fields, kind = 'backend' }) => {
+    const w = 240;
+    const fieldTop = y + 34 + paths.length * 14;
+    const h = Math.ceil((fieldTop - y + 8 + fields.length * 14 + 6) / 4) * 4;
+    const stroke = kind === 'focal' ? tokens.accent : tokens.ink;
+    const markup = [
+      d.text(name, {
+        x: x + 12,
+        y: y + 20,
+        size: 12,
+        font: 'sans',
+        fill: tokens.ink,
+        weight: 600,
+        room: w - 24,
+      }),
+      ...paths.map((value, index) =>
+        d.text(value, {
+          x: x + 12,
+          y: y + 36 + index * 14,
+          size: 9,
+          font: 'mono',
+          fill: tokens.muted,
+          room: w - 24,
+        }),
+      ),
+      `<line x1="${x}" y1="${fieldTop}" x2="${x + w}" y2="${fieldTop}" stroke="${stroke}" stroke-opacity="0.3" stroke-width="0.8"/>`,
+      ...fields.map((value, index) =>
+        d.text(value, {
+          x: x + 12,
+          y: fieldTop + 16 + index * 14,
+          size: 9,
+          font: 'mono',
+          fill: tokens.ink,
+          room: w - 24,
+        }),
+      ),
+    ];
+    d.box({ x, y, w, h, kind, markup, name });
+    return { x, y, w, h, right: x + w, bottom: y + h };
+  };
+
+  const evidence = entity({
+    x: 40,
+    y: 40,
+    name: 'Enrichment evidence',
+    paths: ['enrichmentEvidence/{evidenceId}'],
+    fields: [
+      '# evidenceId · → runId',
+      'source · subject · outcome',
+      'live | recorded | mock',
+      'rawBody ≤ 64 KiB · sha256',
+    ],
+  });
+  const run = entity({
+    x: 360,
+    y: 40,
+    name: 'Run',
+    kind: 'focal',
+    paths: ['runs/{runId}'],
+    fields: [
+      '# runId',
+      '→ enrichmentEvidenceIds',
+      '→ emailCheckId',
+      '→ draftId · draftSkipReason',
+      '→ verificationResultId',
+      'evidenceCompleteness · holds',
+    ],
+  });
+  const email = entity({
+    x: 680,
+    y: 40,
+    name: 'Email check',
+    paths: ['emailChecks/{emailCheckId}'],
+    fields: [
+      '# emailCheckId · → runId',
+      'reserved test domain',
+      'local check only',
+    ],
+  });
+  const verification = entity({
+    x: 40,
+    y: 280,
+    name: 'Verification result',
+    paths: ['verificationResults/{id}'],
+    fields: [
+      '# verificationResultId',
+      'scope · → revisionId',
+      '8 rule outcomes',
+      'draftPassed · integrityPassed',
+    ],
+  });
+  const revision = entity({
+    x: 360,
+    y: 280,
+    name: 'Draft revision',
+    paths: ['outreachDrafts/{draftId}', '/revisions/{revisionId}'],
+    fields: [
+      '# revisionId · revisionNumber',
+      'origin · subject · body',
+      'slots · followUpAction',
+      'contentSha256 · → verification',
+    ],
+  });
+  const review = entity({
+    x: 680,
+    y: 280,
+    name: 'Draft review',
+    paths: ['outreachDrafts/{draftId}', '/reviews/{reviewId}'],
+    fields: [
+      '# reviewId · → revisionId',
+      'contentSha256',
+      'approved | rejected',
+      'local-operator · unauthenticated',
+    ],
+  });
+
+  const line = (points) => d.path(points, { marker: false });
+  line([
+    [run.x, 100],
+    [evidence.right, 100],
+  ]);
+  d.tag('1', run.x - 10, 94, { anchor: 'end' });
+  d.tag('0..2', evidence.right + 10, 94);
+  line([
+    [run.right, 100],
+    [email.x, 100],
+  ]);
+  d.tag('1', run.right + 10, 94);
+  d.tag('0..1', email.x - 10, 94, { anchor: 'end' });
+  line([
+    [480, run.bottom],
+    [480, revision.y],
+  ]);
+  d.tag('1', 488, run.bottom + 16);
+  d.tag('N', 488, revision.y - 8);
+  line([
+    [400, run.bottom],
+    [400, 244],
+    [160, 244],
+    [160, verification.y],
+  ]);
+  d.tag('1', 408, run.bottom + 16);
+  d.tag('0..1', 168, verification.y - 8);
+  line([
+    [revision.x, 340],
+    [verification.right, 340],
+  ]);
+  d.tag('1', revision.x - 10, 334, { anchor: 'end' });
+  d.tag('1', verification.right + 10, 334);
+  line([
+    [revision.right, 340],
+    [review.x, 340],
+  ]);
+  d.tag('1', revision.right + 10, 334);
+  d.tag('0..1', review.x - 10, 334, { anchor: 'end' });
+
+  d.callout(
+    [
+      'Revisions and reviews are append-only; earlier evidence and revisions stay stored, unlinked.',
+      'Fields are structure only; stored fixture values are fictional and never drawn here.',
+    ],
+    40,
+    524,
+  );
+
+  return page({
+    diagram: d,
+    eyebrow: 'Data model · Phase 2',
+    title: 'Enrichment, draft and review records',
+    desc: 'A run links up to two enrichment evidence records, one email check, one run-level verification result and one draft whose immutable revisions each carry a content digest, their own verification result and at most one append-only human review.',
+    intro:
+      'Collection paths match the runtime repositories. The run links only the current evidence and draft; superseded records remain for audit.',
+  });
+}
+
 /** README brand asset (not a technical diagram): the three product principles. */
 function principles() {
   const d = new Diagram({ slug: 'principles', width: 960, height: 168 });
@@ -554,19 +841,19 @@ function principles() {
     {
       x: 372,
       w: 280,
-      eyebrow: '02 · SCORING',
-      title: 'Deterministic rubric',
+      eyebrow: '02 · EVIDENCE',
+      title: 'Verified sources',
       lines: [
-        'rubric-v1 arithmetic lives in',
-        'code; prose cannot move a score.',
+        'Public vehicle and ZIP data, each',
+        'answer labelled live or recorded.',
       ],
     },
     {
       x: 684,
       w: 236,
-      eyebrow: '03 · EVIDENCE',
-      title: 'Synthetic by design',
-      lines: ['Fictional leads, a local', 'emulator and no live calls.'],
+      eyebrow: '03 · CONTROL',
+      title: 'Human approval',
+      lines: ['Drafts need consent and a', 'person; nothing is sent.'],
     },
   ];
   for (const [index, column] of columns.entries()) {
@@ -610,7 +897,7 @@ function principles() {
     diagram: d,
     eyebrow: 'README · LeadFlow AI',
     title: 'LeadFlow AI principles',
-    desc: 'Three principles: intake is persisted before processing, scoring is deterministic rubric-v1 code, and every lead, store and outcome is synthetic and local.',
+    desc: 'Three principles: intake is persisted before processing, enrichment comes from public vehicle and ZIP sources with every answer labelled live or recorded, and outreach drafts need recorded consent and human approval and are never sent.',
     intro: 'Brand asset for the README opening.',
   });
 }
@@ -620,6 +907,8 @@ export const diagrams = {
   'persist-before-processing': persistBeforeProcessing,
   'run-lifecycle': runLifecycle,
   'data-model': dataModel,
+  'review-flow': reviewFlow,
+  'data-model-outreach': phaseTwoRecords,
 };
 
 export const readmeAssets = { principles };

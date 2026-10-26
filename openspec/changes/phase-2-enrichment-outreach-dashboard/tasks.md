@@ -28,7 +28,7 @@
 
 ## 8. Architecture and README
 
-- [ ] 8.1 Extend the Structurizr model, ERD and dynamic views for the external sources, enrichment/drafting/verification/review flow and new collections, render them with `pnpm docs:diagrams`, and update the README with the showcase method, source attribution and the no-send boundary.
+- [x] 8.1 Extend the Structurizr model, ERD and dynamic views for the external sources, enrichment/drafting/verification/review flow and new collections, render them with `pnpm docs:diagrams`, and update the README with the showcase method, source attribution and the no-send boundary.
 
 ## 9. Completion
 
