@@ -49,6 +49,10 @@ describe('container contract', () => {
       'copying the whole build stage',
       (text) => `${text}COPY --from=build /app ./\n`,
     ],
+    [
+      'shipping compiled tests',
+      (text) => text.replace(/# Compiled tests[\s\S]*?-delete\n/u, ''),
+    ],
   ])('fails for %s', async (_label, mutate) => {
     const findings = inspectDockerfile(
       mutate(await read('Dockerfile')),

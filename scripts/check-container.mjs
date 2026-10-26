@@ -76,6 +76,10 @@ export function inspectDockerfile(dockerfile, dependencyRecord) {
       /source-digest\.mjs[^\n]*\n(?:.*\n)*?RUN pnpm install/u,
     ],
     ['release manifest', /write-release-manifest\.mjs/u],
+    [
+      'test artifact removal',
+      /-name '\*\.test\.\*' -o -name '\*\.test-support\.\*'/u,
+    ],
   ]) {
     if (!pattern.test(dockerfile))
       findings.push(`Dockerfile: missing ${label}`);

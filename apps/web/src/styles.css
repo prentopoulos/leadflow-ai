@@ -2027,3 +2027,13 @@ kbd {
     transition: none;
   }
 }
+
+/* The marker is a third flex item in criteria rows; keep the label left and
+   the points right. */
+.criteria-list summary {
+  justify-content: flex-start;
+}
+
+.criteria-list summary > strong {
+  margin-left: auto;
+}

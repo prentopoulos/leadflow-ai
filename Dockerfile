@@ -14,6 +14,9 @@ COPY . .
 RUN node scripts/source-digest.mjs . > /tmp/source-digest
 RUN pnpm install --frozen-lockfile
 RUN pnpm run build
+# Compiled tests and test helpers never ship in the runtime image.
+RUN find apps packages -path '*/node_modules' -prune -o \
+      \( -name '*.test.*' -o -name '*.test-support.*' \) -type f -print -delete
 RUN pnpm exec node scripts/write-release-manifest.mjs \
       "${SOURCE_COMMIT}" "$(cat /tmp/source-digest)" release/manifest.json
 
