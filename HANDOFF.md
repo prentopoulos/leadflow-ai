@@ -11,10 +11,22 @@ request-bound cloud execution, immutable Cloud Build output, recorded enrichment
 verified rollback, evidence, walkthrough, and teardown. No API, cloud resource, build, deployment,
 merge, or MP4 publication is authorized by this checkpoint.
 
-The authorized next action is to validate and publish the spec-only candidate as a draft PR after
-secret/private-data scans. After owner review, implementation may proceed locally. Before any cloud
-mutation, enumerate the exact APIs, resources, identities, budget controls, and commands for a new
-owner approval; recheck live account, billing, IAM, and service state at that time.
+The spec-only candidate is published as draft PR #7. The proposal review (2026-10-26) found five
+technical corrections, folded in by `docs: fold proposal review findings into phase three`:
+- the intake default must be a recorded vehicle and ZIP, because the 2021 Subaru Outback default has
+  no recording;
+- hosted demo data is entered through the authenticated UI with recorded subjects;
+- IAP verification uses an exact-pinned direct `google-auth-library`;
+- TTL expiry is a Firestore timestamp with one policy per collection group;
+- the first IAP enable happens once in the Cloud Run console (no-organization project).
+
+Peter accepted the reviewed proposal and authorized local implementation. He also approved
+downloading the official `node:24.22.1-slim` container base image, to be pinned by digest and
+recorded in `docs/dependencies/phase-3.md` before use.
+
+Next action: start a fresh session with `/next-phase` and implement task 1.1 on this branch. Before any
+cloud mutation, enumerate the exact APIs, resources, identities, budget controls, and commands for a
+new owner approval; recheck live account, billing, IAM, and service state at that time.
 
 ## Phase 3 deployment gate resolution (2026-10-26)
 
