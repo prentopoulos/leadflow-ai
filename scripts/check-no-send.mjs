@@ -46,6 +46,9 @@ const allowedHosts = new Set([
   'auto.military.com',
   // Interpolated loopback constant: the pinned 127.0.0.1:8080 emulator host.
   '${LEADFLOW_FIRESTORE_EMULATOR_HOST}',
+  // IAP's JWT issuer (`https://cloud.google.com/iap`): compared with the
+  // assertion's `iss` claim, never requested.
+  'cloud.google.com',
 ]);
 
 function packageNamesFromLockfile(lockfile) {

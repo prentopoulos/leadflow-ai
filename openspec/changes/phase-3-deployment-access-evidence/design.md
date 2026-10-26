@@ -213,6 +213,25 @@ deleted unless the owner extends retention. The empty Toronto Firestore database
 evidence remain. After day 30, reconstruction requires a rebuild and bit-for-bit availability is not
 claimed.
 
+### 11. Implementation decisions recorded during the build
+
+Made by the implementer from the accepted design and its sources; reopenable by the owner.
+
+- Stored lead, run and event records keep their `synthetic-local` data-class literal in hosted
+  mode instead of a schema migration. Each run's hosted environment is identified by its
+  `system-bundle-v3` `deployment` block (project digest, revision, image digest), the hosted
+  interface labels it "Synthetic · private hosted", and process health reports `hosted-process`.
+- The built web app is served from an exact in-memory path map rather than `@fastify/static`,
+  avoiding a new dependency; every hosted asset request also passes the IAP check.
+- The container's source digest is computed over its build context with the same path-then-bytes
+  algorithm as the Git-listed local digest; `.dockerignore` is generated from `.gitignore` so a
+  clean clone yields the same file set. The release manifest is written in the build stage and
+  bound at startup to `K_REVISION` and the deployed image digest.
+- The hosted execution lease is 75 seconds (longer than the 60-second platform timeout) so an
+  interrupted request's claim expires on its own and the run becomes reclaimable.
+- Missing or unknown runtime mode falls back to the loopback guard, never to an unguarded app; an
+  incomplete hosted configuration serves only process health.
+
 ## Non-negotiables check
 
 | PROJECT rule or gate | Design treatment |

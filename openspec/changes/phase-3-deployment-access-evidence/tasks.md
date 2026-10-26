@@ -12,7 +12,7 @@
 
 ## 4. Define the reproducible release and evidence system
 
-- [ ] 4.1 Add checked-in Cloud Build and digest-pinned Cloud Run templates, least-privilege identity/configuration guidance, budget stop rules, the one-time console IAP enable for a no-organization project, rollback/purge/teardown runbooks, `system-bundle-v3` and `phase-3.0` evaluation coverage, sanitized evidence schemas, updated AI operations/architecture/README material, and the captioned `docs/walkthrough.md` script without embedding private deployment values.
+- [x] 4.1 Add checked-in Cloud Build and digest-pinned Cloud Run templates, least-privilege identity/configuration guidance, budget stop rules, the one-time console IAP enable for a no-organization project, rollback/purge/teardown runbooks, `system-bundle-v3` and `phase-3.0` evaluation coverage, sanitized evidence schemas, updated AI operations/architecture/README material, and the captioned `docs/walkthrough.md` script without embedding private deployment values.
 
 ## 5. Verify the exact local candidate
 

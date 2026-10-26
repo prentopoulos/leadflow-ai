@@ -1,0 +1,221 @@
+{
+  "schemaVersion": "deployment-evidence-v1",
+  "phase": "phase-3",
+  "candidate": {
+    "sourceCommit": null,
+    "lockfileDigest": null,
+    "systemBundleId": null,
+    "buildId": null,
+    "imageDigest": null,
+    "revision": null,
+    "configuration": "phase-3-cloud-v1",
+    "service": "leadflow-ai-demo",
+    "region": "northamerica-northeast2",
+    "runtimeIdentity": "leadflow-ai-runtime",
+    "firestore": {
+      "database": "(default)",
+      "location": "northamerica-northeast2",
+      "retentionPolicy": "retention-7d-v1"
+    }
+  },
+  "checks": [
+    {
+      "id": "deployed-owner-access",
+      "scope": "deployed",
+      "probe": "runbook smoke 1",
+      "expected": "The owner signs in through IAP; /v1/session reports cloud, iap-verified, recorded.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-unauthenticated-denial",
+      "scope": "deployed",
+      "probe": "runbook smoke 2",
+      "expected": "A browser or client without an IAP session is redirected or denied before application state.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-assertion-negative",
+      "scope": "deployed",
+      "probe": "runbook smoke 3",
+      "expected": "A forged or expired assertion receives authentication_required.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-allowlist-denial",
+      "scope": "deployed",
+      "probe": "runbook smoke 2",
+      "expected": "A signed-in, non-allowlisted Google account receives access_denied.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-firestore-client-denial",
+      "scope": "deployed",
+      "probe": "runbook smoke 4",
+      "expected": "A browser Firestore REST call without credentials is denied by the deny-all rules.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-runtime-firestore-access",
+      "scope": "deployed",
+      "probe": "runbook smoke 5",
+      "expected": "The runtime identity reads and writes schema-valid documents in the Toronto database.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-persist-before-202",
+      "scope": "deployed",
+      "probe": "runbook smoke 5",
+      "expected": "Intake answers 202 and the run stays persisted until the execution request.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-request-bound-polling",
+      "scope": "deployed",
+      "probe": "runbook smoke 5",
+      "expected": "The held execution request completes while polling shows stored progress.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-duplicate-execution",
+      "scope": "deployed",
+      "probe": "runbook smoke 5",
+      "expected": "A duplicate execution request is a conflict and repeats no effect.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-resume-retry-conflict",
+      "scope": "deployed",
+      "probe": "runbook smoke 5",
+      "expected": "An interrupted run resumes after its lease expires; stale revisions conflict.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-recorded-labels",
+      "scope": "deployed",
+      "probe": "runbook smoke 6",
+      "expected": "Every enrichment record is labelled recorded; no live lookup occurs.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-consent-and-no-send",
+      "scope": "deployed",
+      "probe": "runbook smoke 6",
+      "expected": "Drafts stay consent-gated, human-reviewed and unsent.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-log-privacy",
+      "scope": "deployed",
+      "probe": "runbook smoke 7",
+      "expected": "Logs carry status, latency and revision only; no contact value, assertion, subject, cookie or IAM list.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-configuration-match",
+      "scope": "deployed",
+      "probe": "runbook deploy",
+      "expected": "The revision matches the template: digest, limits, identity, region, Iap Enabled true.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-public-principal-absent",
+      "scope": "deployed",
+      "probe": "runbook deploy",
+      "expected": "The invoker policy holds only the IAP service agent; no allUsers or allAuthenticatedUsers.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-cost-status",
+      "scope": "deployed",
+      "probe": "runbook smoke 8",
+      "expected": "Cloud Run and project spend are recorded, or pending with a reason; never zero by default.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": true
+    },
+    {
+      "id": "deployed-rollback",
+      "scope": "deployed",
+      "probe": "runbook rollback",
+      "expected": "Traffic returns to the verified previous revision and smoke 1, 2, 5 and 6 pass there.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    },
+    {
+      "id": "deployed-teardown",
+      "scope": "deployed",
+      "probe": "runbook teardown",
+      "expected": "The seven-day and 30-day removals run against reverified exact resources.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "pending": false
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+# Cloud Run service template for the private hosted proof of concept.
+# deploy/render-service.mjs replaces every dollar-brace placeholder from private
+# parameters and writes the result to the ignored .local/ directory; this
+# tracked file never holds a project, audience, subject or image value.
+# Apply with: gcloud run services replace .local/service.yaml --region=northamerica-northeast2
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: leadflow-ai-demo
+  labels:
+    cloud.googleapis.com/location: northamerica-northeast2
+  annotations:
+    # Direct IAP; the only invoker is the IAP service agent, never a public
+    # principal (checked by scripts/check-container.mjs).
+    run.googleapis.com/iap-enabled: 'true'
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      name: ${REVISION_NAME}
+      annotations:
+        autoscaling.knative.dev/minScale: '0'
+        autoscaling.knative.dev/maxScale: '1'
+        # Request-based billing: CPU is allocated only while a request runs.
+        run.googleapis.com/cpu-throttling: 'true'
+        run.googleapis.com/startup-cpu-boost: 'false'
+    spec:
+      serviceAccountName: leadflow-ai-runtime@${PROJECT_ID}.iam.gserviceaccount.com
+      containerConcurrency: 8
+      timeoutSeconds: 60
+      containers:
+        - image: ${IMAGE_REFERENCE}
+          ports:
+            - name: http1
+              containerPort: 8080
+          resources:
+            limits:
+              cpu: '1'
+              memory: 512Mi
+          env:
+            - name: LEADFLOW_RUNTIME_MODE
+              value: cloud
+            - name: GOOGLE_CLOUD_PROJECT
+              value: ${PROJECT_ID}
+            - name: LEADFLOW_FIRESTORE_DATABASE
+              value: (default)
+            - name: LEADFLOW_FIRESTORE_LOCATION
+              value: northamerica-northeast2
+            - name: LEADFLOW_RETENTION_POLICY
+              value: retention-7d-v1
+            - name: LEADFLOW_ENRICHMENT_MODE
+              value: recorded
+            - name: LEADFLOW_IAP_AUDIENCE
+              value: ${IAP_AUDIENCE}
+            - name: LEADFLOW_ALLOWED_SUBJECTS
+              value: ${ALLOWED_SUBJECTS}
+            - name: LEADFLOW_IMAGE_DIGEST
+              value: ${IMAGE_DIGEST}
+  traffic: ${TRAFFIC}

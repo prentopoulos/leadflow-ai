@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateAll, evaluateCase } from './evaluator.js';
 import { PHASE_TWO_CASES } from './phase2.js';
+import { PHASE_THREE_CASES } from './phase3.js';
 import {
   COMBINED_CASES,
   PHASE_ONE_CASES,
@@ -22,16 +23,27 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
     expect(ids.length).toBeGreaterThanOrEqual(20);
   });
 
-  it('adds fixed Phase 1 coverage without dropping a Phase 0 case', () => {
+  it('adds fixed Phase 1 coverage without dropping a Phase 0 case', async () => {
     const combinedIds = new Set(COMBINED_CASES.map((item) => item.id));
     expect(PHASE_ZERO_CASES.every((item) => combinedIds.has(item.id))).toBe(
       true,
     );
     expect(PHASE_ONE_CASES).toHaveLength(14);
     expect(PHASE_TWO_CASES).toHaveLength(13);
+    expect(PHASE_THREE_CASES).toHaveLength(17);
     expect(COMBINED_CASES).toHaveLength(
-      PHASE_ZERO_CASES.length + PHASE_ONE_CASES.length + PHASE_TWO_CASES.length,
+      PHASE_ZERO_CASES.length +
+        PHASE_ONE_CASES.length +
+        PHASE_TWO_CASES.length +
+        PHASE_THREE_CASES.length,
     );
+    // Every case that depends on real cloud behaviour stays not_run offline.
+    const results = await evaluateAll(PHASE_THREE_CASES);
+    expect(
+      results
+        .filter((result) => result.caseId.startsWith('p3-deployed-'))
+        .every((result) => result.status === 'not_run'),
+    ).toBe(true);
   });
 
   it('passes every runnable deterministic contract and keeps future work not_run', async () => {

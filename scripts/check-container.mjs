@@ -132,6 +132,50 @@ export function inspectIntakeDefaults(appSource, recordedFixtures) {
   return findings;
 }
 
+// The checked-in templates must state every accepted hosted value and leave
+// only placeholders for private ones.
+export function inspectDeployTemplates(service, build) {
+  const findings = [];
+  for (const [label, text] of [
+    ['IAP enabled', "run.googleapis.com/iap-enabled: 'true'"],
+    ['min instances 0', "autoscaling.knative.dev/minScale: '0'"],
+    ['max instances 1', "autoscaling.knative.dev/maxScale: '1'"],
+    ['request-based billing', "run.googleapis.com/cpu-throttling: 'true'"],
+    ['concurrency 8', 'containerConcurrency: 8'],
+    ['60-second timeout', 'timeoutSeconds: 60'],
+    ['one vCPU', "cpu: '1'"],
+    ['512 MiB', 'memory: 512Mi'],
+    [
+      'runtime identity',
+      'serviceAccountName: leadflow-ai-runtime@${PROJECT_ID}.iam.gserviceaccount.com',
+    ],
+    ['digest image reference', 'image: ${IMAGE_REFERENCE}'],
+    ['recorded enrichment', 'value: recorded'],
+    ['Toronto Firestore', 'value: northamerica-northeast2'],
+  ]) {
+    if (!service.includes(text))
+      findings.push(`deploy/service.template.yaml: missing ${label}`);
+  }
+  if (/allUsers|allAuthenticatedUsers|:latest\b|\d{6,}/u.test(service)) {
+    findings.push(
+      'deploy/service.template.yaml: holds a public, mutable or literal private value',
+    );
+  }
+  for (const [label, text] of [
+    ['Cloud Logging only', 'logging: CLOUD_LOGGING_ONLY'],
+    ['commit verification', 'git rev-parse HEAD'],
+    ['clean clone check', 'git status --porcelain'],
+    ['image push', 'images:'],
+  ]) {
+    if (!build.includes(text))
+      findings.push(`deploy/cloudbuild.yaml: missing ${label}`);
+  }
+  if (/gs:\/\/|storage\.googleapis/u.test(build)) {
+    findings.push('deploy/cloudbuild.yaml: uses Cloud Storage');
+  }
+  return findings;
+}
+
 async function scriptFiles(directory) {
   if (!existsSync(directory)) return [];
   const entries = await readdir(directory, {
@@ -163,6 +207,12 @@ export async function checkContainer() {
       JSON.parse(
         await read('packages/runtime/fixtures/recorded-enrichment.json'),
       ),
+    ),
+  );
+  findings.push(
+    ...inspectDeployTemplates(
+      await read('deploy/service.template.yaml'),
+      await read('deploy/cloudbuild.yaml'),
     ),
   );
   // Development fixtures are compiled out of the production web build.

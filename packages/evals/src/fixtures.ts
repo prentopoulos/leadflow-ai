@@ -1,6 +1,7 @@
 import type { EvalCase } from './schemas.js';
 import { DATASET_VERSION } from './schemas.js';
 import { PHASE_TWO_CASES } from './phase2.js';
+import { PHASE_THREE_CASES } from './phase3.js';
 
 const criterion = (
   points: number,
@@ -629,4 +630,5 @@ export const COMBINED_CASES = [
   ...PHASE_ZERO_CASES,
   ...PHASE_ONE_CASES,
   ...PHASE_TWO_CASES,
+  ...PHASE_THREE_CASES,
 ] satisfies EvalCase[];

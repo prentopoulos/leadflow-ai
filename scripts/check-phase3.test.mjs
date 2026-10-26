@@ -7,6 +7,9 @@ import {
   inspectIntakeDefaults,
 } from './check-container.mjs';
 import { inspectPrivateValues } from './check-hygiene.mjs';
+import { inspectDeployTemplates } from './check-container.mjs';
+import { renderService } from '../deploy/render-service.mjs';
+import { ttlCommands } from '../deploy/firestore-ttl.mjs';
 import { repoRoot } from './process-utils.mjs';
 import { treeSourceDigest } from './source-digest.mjs';
 
@@ -88,15 +91,18 @@ describe('private deployment values', () => {
     ).toEqual([]);
   });
 
+  // Canaries are assembled at run time so this file itself never holds a
+  // contiguous private-looking value for the tracked-file scan to find.
+  const join = (...parts) => parts.join('');
   it.each([
-    ['subject', 'accounts.google.com:118274650938274650123'],
-    ['audience', '/projects/987654321098/locations/x/services/y'],
-    ['service URL', 'https://leadflow-ai-demo-abc123-pd.a.run.app/'],
-    ['billing ID', '01AB23-45CD67-89EF01'],
+    ['subject', join('accounts.google.com:', '118274650938274650123')],
+    ['audience', join('/projects/', '987654321098', '/locations/x/services/y')],
+    ['service URL', join('https://leadflow-ai-demo-abc123-pd.a.', 'run.app/')],
+    ['billing ID', join('01AB23-', '45CD67-', '89EF01')],
     ['token', `eyJ${'a'.repeat(20)}.eyJ${'b'.repeat(20)}.sig`],
     [
       'service account',
-      'leadflow-ai-runtime@my-real-project.iam.gserviceaccount.com',
+      join('leadflow-ai-runtime@my-real-project', '.iam.gserviceaccount.com'),
     ],
   ])('names the file without printing a %s', (_label, value) => {
     const findings = inspectPrivateValues(
@@ -145,5 +151,62 @@ describe('build-context source digest', () => {
     } finally {
       await rm(root, { recursive: true, force: true });
     }
+  });
+});
+
+describe('deploy templates', () => {
+  const environment = {
+    LEADFLOW_PROJECT_ID: 'synthetic-hosted-project',
+    LEADFLOW_PROJECT_NUMBER: '123456789012',
+    LEADFLOW_IMAGE_DIGEST: `sha256:${'a'.repeat(64)}`,
+    LEADFLOW_COMMIT_SHA: 'c'.repeat(40),
+    LEADFLOW_ALLOWED_SUBJECTS: 'accounts.google.com:100000000000000000001',
+  };
+
+  it('keeps the accepted limits and only placeholders in tracked templates', async () => {
+    expect(
+      inspectDeployTemplates(
+        await read('deploy/service.template.yaml'),
+        await read('deploy/cloudbuild.yaml'),
+      ),
+    ).toEqual([]);
+  });
+
+  it('renders a digest-pinned, IAP-only revision', async () => {
+    const template = await read('deploy/service.template.yaml');
+    const first = renderService(template, environment);
+    expect(first.revision).toBe(`leadflow-ai-demo-${'c'.repeat(12)}`);
+    expect(first.rendered).toContain(`app@sha256:${'a'.repeat(64)}`);
+    expect(first.rendered).toContain(
+      '/projects/123456789012/locations/northamerica-northeast2/services/leadflow-ai-demo',
+    );
+    expect(first.rendered).not.toMatch(/\$\{/u);
+    const candidate = renderService(template, {
+      ...environment,
+      LEADFLOW_PREVIOUS_REVISION: 'leadflow-ai-demo-000000000001',
+    });
+    expect(candidate.rendered).toContain('percent: 0, tag: candidate');
+  });
+
+  it.each([
+    ['a mutable tag', { LEADFLOW_IMAGE_DIGEST: 'latest' }],
+    ['an email allowlist', { LEADFLOW_ALLOWED_SUBJECTS: 'owner@example.com' }],
+    ['a demo project', { LEADFLOW_PROJECT_ID: 'demo-leadflow-ai-local' }],
+    ['a short commit', { LEADFLOW_COMMIT_SHA: 'abc1234' }],
+    ['a malformed previous revision', { LEADFLOW_PREVIOUS_REVISION: 'other' }],
+  ])('refuses %s', async (_label, change) => {
+    const template = await read('deploy/service.template.yaml');
+    expect(() =>
+      renderService(template, { ...environment, ...change }),
+    ).toThrow();
+  });
+
+  it('prints one TTL policy and one index exemption per collection group', () => {
+    const commands = ttlCommands(['leads', 'events']);
+    expect(commands).toHaveLength(4);
+    expect(commands[0]).toContain(
+      'ttls update expiresAt --collection-group=leads',
+    );
+    expect(commands[1]).toContain('--disable-indexes');
   });
 });

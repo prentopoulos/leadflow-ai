@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { SystemBundleDocumentSchema } from '@leadflow-ai/domain';
 
-export const DATASET_VERSION = 'phase-2.0' as const;
-export const EVALUATOR_VERSION = 'phase-2.0' as const;
+export const DATASET_VERSION = 'phase-3.0' as const;
+export const EVALUATOR_VERSION = 'phase-3.0' as const;
 
 export const EvidenceScopeSchema = z.enum([
   'pure-synthetic',
@@ -32,11 +32,12 @@ export const CaseKindSchema = z.enum([
   'phase1-ui-contract',
   'bundle-freshness-contract',
   'phase2-contract',
+  'phase3-contract',
 ]);
 
 export const EvalCaseSchema = z
   .object({
-    id: z.string().regex(/^p[012]-[a-z0-9-]+$/u),
+    id: z.string().regex(/^p[0-3]-[a-z0-9-]+$/u),
     datasetVersion: z.literal(DATASET_VERSION),
     cohort: z.enum(['normal', 'edge', 'adversarial', 'failure']),
     evidenceClass: z.literal('synthetic'),
