@@ -6,6 +6,7 @@ import {
   type ComponentProps,
 } from 'react';
 import { App } from './App.js';
+import { Cover } from './Cover.js';
 import type { AppView } from './Masthead.js';
 import type { OperationsWorkspace as Workspace } from './OperationsWorkspace.js';
 
@@ -14,17 +15,21 @@ const OperationsWorkspace = lazy(async () => ({
   default: (await import('./OperationsWorkspace.js')).OperationsWorkspace,
 }));
 
-function viewFromHash(hash: string): AppView {
+type RouteView = AppView | 'home';
+
+// The cover is the home screen; each workspace view keeps its own hash.
+function viewFromHash(hash: string): RouteView {
+  if (hash === '#intake') return 'intake';
   if (hash === '#runs') return 'runs';
   if (hash === '#metrics') return 'metrics';
-  return 'intake';
+  return 'home';
 }
 
 export function Root(
   props: ComponentProps<typeof App> &
     Pick<ComponentProps<typeof Workspace>, 'operationsClient'>,
 ) {
-  const [view, setView] = useState<AppView>(() =>
+  const [view, setView] = useState<RouteView>(() =>
     viewFromHash(window.location.hash),
   );
   useEffect(() => {
@@ -33,6 +38,7 @@ export function Root(
     return () => window.removeEventListener('hashchange', update);
   }, []);
   const { operationsClient, ...appProps } = props;
+  if (view === 'home') return <Cover />;
   if (view === 'intake') return <App {...appProps} />;
   return (
     <Suspense

@@ -18,7 +18,7 @@ export function Masthead({ view }: { view: AppView }) {
   const operations = view !== 'intake';
   return (
     <header className="masthead">
-      <a className="brand" href="#intake" aria-label="LeadFlow AI intake">
+      <a className="brand" href="#home" aria-label="LeadFlow AI home">
         <span className="brand-mark" aria-hidden="true">
           LF
         </span>

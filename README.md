@@ -37,8 +37,8 @@ pnpm seed:local
 pnpm --filter @leadflow-ai/web exec vite
 ```
 
-Open the URL Vite prints. `#intake` takes a new fictional lead, `#runs` shows leads and the approval
-queue, and `#metrics` shows the dashboard. The seed adds 40 fictional leads that use saved
+Open the URL Vite prints. It opens on the LeadFlow AI cover; `#intake` takes a new fictional lead,
+`#runs` shows leads and the approval queue, and `#metrics` shows the dashboard. The seed adds 40 fictional leads that use saved
 responses. Run `pnpm api:local` without `--enrichment` to look up the real public sources for leads
 you enter. Stopping the emulator discards all state.
 
