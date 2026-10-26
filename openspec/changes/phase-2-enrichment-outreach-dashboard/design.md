@@ -150,10 +150,12 @@ Each decision names who made it: **owner** (Peter, 2026-10-25) or the settled ba
   7. `draft.compliance_notice`: the fixed notice is present and unaltered.
   8. `events.private`: new events and summaries carry no contact, ZIP, vehicle, request or raw-body
      values (LLM02).
-- Failure semantics (owner): an `unavailable` enrichment leaves the run `complete` with status
-  `partial` and its evidence visible; a draft failing rules 2–7 is stored `verification_blocked`, is
-  never queued, and the run completes with a visible hold; a broken invariant over stored state
-  (rule 1, rule 8, mismatched IDs) fails the run `failed_terminal`.
+- Failure semantics (owner): an `unavailable` enrichment leaves the run status `complete` with
+  `evidenceCompleteness: partial` and its evidence visible; a draft failing rules 2–7 is stored
+  `verification_blocked`, is never queued, and the run completes with the hold
+  `draft_verification_blocked`; a broken invariant over stored state (rule 1, rule 8, mismatched IDs)
+  fails the run `failed_terminal`. The Phase 1 run status `partial` keeps its existing meaning (a
+  step has failed and the run failure is being recorded); it is never a finished state.
 - Operator-edited revisions are re-verified with rules 4, 5 and 7 before entering the queue; rules
   2 and 3 do not apply to free text, and the revision is labelled `operator_edited` instead.
 

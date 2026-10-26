@@ -14,8 +14,8 @@ window, scoped to the current system bundle with other bundles counted separatel
 - **THEN** processing time runs from `lead.persisted` to the last automated event with median, p90, mean and n; active runs are excluded and counted; and review latency is reported separately
 
 #### Scenario: Agent failures are calculated
-- **WHEN** runs finished as complete, partial, failed_retryable and failed_terminal exist, some after a recovered retry
-- **THEN** the failure rate is failed runs over finished runs with a per-step breakdown, and recovered retries are not failures
+- **WHEN** runs finished as complete (with full or partial evidence), failed_retryable and failed_terminal exist, some after a recovered retry
+- **THEN** the failure rate is failed runs over finished runs (complete, failed_retryable and failed_terminal) with a per-step breakdown, and recovered retries are not failures
 
 #### Scenario: Denominator is empty
 - **WHEN** a metric has no qualifying records

@@ -22,7 +22,8 @@ the Phase 2 UI dependency downloads; every other PROJECT.md gate stays unresolve
   No send path exists.
 - Add a deterministic verification layer for evidence completeness, claim bounding, draft slot
   provenance, prohibited insurance-decision language, consent/approval invariants and event privacy.
-  Unavailable sources mark the run `partial`; failed drafts become `verification_blocked`.
+  Unavailable sources leave a complete run flagged with partial evidence; failed drafts become
+  `verification_blocked`.
 - Move intake to `intake-v2`, which records the consent wording version and the digest of the exact
   text shown. Phase 1 local data is cleared, not migrated.
 - Extend the fixed graph to interpret → score → enrich → draft → verify → simulate → finalize, run

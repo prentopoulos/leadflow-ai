@@ -24,14 +24,15 @@ safe detail code.
 - **THEN** `evidence.claim_bounded` and `draft.slots_grounded` fail
 
 ### Requirement: Verification failure semantics
-An unavailable enrichment source SHALL finish the run as `partial` with its evidence visible; a draft
+An unavailable enrichment source SHALL finish the run with status `complete` and
+`evidenceCompleteness` `partial`, with its evidence visible; a draft
 failing any draft rule SHALL be stored as `verification_blocked`, kept out of the approval queue and
 shown as a hold on a finished run; and a broken stored-state invariant SHALL fail the run
 `failed_terminal`.
 
 #### Scenario: One source is unavailable
 - **WHEN** Zippopotam.us is unavailable but every other step succeeds
-- **THEN** the run finishes `partial`, the evidence shows `unavailable`, and the run is not counted as an agent failure
+- **THEN** the run is `complete` with partial evidence completeness, the evidence shows `unavailable`, and the run is not counted as an agent failure
 
 #### Scenario: Draft is blocked
 - **WHEN** a composed draft fails a draft rule
