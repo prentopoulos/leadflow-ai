@@ -1,5 +1,5 @@
 import {
-  EnrichmentEvidenceSchema,
+  Phase0EnrichmentEvidenceSchema,
   EvidenceClassSchema,
   IntakeSubmissionSchema,
   MarketingReadinessScoreSchema,
@@ -16,6 +16,7 @@ import {
   type EvalCase,
   type EvalResult,
 } from './schemas.js';
+import { observePhaseTwo } from './phase2.js';
 
 function demand(condition: unknown, message: string, assertions: string[]) {
   if (!condition) throw new Error(message);
@@ -65,7 +66,7 @@ export function evaluateCase(evaluationCase: EvalCase): EvalResult {
         const schema =
           parsedCase.expected.schema === 'run-state'
             ? RunStateSchema
-            : EnrichmentEvidenceSchema;
+            : Phase0EnrichmentEvidenceSchema;
         demand(
           !schema.safeParse(parsedCase.candidate).success,
           'invalid structured output is rejected',
@@ -121,7 +122,9 @@ export function evaluateCase(evaluationCase: EvalCase): EvalResult {
         break;
       }
       case 'enrichment-contract': {
-        const value = EnrichmentEvidenceSchema.parse(parsedCase.candidate);
+        const value = Phase0EnrichmentEvidenceSchema.parse(
+          parsedCase.candidate,
+        );
         demand(
           value.status === parsedCase.expected.status,
           'unavailable or failed evidence remains explicit',
@@ -507,6 +510,8 @@ export function evaluateCase(evaluationCase: EvalCase): EvalResult {
         );
         break;
       }
+      case 'phase2-contract':
+        throw new Error('Phase 2 cases are evaluated by evaluateCaseAsync');
       case 'future-runtime':
         throw new Error('future runtime case was incorrectly marked runnable');
     }
@@ -544,6 +549,79 @@ export function evaluateCase(evaluationCase: EvalCase): EvalResult {
   }
 }
 
-export function evaluateAll(cases: EvalCase[]) {
-  return cases.map(evaluateCase);
+function sameValue(left: unknown, right: unknown) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+// Phase 2 cases exercise async runtime adapters; every other case keeps the
+// synchronous Phase 0/1 evaluator.
+export async function evaluateCaseAsync(
+  evaluationCase: EvalCase,
+): Promise<EvalResult> {
+  const parsedCase = EvalCaseSchema.parse(evaluationCase);
+  if (
+    parsedCase.kind !== 'phase2-contract' ||
+    parsedCase.applicability === 'future'
+  ) {
+    return evaluateCase(parsedCase);
+  }
+  const evidenceScope = parsedCase.evidenceScope ?? 'pure-synthetic';
+  const assertions: string[] = [];
+  const result = (
+    status: EvalResult['status'],
+    reason: string | null,
+  ): EvalResult => ({
+    caseId: parsedCase.id,
+    status,
+    evidenceClass: 'synthetic-local',
+    evidenceScope,
+    datasetVersion: DATASET_VERSION,
+    evaluatorVersion: EVALUATOR_VERSION,
+    assertions,
+    reason,
+  });
+  try {
+    const candidate = parsedCase.candidate as {
+      check: string;
+      observations?: string[];
+    };
+    if (candidate.check === 'declared') {
+      demand(
+        candidate.observations?.length === parsedCase.expected.observations,
+        'declared observations are complete',
+        assertions,
+      );
+      return result(
+        'not_run',
+        evidenceScope === 'local-emulator'
+          ? 'Declared observations are consistent; measured by pnpm emulator:runtime, not this offline run.'
+          : 'Declared observations are consistent; measured by rendered local review, not this offline run.',
+      );
+    }
+    const observed = (await observePhaseTwo(candidate.check)) as Record<
+      string,
+      unknown
+    >;
+    for (const [key, expected] of Object.entries(parsedCase.expected)) {
+      demand(
+        sameValue(observed[key], expected),
+        `${key} matches the frozen expectation`,
+        assertions,
+      );
+    }
+    return result('pass', null);
+  } catch (error) {
+    return result(
+      'fail',
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+}
+
+export async function evaluateAll(cases: EvalCase[]) {
+  const results: EvalResult[] = [];
+  for (const evaluationCase of cases) {
+    results.push(await evaluateCaseAsync(evaluationCase));
+  }
+  return results;
 }

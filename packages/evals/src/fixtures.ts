@@ -1,5 +1,6 @@
 import type { EvalCase } from './schemas.js';
 import { DATASET_VERSION } from './schemas.js';
+import { PHASE_TWO_CASES } from './phase2.js';
 
 const criterion = (
   points: number,
@@ -367,7 +368,7 @@ export const PHASE_ONE_CASES = [
     kind: 'phase1-intake-contract',
     candidate: {
       valid: {
-        schemaVersion: 'intake-v1',
+        schemaVersion: 'intake-v2',
         identityClass: 'fictional',
         givenName: 'Avery',
         familyName: 'Jordan',
@@ -381,6 +382,7 @@ export const PHASE_ONE_CASES = [
         needTimeline: 'days_31_to_90',
         requestDetails: 'Synthetic evaluation fixture.',
         emailContactConsent: false,
+        consentRecord: null,
       },
       rejected: [
         { email: 'person@gmail.com' },
@@ -602,13 +604,13 @@ export const PHASE_ONE_CASES = [
   },
   ...[
     ['provider-model', 'Provider/model gate is unresolved'],
-    ['live-enrichment', 'Live enrichment is not implemented or authorized'],
+    [
+      'live-enrichment',
+      'Live enrichment is measured only by the authorized probe, outside the offline gate',
+    ],
     ['cloud-firestore', 'Cloud Firestore exposure is not authorized'],
     ['real-personal-data', 'Real personal data gate is unresolved'],
-    [
-      'production-readiness',
-      'Production readiness is outside Phase 1 evidence',
-    ],
+    ['production-readiness', 'Production readiness is outside local evidence'],
   ].map(([suffix, requirement]): EvalCase => ({
     id: `p1-future-${suffix}`,
     datasetVersion: DATASET_VERSION,
@@ -626,4 +628,5 @@ export const PHASE_ONE_CASES = [
 export const COMBINED_CASES = [
   ...PHASE_ZERO_CASES,
   ...PHASE_ONE_CASES,
+  ...PHASE_TWO_CASES,
 ] satisfies EvalCase[];

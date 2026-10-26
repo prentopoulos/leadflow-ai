@@ -1,5 +1,5 @@
 import {
-  PHASE_ONE_VERSIONS,
+  CONTRACT_VERSIONS,
   QualificationInterpretationSchema,
   QualificationResultSchema,
   type QualificationField,
@@ -38,7 +38,7 @@ function heldResult(
 ): QualificationResult {
   return QualificationResultSchema.parse({
     schemaVersion: 'qualification-result-v1',
-    rubricVersion: PHASE_ONE_VERSIONS.rubric,
+    rubricVersion: CONTRACT_VERSIONS.rubric,
     interpreterVersion: 'deterministic-interpreter-v1',
     ...context,
     classification: 'marketing_readiness',
@@ -178,7 +178,7 @@ export function scoreQualification(
 
   return QualificationResultSchema.parse({
     schemaVersion: 'qualification-result-v1',
-    rubricVersion: PHASE_ONE_VERSIONS.rubric,
+    rubricVersion: CONTRACT_VERSIONS.rubric,
     interpreterVersion: interpretation.interpreterVersion,
     ...context,
     classification: 'marketing_readiness',

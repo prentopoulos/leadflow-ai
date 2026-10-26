@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateAll, evaluateCase } from './evaluator.js';
+import { PHASE_TWO_CASES } from './phase2.js';
 import {
   COMBINED_CASES,
   PHASE_ONE_CASES,
@@ -27,13 +28,14 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
       true,
     );
     expect(PHASE_ONE_CASES).toHaveLength(14);
+    expect(PHASE_TWO_CASES).toHaveLength(13);
     expect(COMBINED_CASES).toHaveLength(
-      PHASE_ZERO_CASES.length + PHASE_ONE_CASES.length,
+      PHASE_ZERO_CASES.length + PHASE_ONE_CASES.length + PHASE_TWO_CASES.length,
     );
   });
 
-  it('passes every runnable deterministic contract and keeps future work not_run', () => {
-    const results = evaluateAll(COMBINED_CASES);
+  it('passes every runnable deterministic contract and keeps future work not_run', async () => {
+    const results = await evaluateAll(COMBINED_CASES);
     expect(results.filter((result) => result.status === 'fail')).toEqual([]);
     expect(results.some((result) => result.status === 'not_run')).toBe(true);
     expect(
@@ -57,8 +59,8 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
     );
   });
 
-  it('never reports declared emulator or rendered observations as measured passes', () => {
-    const results = evaluateAll(COMBINED_CASES);
+  it('never reports declared emulator or rendered observations as measured passes', async () => {
+    const results = await evaluateAll(COMBINED_CASES);
     const declared = results.filter(
       (result) =>
         result.evidenceScope === 'local-emulator' ||
@@ -120,7 +122,7 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
       label: 'synthetic-local',
       generatedAt: new Date().toISOString(),
       bundle: {
-        schemaVersion: 'system-bundle-v1',
+        schemaVersion: 'system-bundle-v2',
         systemBundleId: '11111111-1111-4111-8111-111111111111',
         createdAt: '2026-10-24T20:00:00.000Z',
         code: {
@@ -132,18 +134,23 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
         lockfileDigest: digest,
         fixtures: { version: DATASET_VERSION, digest },
         versions: {
-          intake: 'intake-v1',
-          lead: 'lead-v1',
-          run: 'run-v1',
-          event: 'event-v1',
+          intake: 'intake-v2',
+          lead: 'lead-v2',
+          run: 'run-v2',
+          event: 'event-v2',
           checkpoint: 'checkpoint-v1',
           rubric: 'rubric-v1',
           interpreter: 'deterministic-interpreter-v1',
-          graph: 'qualification-graph-v1',
+          graph: 'phase-2-graph-v1',
           checkpointer: 'firestore-checkpointer-v1',
           simulator: 'simulator-v1',
+          enrichmentAdapters: 'enrichment-adapters-v1',
+          composer: 'deterministic-template-v1',
+          verificationRules: 'verification-rules-v1',
+          decisionLanguage: 'decision-language-v1',
+          metricsDefinitions: 'metrics-definitions-v1',
           evaluator: EVALUATOR_VERSION,
-          configuration: 'phase-1-local-v1',
+          configuration: 'phase-2-local-v1',
         },
         environment: {
           node: '24.22.1',
@@ -159,7 +166,12 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
         model: { value: null, reason: 'gate unresolved' },
         provider: { value: null, reason: 'gate unresolved' },
         prompt: { value: null, reason: 'not used' },
-        liveToolContracts: { value: null, reason: 'deferred' },
+        enrichmentMode: 'recorded',
+        liveToolContracts: {
+          hosts: ['vpic.nhtsa.dot.gov', 'api.zippopotam.us'],
+          authorization:
+            'owner-authorized read-only GET, 2026-10-25 (PROJECT.md Phase 2 decisions)',
+        },
       },
       summary: {
         total: 0,
@@ -177,5 +189,21 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
       results: [],
     });
     expect(parsed.success).toBe(true);
+  });
+
+  it('fails a Phase 2 case whose frozen expectation no longer matches', async () => {
+    const baseline = PHASE_TWO_CASES.find(
+      (item) => item.id === 'p2-enrichment-failure-shapes',
+    );
+    if (!baseline) throw new Error('Phase 2 canary baseline missing.');
+    const mutated = structuredClone(baseline);
+    (mutated.expected.outcomes as Record<string, unknown>)['11111'] = [
+      'found',
+      null,
+      1,
+    ];
+    const [result] = await evaluateAll([mutated]);
+    expect(result?.status).toBe('fail');
+    expect(result?.reason).toMatch(/outcomes matches the frozen expectation/u);
   });
 });

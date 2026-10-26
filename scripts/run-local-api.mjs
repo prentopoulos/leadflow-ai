@@ -2,6 +2,9 @@
 // interactive operator use. It records the current code-bound system bundle
 // (create-only, reused when unchanged) so intake is accepted, then runs the
 // API in the foreground. Requires `pnpm build` and `pnpm emulator:start`.
+// Enrichment is live (owner-authorized reads) unless `--enrichment=recorded`
+// or `--enrichment=mock` is passed; the mode is part of the system bundle, so
+// each mode has its own labelled dashboard window.
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { createSystemBundle } from '../packages/evals/dist/bundle.js';
@@ -11,13 +14,25 @@ import {
 } from '../packages/runtime/dist/index.js';
 import { repoRoot } from './process-utils.mjs';
 
+const modeArgument = process.argv
+  .find((argument) => argument.startsWith('--enrichment='))
+  ?.slice('--enrichment='.length);
+const enrichmentMode = modeArgument ?? 'live';
+if (!['live', 'recorded', 'mock'].includes(enrichmentMode)) {
+  throw new Error('--enrichment must be live, recorded or mock.');
+}
+
 const environment = {
   ...process.env,
   GCLOUD_PROJECT: 'demo-leadflow-ai-local',
   FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080',
+  LEADFLOW_ENRICHMENT_MODE: enrichmentMode,
+  // Override when another local app already holds Vite's default port.
+  LEADFLOW_WEB_ORIGIN:
+    process.env.LEADFLOW_WEB_ORIGIN ?? 'http://127.0.0.1:5173',
 };
 
-const bundle = await createSystemBundle();
+const bundle = await createSystemBundle({ enrichmentMode });
 const boundary = createEmulatorFirestoreBoundary(environment);
 try {
   const repositories = createFirestoreRepositories(boundary.database);
@@ -34,7 +49,7 @@ try {
 }
 
 console.log(
-  `System bundle ${bundle.systemBundleId} recorded; starting the API on 127.0.0.1:3001.`,
+  `System bundle ${bundle.systemBundleId} recorded; starting the API on 127.0.0.1:3001 with ${enrichmentMode} enrichment.`,
 );
 const server = spawn(
   process.execPath,

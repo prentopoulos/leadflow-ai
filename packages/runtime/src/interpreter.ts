@@ -1,6 +1,6 @@
 import {
   LeadDocumentSchema,
-  PHASE_ONE_VERSIONS,
+  CONTRACT_VERSIONS,
   QUALIFICATION_FIELDS,
   QualificationInterpretationSchema,
   QualificationProjectionSchema,
@@ -31,7 +31,7 @@ export function qualificationProjectionFromLead(
 ): QualificationProjection {
   const lead: LeadDocument = LeadDocumentSchema.parse(candidate);
   return QualificationProjectionSchema.parse({
-    schemaVersion: PHASE_ONE_VERSIONS.qualificationProjection,
+    schemaVersion: CONTRACT_VERSIONS.qualificationProjection,
     leadId: lead.leadId,
     givenName: lead.intake.givenName,
     familyName: lead.intake.familyName,
@@ -81,7 +81,7 @@ export class DeterministicQualificationInterpreter implements QualificationInter
       (field) => !present[field],
     );
     return QualificationInterpretationSchema.parse({
-      schemaVersion: PHASE_ONE_VERSIONS.interpretation,
+      schemaVersion: CONTRACT_VERSIONS.interpretation,
       interpreterVersion: this.version,
       leadId: projection.leadId,
       interpretedAt: this.now(),

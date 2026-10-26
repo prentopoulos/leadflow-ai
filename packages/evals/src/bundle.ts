@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { EnrichmentMode } from '@leadflow-ai/domain';
 import { COMBINED_CASES } from './fixtures.js';
 import {
   CONFIGURATION_VERSION,
@@ -79,7 +80,15 @@ function uuidFromDigest(digest: string) {
   return `${value.slice(0, 8)}-${value.slice(8, 12)}-${value.slice(12, 16)}-${value.slice(16, 20)}-${value.slice(20)}`;
 }
 
-export async function createSystemBundle(): Promise<SystemBundle> {
+export interface SystemBundleOptions {
+  // The bundle identifies which enrichment evidence class its runs produce.
+  enrichmentMode?: EnrichmentMode;
+}
+
+export async function createSystemBundle(
+  options: SystemBundleOptions = {},
+): Promise<SystemBundle> {
+  const enrichmentMode = options.enrichmentMode ?? 'recorded';
   const revision = git(['rev-parse', 'HEAD']);
   const status = git(['status', '--porcelain']);
   const lockfileDigest = sha256(
@@ -106,11 +115,12 @@ export async function createSystemBundle(): Promise<SystemBundle> {
       lockfileDigest,
       fixtureDigest,
       evaluator: EVALUATOR_VERSION,
+      enrichmentMode,
     }),
   );
 
   return {
-    schemaVersion: 'system-bundle-v1',
+    schemaVersion: 'system-bundle-v2',
     systemBundleId: uuidFromDigest(identityDigest),
     createdAt: new Date().toISOString(),
     code: {
@@ -125,16 +135,21 @@ export async function createSystemBundle(): Promise<SystemBundle> {
       digest: fixtureDigest,
     },
     versions: {
-      intake: 'intake-v1',
-      lead: 'lead-v1',
-      run: 'run-v1',
-      event: 'event-v1',
+      intake: 'intake-v2',
+      lead: 'lead-v2',
+      run: 'run-v2',
+      event: 'event-v2',
       checkpoint: 'checkpoint-v1',
       rubric: 'rubric-v1',
       interpreter: 'deterministic-interpreter-v1',
-      graph: 'qualification-graph-v1',
+      graph: 'phase-2-graph-v1',
       checkpointer: 'firestore-checkpointer-v1',
       simulator: 'simulator-v1',
+      enrichmentAdapters: 'enrichment-adapters-v1',
+      composer: 'deterministic-template-v1',
+      verificationRules: 'verification-rules-v1',
+      decisionLanguage: 'decision-language-v1',
+      metricsDefinitions: 'metrics-definitions-v1',
       evaluator: EVALUATOR_VERSION,
       configuration: CONFIGURATION_VERSION,
     },
@@ -151,10 +166,12 @@ export async function createSystemBundle(): Promise<SystemBundle> {
     },
     provider: { value: null, reason: 'provider gate unresolved' },
     model: { value: null, reason: 'model gate unresolved' },
-    prompt: { value: null, reason: 'no model prompt in Phase 1' },
+    prompt: { value: null, reason: 'no model prompt; drafts use a template' },
+    enrichmentMode,
     liveToolContracts: {
-      value: null,
-      reason: 'live enrichment and outbound tools are deferred',
+      hosts: ['vpic.nhtsa.dot.gov', 'api.zippopotam.us'],
+      authorization:
+        'owner-authorized read-only GET, 2026-10-25 (PROJECT.md Phase 2 decisions)',
     },
   };
 }

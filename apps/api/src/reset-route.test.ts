@@ -19,10 +19,13 @@ function startup(localResetEnabled: boolean): PhaseOneStartup {
   return {
     status: 'ready',
     configuration: {
-      configurationVersion: 'phase-1-local-v1',
+      configurationVersion: 'phase-2-local-v1',
       projectId: LEADFLOW_LOCAL_PROJECT_ID,
       firestoreHost: '127.0.0.1:8080',
+      apiHost: 'localhost',
       localResetEnabled,
+      enrichmentMode: 'recorded',
+      webOrigin: 'http://127.0.0.1:5173',
     },
     firestore: {
       app: {} as never,

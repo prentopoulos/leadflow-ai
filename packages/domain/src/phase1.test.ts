@@ -1,5 +1,7 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import {
+  CONSENT_WORDINGS,
   CheckpointDocumentSchema,
   ErrorResponseSchema,
   IdempotencyRecordSchema,
@@ -11,12 +13,13 @@ import {
   QualificationInterpretationSchema,
   QualificationResultSchema,
   ResumeResponseSchema,
-  RunDetailResponseSchema,
   RunDocumentSchema,
   SimulationRecordSchema,
   SystemBundleDocumentSchema,
   TestEmailSchema,
+  currentConsentRecord,
 } from './phase1.js';
+import { RunDetailResponseSchema } from './phase2.js';
 
 const ids = {
   lead: '11111111-1111-4111-8111-111111111111',
@@ -31,7 +34,7 @@ const timestamp = '2026-10-24T20:00:00.000Z';
 const digest = 'a'.repeat(64);
 
 const intake = {
-  schemaVersion: 'intake-v1',
+  schemaVersion: 'intake-v2',
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',
@@ -69,7 +72,7 @@ const provenance = {
 } as const;
 
 const lead = {
-  schemaVersion: 'lead-v1',
+  schemaVersion: 'lead-v2',
   leadId: ids.lead,
   createdAt: timestamp,
   intake,
@@ -78,7 +81,7 @@ const lead = {
 } as const;
 
 const run = {
-  schemaVersion: 'run-v1',
+  schemaVersion: 'run-v2',
   runId: ids.run,
   leadId: ids.lead,
   createdAt: timestamp,
@@ -98,7 +101,7 @@ const run = {
 } as const;
 
 const event = {
-  schemaVersion: 'event-v1',
+  schemaVersion: 'event-v2',
   eventId: ids.event,
   runId: ids.run,
   traceId: ids.trace,
@@ -116,6 +119,7 @@ const event = {
   safeError: null,
   systemBundleId: ids.bundle,
   evidenceClass: 'synthetic-local',
+  externalCall: null,
   usage: null,
   usageUnavailableReason: 'no_model_or_paid_tool',
 } as const;
@@ -134,7 +138,7 @@ const simulation = {
   notices: ['not_live', 'not_predictive'],
 } as const;
 
-describe('Phase 1 boundary schemas', () => {
+describe('Phase 1 and 2 boundary schemas', () => {
   it('accepts only reserved example email domains', () => {
     for (const email of [
       'avery@example.com',
@@ -146,9 +150,23 @@ describe('Phase 1 boundary schemas', () => {
     expect(TestEmailSchema.safeParse('avery@real.test').success).toBe(false);
   });
 
+  it('rejects a vehicle make with no letter or digit', () => {
+    for (const vehicleMake of ['.', '..', ' --- ']) {
+      expect(
+        IntakeSubmissionSchema.safeParse({ ...intake, vehicleMake }).success,
+      ).toBe(false);
+    }
+    expect(
+      IntakeSubmissionSchema.safeParse({
+        ...intake,
+        vehicleMake: 'Mercedes-Benz',
+      }).success,
+    ).toBe(true);
+  });
+
   it('normalizes omitted consent and optional inputs without accepting extras', () => {
     const parsed = IntakeSubmissionSchema.parse({
-      schemaVersion: 'intake-v1',
+      schemaVersion: 'intake-v2',
       identityClass: 'fictional',
       givenName: 'Avery',
       familyName: 'Example',
@@ -165,9 +183,57 @@ describe('Phase 1 boundary schemas', () => {
     ).toBe(false);
   });
 
+  it('pins the consent wording digest to the exact server-owned text', () => {
+    for (const wording of Object.values(CONSENT_WORDINGS)) {
+      expect(
+        createHash('sha256').update(wording.text, 'utf8').digest('hex'),
+      ).toBe(wording.sha256);
+    }
+  });
+
+  it('requires a matching consent record exactly when consent is true', () => {
+    const consented = IntakeSubmissionSchema.parse({
+      ...intake,
+      emailContactConsent: true,
+      consentRecord: currentConsentRecord(),
+    });
+    expect(consented.consentRecord?.wordingVersion).toBe('email-consent-v1');
+    expect(
+      IntakeSubmissionSchema.safeParse({ ...intake, emailContactConsent: true })
+        .success,
+    ).toBe(false);
+    expect(
+      IntakeSubmissionSchema.safeParse({
+        ...intake,
+        consentRecord: currentConsentRecord(),
+      }).success,
+    ).toBe(false);
+    expect(
+      IntakeSubmissionSchema.safeParse({
+        ...intake,
+        emailContactConsent: true,
+        consentRecord: {
+          wordingVersion: 'email-consent-v1',
+          wordingSha256: digest,
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      IntakeSubmissionSchema.safeParse({
+        ...intake,
+        schemaVersion: 'intake-v1',
+      }).success,
+    ).toBe(false);
+  });
+
   it('validates lead, run, event, checkpoint, pending-write, and idempotency records', () => {
     expect(LeadDocumentSchema.parse(lead).leadId).toBe(ids.lead);
-    expect(RunDocumentSchema.parse(run).status).toBe('persisted');
+    expect(RunDocumentSchema.parse(run)).toMatchObject({
+      status: 'persisted',
+      evidenceCompleteness: 'not_evaluated',
+      enrichmentEvidenceIds: [],
+      holds: [],
+    });
     expect(LifecycleEventSchema.parse(event).sequence).toBe(1);
     expect(
       CheckpointDocumentSchema.parse({
@@ -283,7 +349,7 @@ describe('Phase 1 boundary schemas', () => {
 
   it('validates the complete null-with-reason system bundle boundary', () => {
     const bundle = SystemBundleDocumentSchema.parse({
-      schemaVersion: 'system-bundle-v1',
+      schemaVersion: 'system-bundle-v2',
       systemBundleId: ids.bundle,
       createdAt: timestamp,
       code: {
@@ -295,18 +361,23 @@ describe('Phase 1 boundary schemas', () => {
       lockfileDigest: digest,
       fixtures: { version: 'phase-0.1', digest },
       versions: {
-        intake: 'intake-v1',
-        lead: 'lead-v1',
-        run: 'run-v1',
-        event: 'event-v1',
+        intake: 'intake-v2',
+        lead: 'lead-v2',
+        run: 'run-v2',
+        event: 'event-v2',
         checkpoint: 'checkpoint-v1',
         rubric: 'rubric-v1',
         interpreter: 'deterministic-interpreter-v1',
-        graph: 'qualification-graph-v1',
+        graph: 'phase-2-graph-v1',
         checkpointer: 'firestore-checkpointer-v1',
         simulator: 'simulator-v1',
-        evaluator: 'phase-1.1',
-        configuration: 'phase-1-local-v1',
+        enrichmentAdapters: 'enrichment-adapters-v1',
+        composer: 'deterministic-template-v1',
+        verificationRules: 'verification-rules-v1',
+        decisionLanguage: 'decision-language-v1',
+        metricsDefinitions: 'metrics-definitions-v1',
+        evaluator: 'phase-2.0',
+        configuration: 'phase-2-local-v1',
       },
       environment: {
         node: '24.22.1',
@@ -322,9 +393,15 @@ describe('Phase 1 boundary schemas', () => {
       provider: { value: null, reason: 'gate unresolved' },
       model: { value: null, reason: 'gate unresolved' },
       prompt: { value: null, reason: 'no model prompt' },
-      liveToolContracts: { value: null, reason: 'deferred' },
+      enrichmentMode: 'recorded',
+      liveToolContracts: {
+        hosts: ['vpic.nhtsa.dot.gov', 'api.zippopotam.us'],
+        authorization:
+          'owner-authorized read-only GET, 2026-10-25 (PROJECT.md Phase 2 decisions)',
+      },
     });
     expect(bundle.provider.value).toBeNull();
+    expect(bundle.liveToolContracts.hosts).toHaveLength(2);
   });
 
   it('validates bounded API responses and rejects unsafe errors', () => {
@@ -341,11 +418,15 @@ describe('Phase 1 boundary schemas', () => {
     ).toBe(ids.run);
     expect(
       RunDetailResponseSchema.parse({
-        schemaVersion: 'run-detail-response-v1',
+        schemaVersion: 'run-detail-response-v2',
         lead,
         run,
         events: [event],
         qualification: null,
+        enrichment: [],
+        emailCheck: null,
+        draft: null,
+        verification: null,
         simulation,
         retrievedAt: timestamp,
         evidenceClass: 'synthetic-local',

@@ -4,6 +4,10 @@ export * from './phase1.js';
 export * from './qualification.js';
 export * from './lifecycle.js';
 export * from './simulator.js';
+export * from './phase2.js';
+export * from './metrics.js';
+export * from './outreach.js';
+export * from './verification.js';
 
 export const EvidenceClassSchema = z.enum([
   'synthetic',
@@ -94,7 +98,7 @@ export const OutreachExpectationSchema = z
     }
   });
 
-export const EnrichmentEvidenceSchema = z.object({
+export const Phase0EnrichmentEvidenceSchema = z.object({
   status: z.enum(['available', 'unavailable', 'failed']),
   provider: z.string().min(1),
   subject: z.string().min(1),

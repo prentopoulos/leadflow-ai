@@ -5,6 +5,13 @@ import {
   simulateOutcome,
   type LifecycleEvent,
 } from '@leadflow-ai/domain';
+import {
+  FixtureEnrichmentTransport,
+  RECORDED_ENRICHMENT_FIXTURE_PATH,
+  checkEmail,
+  loadEnrichmentFixtureFile,
+  lookupZip,
+} from './enrichment.js';
 import type { FirestoreDocumentStore } from './firestore.js';
 import { createFirestoreRepositories } from './repositories.js';
 
@@ -21,7 +28,7 @@ const timestamp = '2026-10-24T20:00:00.000Z';
 const digest = 'a'.repeat(64);
 
 const intake = {
-  schemaVersion: 'intake-v1',
+  schemaVersion: 'intake-v2',
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',
@@ -35,10 +42,11 @@ const intake = {
   needTimeline: 'within_30_days',
   requestDetails: 'Synthetic fixture request.',
   emailContactConsent: false,
+  consentRecord: null,
 } as const;
 
 const lead = {
-  schemaVersion: 'lead-v1',
+  schemaVersion: 'lead-v2',
   leadId: ids.lead,
   createdAt: timestamp,
   intake,
@@ -66,7 +74,7 @@ const lead = {
 } as const;
 
 const run = {
-  schemaVersion: 'run-v1',
+  schemaVersion: 'run-v2',
   runId: ids.run,
   leadId: ids.lead,
   createdAt: timestamp,
@@ -81,12 +89,20 @@ const run = {
   lease: null,
   qualificationResultId: null,
   simulationRecordId: null,
+  enrichmentMode: null,
+  enrichmentEvidenceIds: [],
+  emailCheckId: null,
+  evidenceCompleteness: 'not_evaluated',
+  draftId: null,
+  draftSkipReason: null,
+  verificationResultId: null,
+  holds: [],
   safeError: null,
   systemBundleId: ids.bundle,
 } as const;
 
 const event = {
-  schemaVersion: 'event-v1',
+  schemaVersion: 'event-v2',
   eventId: ids.event,
   runId: ids.run,
   traceId: ids.trace,
@@ -104,6 +120,7 @@ const event = {
   safeError: null,
   systemBundleId: ids.bundle,
   evidenceClass: 'synthetic-local',
+  externalCall: null,
   usage: null,
   usageUnavailableReason: 'no_model_or_paid_tool',
 } as const satisfies LifecycleEvent;
@@ -118,7 +135,7 @@ const idempotency = {
 } as const;
 
 const bundle = {
-  schemaVersion: 'system-bundle-v1',
+  schemaVersion: 'system-bundle-v2',
   systemBundleId: ids.bundle,
   createdAt: timestamp,
   code: {
@@ -130,18 +147,23 @@ const bundle = {
   lockfileDigest: digest,
   fixtures: { version: 'phase-0.1', digest },
   versions: {
-    intake: 'intake-v1',
-    lead: 'lead-v1',
-    run: 'run-v1',
-    event: 'event-v1',
+    intake: 'intake-v2',
+    lead: 'lead-v2',
+    run: 'run-v2',
+    event: 'event-v2',
     checkpoint: 'checkpoint-v1',
     rubric: 'rubric-v1',
     interpreter: 'deterministic-interpreter-v1',
-    graph: 'qualification-graph-v1',
+    graph: 'phase-2-graph-v1',
     checkpointer: 'firestore-checkpointer-v1',
     simulator: 'simulator-v1',
+    enrichmentAdapters: 'enrichment-adapters-v1',
+    composer: 'deterministic-template-v1',
+    verificationRules: 'verification-rules-v1',
+    decisionLanguage: 'decision-language-v1',
+    metricsDefinitions: 'metrics-definitions-v1',
     evaluator: 'phase-0.1',
-    configuration: 'phase-1-local-v1',
+    configuration: 'phase-2-local-v1',
   },
   environment: {
     node: '24.22.1',
@@ -157,7 +179,12 @@ const bundle = {
   provider: { value: null, reason: 'gate unresolved' },
   model: { value: null, reason: 'gate unresolved' },
   prompt: { value: null, reason: 'not used' },
-  liveToolContracts: { value: null, reason: 'deferred' },
+  enrichmentMode: 'recorded',
+  liveToolContracts: {
+    hosts: ['vpic.nhtsa.dot.gov', 'api.zippopotam.us'],
+    authorization:
+      'owner-authorized read-only GET, 2026-10-25 (PROJECT.md Phase 2 decisions)',
+  },
 } as const;
 
 const interpretation = {
@@ -255,6 +282,40 @@ describe('schema-validating Firestore repositories', () => {
     await expect(
       repositories.simulationRecords.get(simulation.simulationRecordId),
     ).resolves.toEqual(simulation);
+  });
+
+  it('round-trips Phase 2 enrichment evidence and email checks at their own paths', async () => {
+    const store = new MemoryDocumentStore();
+    const repositories = createFirestoreRepositories(store);
+    const transport = new FixtureEnrichmentTransport(
+      await loadEnrichmentFixtureFile(RECORDED_ENRICHMENT_FIXTURE_PATH),
+    );
+    const { evidence } = await lookupZip('22150', {
+      transport,
+      runId: ids.run,
+      leadId: ids.lead,
+      evidenceId: ids.result,
+      now: () => timestamp,
+    });
+    const emailCheck = checkEmail({
+      email: 'avery@example.com',
+      emailCheckId: ids.event,
+      runId: ids.run,
+      leadId: ids.lead,
+      checkedAt: timestamp,
+    });
+    await repositories.enrichmentEvidence.create(evidence);
+    await repositories.emailChecks.create(emailCheck);
+    expect(store.creates).toEqual([
+      `enrichmentEvidence/${ids.result}`,
+      `emailChecks/${ids.event}`,
+    ]);
+    await expect(
+      repositories.enrichmentEvidence.get(ids.result),
+    ).resolves.toMatchObject({ outcome: 'found', evidenceClass: 'recorded' });
+    await expect(repositories.emailChecks.get(ids.event)).resolves.toEqual(
+      emailCheck,
+    );
   });
 
   it('rejects invalid writes before touching Firestore', async () => {

@@ -2,7 +2,100 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
-## Current checkpoint
+## Phase 2 closing checkpoint (2026-10-26)
+
+Phase 2 is complete and merged into `main` with a merge commit. All nine tasks passed, and the
+OpenSpec change is archived with its requirements synchronized into `openspec/specs/`. PROJECT.md
+records Phase 2 as `Done`. The project is licensed MIT and published as the public repository
+`github.com/prentopoulos/leadflow-ai` (PROJECT.md section 6 publication gate, resolved 2026-10-26).
+No phase is in progress; the next step is proposing Phase 3 in a fresh session with `/next-phase`.
+
+Closing evidence (task 9.1):
+- Full offline gate (`pnpm check`): the first run failed at governance because a Phase 2 eval
+  fixture named a fictional outbound host; the fixture now uses the other source's template, and
+  the rerun passed every step (38 files/259 tests then; 265 after the review fixes).
+- `pnpm emulator:runtime` passed against the isolated emulator.
+- Live local run: one fictional operator lead made exactly two read-only GETs (vPIC and
+  Zippopotam.us), both found and labelled live; all eight rules passed; the draft waited in review.
+- Code review (`/code-review high` over `main...HEAD`): 10 findings, all confirmed and fixed in
+  `fix: resolve phase two code review findings` (draft history during verification, review/revise
+  retry race, revision limit, request-text and event-privacy calibration, executor dropping a
+  committed resume, mixed retry evidence, dot-only vehicle make, polling races).
+- Design eval (impeccable critique, two isolated reviewers; taste reviewer skipped for app
+  screens): 20/40 with four P1s. Peter chose P1s plus the five callouts and a decision-first
+  dossier; fixed in `fix: resolve phase two design review findings`. After the fixes the detector
+  reports 0 findings, and no page has text under 12 px or horizontal overflow at 390 px.
+- Deferred to Phase 3 by Peter's scope choice (design P2s): focused success notice and next-pending
+  flow, `aria-pressed` filters, a run-card accessible name, quieter poll announcements, chart focus
+  inside the hidden frame, summary disclosure markers, keyboard shortcuts.
+- Pre-publication scans per `.agents/skills/showcase/references/pre-publication.md`: no secret in
+  1,002 history blobs (scanner proven on planted keys), no real personal data, no binaries; home
+  paths neutralised in current docs; commit email and three older blobs with the home path kept by
+  Peter's choice.
+
+## Phase 2 record
+
+Branch `phase-2-enrichment-outreach-dashboard`, OpenSpec change
+`phase-2-enrichment-outreach-dashboard`. Decisions are in PROJECT.md "Phase 2 decisions".
+
+- Done in task commits: 6.1 operator views and seed data (below), 1.1 contracts and UI dependencies, 2.1 live enrichment adapters plus the
+  authorized probe (18 of 18 answered; fixtures in `packages/runtime/fixtures/`), 3.1 composer,
+  verification rules, reviews and the no-send governance check, 4.1's seven-node workflow and
+  asynchronous execution boundary, and 5.1's Phase 2 API boundary.
+- Task 4.1 includes the seven-node `phase-2-graph-v1`, Phase 2 linked
+  records and failure semantics, the deduplicating in-process executor, durable 202 resume,
+  graceful executor drain, Phase 2 run detail, explicit enrichment mode/origin configuration, and
+  crash-during-enrichment reclaim with fresh linked evidence while earlier evidence remains stored
+  as superseded history.
+- Task 4.1 checks passed: strict TypeScript; ESLint on affected files; runtime 28 files/192 tests;
+  API 10 files/78 tests; affected formatting and `git diff --check`; and the direct isolated
+  Firestore verifier against the already-running project emulator (built API, workflow recovery,
+  asynchronous resume and verified flush). The wrapper first retained a port-8080 collision, and
+  the first direct probe exposed stale Phase 1 revision assertions before the corrected probe passed.
+- Task 5.1 adds exact local Host and state-changing Origin checks; bounded and privacy-safe run
+  listing; stored-run metrics with explicit denominators and evidence-class splits; revision and
+  content-bound review routes; cross-record draft-history integrity checks; and the expanded
+  built-API probe for access controls, approval queue, metrics, approval, stale conflicts,
+  operator revision and rejection. The probe remains local and flushes only synthetic emulator data.
+- Task 5.1 checks passed: strict TypeScript; ESLint on affected files; runtime 30 files/199 tests;
+  API 14 files/88 tests; affected formatting and `git diff --check`; production build; strict
+  OpenSpec validation; and the direct isolated Firestore verifier against the already-running
+  project emulator, including workflow recovery and verified flush.
+- Task 6.1 adds hash-routed Intake / Operations views (lazy-loaded Recharts), the leads/runs list
+  with approval-queue and attention filters, the extended dossier (enrichment evidence with class
+  and capture time, email check, verification rules, draft review, edit-as-revision, copy/export
+  after approval), the metrics dashboard with text-table equivalents, 3 s visible-tab polling, and
+  `pnpm seed:local` (40 fixed fictional leads, recorded enrichment only, keys per system bundle).
+- Task 6.1 checks passed: all 38 test files/258 tests, ESLint, strict TypeScript, governance with
+  the no-send check, production build, and a running-app review (emulator, recorded-mode API, seed,
+  Vite on 5174): 40/40 runs complete, 30 pending drafts, 10 consent skips, 0 failures; UI approval
+  through the real Origin check; 390 px views with no horizontal overflow, no target under 24 px
+  and no focus hidden by the sticky strip.
+- Findings fixed while running it: the request-text rule falsely blocked 6 of 30 clean drafts by
+  matching common template wording (" would like "), so runs shared with fixed template phrases are
+  now ignored; filter changes waited for the next 3 s poll; reseeding after a code change replayed
+  the previous bundle's leads; the Phase 1 simulation panel overflowed the dossier at 390 px; score
+  summaries were under 24 px; the sticky strip needed scroll padding.
+- Task 7.1 froze 13 `phase-2.0` cases (51 in all: 35 pass, 0 fail, 16 `not_run`, 0 stale) and
+  updated AI_OPS.md.
+- Task 8.1 extends the Structurizr model (vPIC and Zippopotam.us external systems, enrichment and
+  review dynamic view), redraws the architecture diagram, adds `review-flow` and
+  `data-model-outreach`, and rewrites the README with the showcase method, source credits and the
+  no-send boundary. It also replaced three Phase 2 one-sided accent borders flagged by the design
+  hook. Checks passed: diagram render, `check-docs` (links, freshness, model/schema drift,
+  Structurizr) and the web tests (5 files/26 tests).
+- Open for 9.1's design-eval: the five Phase 1 one-sided callout borders in
+  `apps/web/src/styles.css` that the design hook flags (`.error-summary`/`.submission-error`/
+  `.validation-status`, `.stale-state`, `.safe-error`, `.missing-information`, `.integrity-hold`).
+  They shipped on `main` in Phase 1 and are neither changed nor suppressed yet.
+- Next step: task 9.1 — full `pnpm check`, `pnpm emulator:runtime`, a live local run, one
+  consolidated branch review including design-eval, fixes, PROJECT/AI_OPS/HANDOFF updates, and
+  archiving the change. Merge to `main` only on the owner's go-ahead.
+- Capture leaf-check output with `cmd /c "node node_modules\...> file 2>&1"` (docs/development.md).
+
+## Phase 1 record
+
+### Phase 1 closing checkpoint
 
 Phase 0 and Phase 1 are complete and merged into `main`. Every Phase 1 task (35 of 35) passed. The
 OpenSpec change is archived as `2026-10-25-phase-1-intake-qualification`, and its requirements now
@@ -676,10 +769,7 @@ gates remain unresolved.
 
 ## Next action
 
-Start Phase 2 in a fresh session: clear the context and run `/next-phase`. It reads PROJECT.md's
-roadmap row for Phase 2, grills the open decisions with the informed answerer, and proposes a scoped
-change on a new branch with a spec-only `docs:` commit. Follow WORKFLOW.md § Efficient execution:
-nine or fewer tasks, leaf checks while editing, one full gate at the end. Render every diagram with
-`pnpm docs:diagrams` (diagram-design) and keep the README on the showcase method. Phase 2 work
-that touches recovery should first revisit the deferred review items above: the synchronous resume
-route and whole-subcollection checkpoint reads. With no remote, there is no draft PR or hosted CI.
+Start Phase 3 in a fresh session with `/next-phase` (see the Phase 2 closing checkpoint above). The
+public remote exists, so Phase 3 follows WORKFLOW.md's pull-request steps: push the phase branch and
+open a draft PR after the spec-only commit. Rerun the secret and private-data scans before pushing
+new material. Hosted CI is not configured yet.

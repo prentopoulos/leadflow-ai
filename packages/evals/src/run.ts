@@ -17,7 +17,7 @@ for (const evaluationCase of COMBINED_CASES) {
   ids.add(evaluationCase.id);
 }
 
-const results = evaluateAll(COMBINED_CASES);
+const results = await evaluateAll(COMBINED_CASES);
 const byScope = {
   'pure-synthetic': results.filter(
     (result) => result.evidenceScope === 'pure-synthetic',
@@ -48,7 +48,7 @@ const report = EvalReportSchema.parse({
 
 const outputDirectory = path.join(repoRoot, '.local', 'evals');
 await mkdir(outputDirectory, { recursive: true });
-const outputPath = path.join(outputDirectory, 'phase-1-report.json');
+const outputPath = path.join(outputDirectory, 'phase-2-report.json');
 await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 
 console.log(

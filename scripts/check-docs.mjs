@@ -172,7 +172,11 @@ export async function checkDocs() {
     read('packages/runtime/src/repositories.ts'),
     read('packages/runtime/src/checkpointer.ts'),
   );
-  const fromDiagram = diagramCollections(read('docs/diagrams/data-model.svg'));
+  // The Phase 1 and Phase 2 data-model views together cover every collection.
+  const fromDiagram = new Set([
+    ...diagramCollections(read('docs/diagrams/data-model.svg')),
+    ...diagramCollections(read('docs/diagrams/data-model-outreach.svg')),
+  ]);
   for (const name of fromRuntime) {
     if (!fromDiagram.has(name))
       errors.push(`Data model is missing collection ${name}`);

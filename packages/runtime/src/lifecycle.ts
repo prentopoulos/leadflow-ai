@@ -15,6 +15,7 @@ import {
 import {
   createFirestoreRepositories,
   type FirestoreRepositories,
+  type PreparedDocumentCreate,
 } from './repositories.js';
 import type { Firestore } from 'firebase-admin/firestore';
 
@@ -70,6 +71,15 @@ export interface NextRunState {
   qualificationResultId: string | null;
   simulationRecordId: string | null;
   safeError: SafeError | null;
+  // Phase 2 links. Omitted fields keep their stored values.
+  enrichmentMode?: RunDocument['enrichmentMode'];
+  enrichmentEvidenceIds?: RunDocument['enrichmentEvidenceIds'];
+  emailCheckId?: RunDocument['emailCheckId'];
+  evidenceCompleteness?: RunDocument['evidenceCompleteness'];
+  draftId?: RunDocument['draftId'];
+  draftSkipReason?: RunDocument['draftSkipReason'];
+  verificationResultId?: RunDocument['verificationResultId'];
+  holds?: RunDocument['holds'];
 }
 
 export interface CommitRunEventRequest extends EventContext {
@@ -79,6 +89,10 @@ export interface CommitRunEventRequest extends EventContext {
   eventName: LifecycleEvent['name'];
   step: LifecycleEvent['step'];
   durationMs: number | null;
+  externalCall?: LifecycleEvent['externalCall'];
+  // Records created in the same transaction as the event, so a review or
+  // revision exists exactly when its event does. A create collision aborts all.
+  creates?: readonly PreparedDocumentCreate<object>[];
 }
 
 export interface ClaimRunRequest extends EventContext {
@@ -321,7 +335,7 @@ export class LifecyclePersistenceService {
       nextEventSequence: current.nextEventSequence + 1,
     });
     const event = this.dependencies.repositories.events.prepareCreate({
-      schemaVersion: 'event-v1',
+      schemaVersion: 'event-v2',
       eventId,
       runId: current.runId,
       traceId: request.traceId,
@@ -339,11 +353,15 @@ export class LifecyclePersistenceService {
       safeError: request.next.safeError,
       systemBundleId: current.systemBundleId,
       evidenceClass: 'synthetic-local',
+      externalCall: request.externalCall ?? null,
       usage: null,
       usageUnavailableReason: 'no_model_or_paid_tool',
     });
     transaction.update(nextRun.path, nextRun.data);
     transaction.create(event.path, event.data);
+    for (const prepared of request.creates ?? []) {
+      transaction.create(prepared.path, prepared.data);
+    }
     return { run: nextRun.data, event: event.data };
   }
 

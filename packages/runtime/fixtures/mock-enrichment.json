@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "enrichment-fixtures-v1",
+  "evidenceClass": "mock",
+  "description": "Hand-written mock responses for failure-shape tests and evaluation. They prove contracts only and are not source evidence.",
+  "entries": [
+    {
+      "kind": "timeout",
+      "url": "https://api.zippopotam.us/us/11111"
+    },
+    {
+      "kind": "response",
+      "url": "https://api.zippopotam.us/us/22222",
+      "status": 500,
+      "body": "Internal Server Error",
+      "bodySha256": "e41656eb2ba6c6293bf6dd928e5a88cdbc50535cab661c1969e0f598e497ed62",
+      "capturedAt": null
+    },
+    {
+      "kind": "response",
+      "url": "https://api.zippopotam.us/us/33333",
+      "status": 429,
+      "body": "Too Many Requests",
+      "bodySha256": "3850dfdbf4489250268b5f0740240a9f4445e7c5c29e1d03aa0c5446808d7507",
+      "capturedAt": null
+    },
+    {
+      "kind": "response",
+      "url": "https://api.zippopotam.us/us/44444",
+      "status": 200,
+      "body": "not json",
+      "bodySha256": "7ccfa1fbf3940e6f0c0375d87c0f9235a50514e14cb427bdfaf5077987b26ccf",
+      "capturedAt": null
+    },
+    {
+      "kind": "response",
+      "url": "https://api.zippopotam.us/us/55555",
+      "status": 200,
+      "body": "{\"post code\":\"55555\",\"country\":\"United States\",\"country abbreviation\":\"US\",\"places\":[{\"place name\":\"Mockville\",\"longitude\":\"0.0\",\"state\":\"Minnesota\",\"state abbreviation\":\"MN\",\"latitude\":\"0.0\"}]}",
+      "bodySha256": "399ccd8c320407dd67cea32b33479ac034d4c4858e0f87e8b614a0a17709ce21",
+      "capturedAt": null
+    },
+    {
+      "kind": "response",
+      "url": "https://api.zippopotam.us/us/66666",
+      "status": 404,
+      "body": "{}",
+      "bodySha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "capturedAt": null
+    },
+    {
+      "kind": "network",
+      "url": "https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/Mockmake/modelyear/2020?format=json"
+    },
+    {
+      "kind": "response",
+      "url": "https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/Mockmake/modelyear/2021?format=json",
+      "status": 200,
+      "body": "{\"Count\":1,\"Message\":\"Response returned successfully\",\"SearchCriteria\":\"Make:Mockmake | ModelYear:2021\",\"Results\":[{\"Make_ID\":1,\"Make_Name\":\"MOCKMAKE\",\"Model_ID\":1,\"Model_Name\":\"Mock One\"}]}",
+      "bodySha256": "cdba82c56742b33c7d725a9921dd5d069c0432b3f80e4b49115ebe5534398b16",
+      "capturedAt": null
+    },
+    {
+      "kind": "response",
+      "url": "https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/Mockmake/modelyear/2022?format=json",
+      "status": 503,
+      "body": "Service Unavailable",
+      "bodySha256": "f6fc3c777e463ecb2820493f3e7ee6242ab9700be016014b07b25ea56901f51d",
+      "capturedAt": null
+    },
+    {
+      "kind": "response",
+      "url": "https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/Mockmake/modelyear/2023?format=json",
+      "status": 400,
+      "body": "Bad Request",
+      "bodySha256": "7c41b898c5da0cfa4aa049b65ef50248bce9a72d24bef4c723786431921b75aa",
+      "capturedAt": null
+    }
+  ]
+}

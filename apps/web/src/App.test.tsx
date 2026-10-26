@@ -68,11 +68,9 @@ describe('Phase 1 intake workspace', () => {
       'avery.jordan@example.com',
     );
     expect(
-      screen.getByLabelText(/Record email contact consent/i),
+      screen.getByLabelText(/operator may prepare an email/i),
     ).not.toBeChecked();
-    expect(
-      screen.getByText(/Consent contributes no score/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Consent adds no score/i)).toBeInTheDocument();
   });
 
   it('validates through the shared intake contract and focuses the linked summary', () => {
@@ -112,7 +110,7 @@ describe('Phase 1 intake workspace', () => {
     await waitFor(() => expect(runHeading).toHaveFocus());
     expect(intakeClient).toHaveBeenCalledWith(
       expect.objectContaining({
-        schemaVersion: 'intake-v1',
+        schemaVersion: 'intake-v2',
         identityClass: 'fictional',
         email: 'avery.jordan@example.com',
       }),

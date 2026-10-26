@@ -21,7 +21,7 @@ const correlation = {
 };
 
 const intake = {
-  schemaVersion: 'intake-v1',
+  schemaVersion: 'intake-v2',
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',

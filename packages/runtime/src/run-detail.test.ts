@@ -1,6 +1,11 @@
 import type { DocumentData } from 'firebase-admin/firestore';
 import { describe, expect, it } from 'vitest';
-import { scoreQualification, simulateOutcome } from '@leadflow-ai/domain';
+import {
+  scoreQualification,
+  simulateOutcome,
+  verifyOutputs,
+  LifecycleEventSchema,
+} from '@leadflow-ai/domain';
 import type { FirestoreDocumentStore } from './firestore.js';
 import { createFirestoreRepositories } from './repositories.js';
 import {
@@ -47,11 +52,11 @@ class MemoryEventReader implements RunEventReader {
 }
 
 const lead = {
-  schemaVersion: 'lead-v1',
+  schemaVersion: 'lead-v2',
   leadId: ids.lead,
   createdAt: timestamp,
   intake: {
-    schemaVersion: 'intake-v1',
+    schemaVersion: 'intake-v2',
     identityClass: 'fictional',
     givenName: 'Avery',
     familyName: 'Example',
@@ -65,6 +70,7 @@ const lead = {
     needTimeline: 'within_30_days',
     requestDetails: 'Synthetic run detail fixture.',
     emailContactConsent: false,
+    consentRecord: null,
   },
   provenance: {
     sourceId: 'military-com-auto-landing',
@@ -91,7 +97,7 @@ const lead = {
 
 function run(overrides: Record<string, unknown> = {}) {
   return {
-    schemaVersion: 'run-v1',
+    schemaVersion: 'run-v2',
     runId: ids.run,
     leadId: ids.lead,
     createdAt: timestamp,
@@ -106,6 +112,14 @@ function run(overrides: Record<string, unknown> = {}) {
     lease: null,
     qualificationResultId: null,
     simulationRecordId: null,
+    enrichmentMode: null,
+    enrichmentEvidenceIds: [],
+    emailCheckId: null,
+    evidenceCompleteness: 'not_evaluated',
+    draftId: null,
+    draftSkipReason: null,
+    verificationResultId: null,
+    holds: [],
     safeError: null,
     systemBundleId: ids.bundle,
     ...overrides,
@@ -114,7 +128,7 @@ function run(overrides: Record<string, unknown> = {}) {
 
 function event(overrides: Record<string, unknown> = {}) {
   return {
-    schemaVersion: 'event-v1',
+    schemaVersion: 'event-v2',
     eventId: ids.event,
     runId: ids.run,
     traceId: ids.trace,
@@ -132,6 +146,7 @@ function event(overrides: Record<string, unknown> = {}) {
     safeError: null,
     systemBundleId: ids.bundle,
     evidenceClass: 'synthetic-local',
+    externalCall: null,
     usage: null,
     usageUnavailableReason: 'no_model_or_paid_tool',
     ...overrides,
@@ -162,7 +177,7 @@ describe('stored run detail', () => {
     const response = await service.get(ids.run);
 
     expect(response).toMatchObject({
-      schemaVersion: 'run-detail-response-v1',
+      schemaVersion: 'run-detail-response-v2',
       lead: { leadId: ids.lead, intake: { email: 'avery@example.com' } },
       run: { runId: ids.run, revision: 0, status: 'persisted' },
       qualification: null,
@@ -213,17 +228,34 @@ describe('stored run detail', () => {
       runId: ids.run,
       generatedAt: timestamp,
     });
+    const verification = verifyOutputs({
+      verificationResultId: ids.run,
+      runId: ids.run,
+      leadId: ids.lead,
+      verifiedAt: timestamp,
+      intake: lead.intake,
+      priority: qualification.priority,
+      evidence: [],
+      sha256: () => 'a'.repeat(64),
+      events: [LifecycleEventSchema.parse(event())],
+      draft: null,
+      scope: 'run',
+    });
     const completedRun = run({
       status: 'complete',
       revision: 1,
       completedSteps: [
         'interpret_qualification',
         'score_qualification',
+        'enrich_lead',
+        'compose_draft',
+        'verify_outputs',
         'simulate_outcome',
         'finalize_run',
       ],
       qualificationResultId: qualification.resultId,
       simulationRecordId: simulation.simulationRecordId,
+      verificationResultId: verification.verificationResultId,
     });
     const { repositories, service } = await fixture(completedRun, [
       event({
@@ -235,6 +267,7 @@ describe('stored run detail', () => {
     ]);
     await repositories.qualificationResults.create(qualification);
     await repositories.simulationRecords.create(simulation);
+    await repositories.verificationResults.create(verification);
 
     const response = await service.get(ids.run);
 

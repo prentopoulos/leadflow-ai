@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { request as httpRequest } from 'node:http';
 import {
   createEmulatorFirestoreBoundary,
   createFirestoreRepositories,
@@ -6,7 +7,9 @@ import {
   createIntakePersistenceService,
   createLifecyclePersistenceService,
   createRunDetailService,
+  createEnrichmentTransport,
   compileQualificationWorkflow,
+  AdminRunEventReader,
   DeterministicQualificationInterpreter,
   initialQualificationGraphState,
   LOCAL_RESET_CONFIRMATION,
@@ -23,7 +26,7 @@ const systemBundleId = randomUUID();
 const boundary = createEmulatorFirestoreBoundary();
 
 const bundle = {
-  schemaVersion: 'system-bundle-v1',
+  schemaVersion: 'system-bundle-v2',
   systemBundleId,
   createdAt: timestamp,
   code: {
@@ -35,18 +38,23 @@ const bundle = {
   lockfileDigest: digest,
   fixtures: { version: 'emulator-contract-probe-v1', digest },
   versions: {
-    intake: 'intake-v1',
-    lead: 'lead-v1',
-    run: 'run-v1',
-    event: 'event-v1',
+    intake: 'intake-v2',
+    lead: 'lead-v2',
+    run: 'run-v2',
+    event: 'event-v2',
     checkpoint: 'checkpoint-v1',
     rubric: 'rubric-v1',
     interpreter: 'deterministic-interpreter-v1',
-    graph: 'qualification-graph-v1',
+    graph: 'phase-2-graph-v1',
     checkpointer: 'firestore-checkpointer-v1',
     simulator: 'simulator-v1',
+    enrichmentAdapters: 'enrichment-adapters-v1',
+    composer: 'deterministic-template-v1',
+    verificationRules: 'verification-rules-v1',
+    decisionLanguage: 'decision-language-v1',
+    metricsDefinitions: 'metrics-definitions-v1',
     evaluator: 'emulator-contract-probe-v1',
-    configuration: 'phase-1-local-v1',
+    configuration: 'phase-2-local-v1',
   },
   environment: {
     node: process.version.replace(/^v/u, ''),
@@ -62,9 +70,11 @@ const bundle = {
   provider: { value: null, reason: 'provider gate unresolved' },
   model: { value: null, reason: 'model gate unresolved' },
   prompt: { value: null, reason: 'no model prompt in Phase 1' },
+  enrichmentMode: 'recorded',
   liveToolContracts: {
-    value: null,
-    reason: 'live enrichment and outbound tools are deferred',
+    hosts: ['vpic.nhtsa.dot.gov', 'api.zippopotam.us'],
+    authorization:
+      'owner-authorized read-only GET, 2026-10-25 (PROJECT.md Phase 2 decisions)',
   },
 };
 
@@ -77,6 +87,14 @@ try {
     confirmation: LOCAL_RESET_CONFIRMATION,
   });
   const repositories = createFirestoreRepositories(boundary.database);
+  const phaseTwoWorkflowDependencies = {
+    enrichment: {
+      transport: await createEnrichmentTransport('recorded'),
+      sleep: async () => undefined,
+      random: () => 0,
+    },
+    events: new AdminRunEventReader(boundary.database),
+  };
   await repositories.systemBundles.create(bundle);
   const stored = await repositories.systemBundles.get(systemBundleId);
   if (JSON.stringify(stored) !== JSON.stringify(bundle)) {
@@ -110,7 +128,7 @@ try {
 
   const intakeService = createIntakePersistenceService(boundary.database);
   const intake = {
-    schemaVersion: 'intake-v1',
+    schemaVersion: 'intake-v2',
     identityClass: 'fictional',
     givenName: 'Avery',
     familyName: 'Example',
@@ -124,6 +142,7 @@ try {
     needTimeline: 'within_30_days',
     requestDetails: 'Synthetic emulator transaction probe.',
     emailContactConsent: false,
+    consentRecord: null,
   };
   const first = await intakeService.persist({
     idempotencyKey: 'emulator-intake-probe-v1',
@@ -241,6 +260,7 @@ try {
     repositories,
     checkpointer: saver,
     now: graphClock,
+    ...phaseTwoWorkflowDependencies,
   });
   const graphConfig = {
     configurable: {
@@ -257,16 +277,17 @@ try {
       systemBundleId,
       runRevision: reclaim.run.revision,
       projection: qualificationProjectionFromLead(storedLead),
+      emailContactConsent: storedLead.intake.emailContactConsent,
     }),
     graphConfig,
   );
   const completedRun = await repositories.runs.get(first.runId);
   if (
     !graphOutput.finalized ||
-    graphOutput.runRevision !== 10 ||
+    graphOutput.runRevision !== 21 ||
     completedRun?.status !== 'complete' ||
-    completedRun.revision !== 10 ||
-    completedRun.nextEventSequence !== 12 ||
+    completedRun.revision !== 21 ||
+    completedRun.nextEventSequence !== 23 ||
     (await repositories.qualificationResults.get(
       graphOutput.qualification?.resultId ?? '',
     )) === null ||
@@ -282,8 +303,8 @@ try {
     first.runId,
   );
   if (
-    storedDetail.run.revision !== 10 ||
-    storedDetail.events.length !== 11 ||
+    storedDetail.run.revision !== 21 ||
+    storedDetail.events.length !== 22 ||
     storedDetail.events.at(-1)?.name !== 'run.completed' ||
     storedDetail.qualification?.runId !== first.runId ||
     storedDetail.simulation?.runId !== first.runId ||
@@ -338,6 +359,7 @@ try {
     repositories,
     checkpointer: saver,
     now: graphClock,
+    ...phaseTwoWorkflowDependencies,
   });
   const retryOutput = await retryGraph.invoke(
     initialQualificationGraphState({
@@ -348,6 +370,7 @@ try {
       systemBundleId,
       runRevision: retryClaim.run.revision,
       projection: qualificationProjectionFromLead(retryLead),
+      emailContactConsent: retryLead.intake.emailContactConsent,
     }),
     {
       configurable: {
@@ -366,11 +389,11 @@ try {
   if (
     interpreterCalls !== 2 ||
     !retryOutput.finalized ||
-    retryOutput.runRevision !== 12 ||
+    retryOutput.runRevision !== 23 ||
     retryRun?.status !== 'complete' ||
     retryRun.attempt !== 2 ||
     retryRun.retryCount !== 1 ||
-    retryEvents.filter(({ name }) => name === 'step.started').length !== 5 ||
+    retryEvents.filter(({ name }) => name === 'step.started').length !== 8 ||
     retryEvents.filter(({ name }) => name === 'step.retry_scheduled').length !==
       1
   ) {
@@ -408,6 +431,7 @@ try {
     repositories,
     checkpointer: saver,
     now: graphClock,
+    ...phaseTwoWorkflowDependencies,
   });
   await exhaustionGraph.invoke(
     initialQualificationGraphState({
@@ -418,6 +442,7 @@ try {
       systemBundleId,
       runRevision: resumeClaim.run.revision,
       projection: qualificationProjectionFromLead(resumeLead),
+      emailContactConsent: resumeLead.intake.emailContactConsent,
     }),
     {
       configurable: {
@@ -434,10 +459,13 @@ try {
   const apiStartup = {
     status: 'ready',
     configuration: {
-      configurationVersion: 'phase-1-local-v1',
+      configurationVersion: 'phase-2-local-v1',
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
+      apiHost: '127.0.0.1',
       localResetEnabled: false,
+      enrichmentMode: 'recorded',
+      webOrigin: 'http://127.0.0.1:5173',
     },
     firestore: apiBoundary,
   };
@@ -473,6 +501,37 @@ try {
     ) {
       throw new Error('Built API health exceeded its process-only contract.');
     }
+    const rejectedHostStatus = await new Promise((resolve, reject) => {
+      const request = httpRequest(
+        `${apiUrl}/health`,
+        { headers: { host: 'attacker.example' } },
+        (response) => {
+          response.resume();
+          response.on('end', () => resolve(response.statusCode));
+        },
+      );
+      request.on('error', reject);
+      request.end();
+    });
+    const rejectedOrigin = await apiFetch('/v1/intake', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'built-api-origin-rejection-v1',
+        origin: 'https://attacker.example',
+      },
+      body: JSON.stringify(intake),
+    });
+    const rejectedOriginBody = await rejectedOrigin.json();
+    if (
+      rejectedHostStatus !== 403 ||
+      rejectedOrigin.status !== 403 ||
+      rejectedOriginBody.error?.code !== 'access_denied'
+    ) {
+      throw new Error(
+        `Built API Host/Origin allowlist did not fail closed (${rejectedHostStatus ?? 'none'}, ${rejectedOrigin.status}/${rejectedOriginBody.error?.code ?? 'none'}).`,
+      );
+    }
 
     const failedDetailResponse = await apiFetch(
       `/v1/runs/${resumeIntake.runId}`,
@@ -496,12 +555,24 @@ try {
     );
     const resumeBody = await resumeResponse.json();
     if (
-      !resumeResponse.ok ||
-      resumeBody.status !== 'complete' ||
-      resumeBody.revision !== 16 ||
+      resumeResponse.status !== 202 ||
+      resumeBody.status !== 'running' ||
+      resumeBody.revision !== exhaustedRun.revision + 1 ||
       resumeBody.replayed
     ) {
-      throw new Error('Built API explicit resume did not complete the run.');
+      throw new Error('Built API explicit resume was not durably accepted.');
+    }
+    let resumedDetail;
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const response = await apiFetch(`/v1/runs/${resumeIntake.runId}`);
+      if (response.ok) {
+        resumedDetail = await response.json();
+        if (resumedDetail.run?.status === 'complete') break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    if (resumedDetail?.run?.status !== 'complete') {
+      throw new Error('Built API resumed workflow did not complete in time.');
     }
     const resumeReplayResponse = await apiFetch(
       `/v1/runs/${resumeIntake.runId}/resume`,
@@ -549,6 +620,172 @@ try {
       completedDetail.simulation?.notices?.[1] !== 'not_predictive'
     ) {
       throw new Error('Built API intake did not reach stored completion.');
+    }
+
+    const consentedIntake = {
+      ...intake,
+      givenName: 'Jordan',
+      email: 'jordan@example.org',
+      requestDetails: 'Synthetic consented draft and review probe.',
+      emailContactConsent: true,
+      consentRecord: {
+        wordingVersion: 'email-consent-v1',
+        wordingSha256:
+          'ff54a7e1c6739a1b326a32a50fd131632458f0cb62e62808ed77c1e4c400e052',
+      },
+    };
+    const consentedResponse = await apiFetch('/v1/intake', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'built-api-consented-intake-v1',
+        origin: 'http://127.0.0.1:5173',
+      },
+      body: JSON.stringify(consentedIntake),
+    });
+    const consentedAccepted = await consentedResponse.json();
+    if (consentedResponse.status !== 202) {
+      throw new Error('Built API did not accept consented synthetic intake.');
+    }
+    let consentedDetail;
+    let consentedDetailStatus = null;
+    let consentedDetailError = null;
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const response = await apiFetch(`/v1/runs/${consentedAccepted.runId}`);
+      consentedDetailStatus = response.status;
+      const body = await response.json();
+      if (response.ok) {
+        consentedDetail = body;
+        if (consentedDetail.run?.status === 'complete') break;
+      } else {
+        consentedDetailError = body.error?.code ?? null;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    const firstDraft = consentedDetail?.draft?.revisions?.[0];
+    if (
+      consentedDetail?.run?.status !== 'complete' ||
+      firstDraft?.state !== 'pending_review' ||
+      consentedDetail.verification?.draftPassed !== true
+    ) {
+      const storedConsentedRun = await repositories.runs.get(
+        consentedAccepted.runId,
+      );
+      const storedDraftHistory =
+        storedConsentedRun?.draftId === null ||
+        storedConsentedRun?.draftId === undefined
+          ? null
+          : await apiDependencies.drafts.history(storedConsentedRun.draftId);
+      throw new Error(
+        `Built API did not produce a verified pending draft (${consentedDetailStatus ?? 'no-status'}/${consentedDetailError ?? 'no-error'}, ${storedConsentedRun?.status ?? 'no-run'}, ${storedDraftHistory?.view.revisions.at(-1)?.state ?? 'no-draft'}, ${storedConsentedRun?.verificationResultId ?? 'no-verification'}).`,
+      );
+    }
+
+    const queueResponse = await apiFetch(
+      '/v1/runs?filter=approval_queue&limit=50',
+    );
+    const queue = await queueResponse.json();
+    const metricsResponse = await apiFetch('/v1/metrics');
+    const metrics = await metricsResponse.json();
+    if (
+      !queueResponse.ok ||
+      !queue.items?.some((item) => item.runId === consentedAccepted.runId) ||
+      !metricsResponse.ok ||
+      metrics.definitions?.version !== 'metrics-definitions-v1' ||
+      metrics.report?.approvalQueue < 1 ||
+      metrics.report?.window?.runsInWindow < 1
+    ) {
+      throw new Error(
+        'Built API operations list or metrics report is incomplete.',
+      );
+    }
+
+    const reviewPayload = {
+      revisionId: firstDraft.revision.revisionId,
+      contentSha256: firstDraft.revision.contentSha256,
+      decision: 'approved',
+    };
+    const approvedResponse = await apiFetch(
+      `/v1/drafts/${firstDraft.revision.draftId}/reviews`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'http://127.0.0.1:5173',
+        },
+        body: JSON.stringify(reviewPayload),
+      },
+    );
+    const approved = await approvedResponse.json();
+    const staleReviewResponse = await apiFetch(
+      `/v1/drafts/${firstDraft.revision.draftId}/reviews`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'http://127.0.0.1:5173',
+        },
+        body: JSON.stringify(reviewPayload),
+      },
+    );
+    if (
+      !approvedResponse.ok ||
+      approved.draft?.revisions?.[0]?.state !== 'approved' ||
+      staleReviewResponse.status !== 409
+    ) {
+      throw new Error('Built API draft approval or stale-review guard failed.');
+    }
+    const revisedResponse = await apiFetch(
+      `/v1/drafts/${firstDraft.revision.draftId}/revisions`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'http://127.0.0.1:5173',
+        },
+        body: JSON.stringify({
+          baseRevisionId: firstDraft.revision.revisionId,
+          baseContentSha256: firstDraft.revision.contentSha256,
+          subject: firstDraft.revision.subject,
+          body: firstDraft.revision.body.replace(
+            '[Not sendable as written.',
+            'Operator-reviewed synthetic note.\n\n[Not sendable as written.',
+          ),
+        }),
+      },
+    );
+    const revised = await revisedResponse.json();
+    const latestRevision = revised.draft?.revisions?.at(-1);
+    if (!revisedResponse.ok || latestRevision?.state !== 'pending_review') {
+      const failedRules = latestRevision?.verification?.rules
+        ?.filter((rule) => rule.outcome === 'fail')
+        .map((rule) => `${rule.ruleId}:${rule.detail}`)
+        .join(',');
+      throw new Error(
+        `Built API did not create a verified draft revision (${revisedResponse.status}/${revised.error?.code ?? 'none'}, ${latestRevision?.state ?? 'no-state'}, ${failedRules ?? 'no-rules'}).`,
+      );
+    }
+    const rejectedResponse = await apiFetch(
+      `/v1/drafts/${firstDraft.revision.draftId}/reviews`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'http://127.0.0.1:5173',
+        },
+        body: JSON.stringify({
+          revisionId: latestRevision.revision.revisionId,
+          contentSha256: latestRevision.revision.contentSha256,
+          decision: 'rejected',
+        }),
+      },
+    );
+    const rejected = await rejectedResponse.json();
+    if (
+      !rejectedResponse.ok ||
+      rejected.draft?.revisions?.at(-1)?.state !== 'rejected'
+    ) {
+      throw new Error('Built API draft rejection did not persist.');
     }
 
     const replayResponse = await apiFetch('/v1/intake', {
@@ -612,7 +849,7 @@ try {
     .get();
   if (
     resumedRun?.status !== 'complete' ||
-    resumedRun.revision !== 16 ||
+    resumedRun.revision !== 27 ||
     resumedEvents.docs.filter(
       (document) => document.data().name === 'run.resume_requested',
     ).length !== 1

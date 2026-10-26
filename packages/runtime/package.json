@@ -2,6 +2,7 @@
   "name": "@leadflow-ai/runtime",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "exports": {
     ".": {
@@ -18,6 +19,7 @@
     "@langchain/langgraph": "1.5.2",
     "@langchain/langgraph-checkpoint": "1.2.1",
     "@leadflow-ai/domain": "workspace:*",
-    "firebase-admin": "14.5.0"
+    "firebase-admin": "14.5.0",
+    "zod": "4.6.7"
   }
 }

@@ -5,7 +5,16 @@ import type {
   SafeError,
 } from '@leadflow-ai/domain';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  operationsClient as defaultOperationsClient,
+  type OperationsClient,
+} from './operations-client.js';
 import { runClient as defaultRunClient, type RunClient } from './run-client.js';
+import {
+  DraftSection,
+  EnrichmentEvidenceSection,
+  VerificationSection,
+} from './RunEvidence.js';
 
 const terminalStatuses = new Set<RunStatus>([
   'complete',
@@ -106,6 +115,7 @@ export interface RunDossierProps {
   client?: RunClient;
   pollIntervalMs?: number;
   maxPollAttempts?: number;
+  operationsClient?: OperationsClient;
 }
 
 export function RunDossier({
@@ -114,6 +124,7 @@ export function RunDossier({
   client = defaultRunClient,
   pollIntervalMs = 2_000,
   maxPollAttempts = 30,
+  operationsClient = defaultOperationsClient,
 }: RunDossierProps) {
   const [detail, setDetail] = useState<RunDetailResponse | null>(null);
   const [refreshError, setRefreshError] = useState<SafeError | null>(null);
@@ -214,10 +225,25 @@ export function RunDossier({
             </dd>
           </div>
           <div>
+            <dt>Evidence</dt>
+            <dd>
+              {readable(detail.run.evidenceCompleteness)}
+              {detail.run.enrichmentMode === null
+                ? ''
+                : ` · ${detail.run.enrichmentMode}`}
+            </dd>
+          </div>
+          <div>
             <dt>Bundle</dt>
             <dd>{detail.run.systemBundleId}</dd>
           </div>
         </dl>
+        {detail.run.holds.length > 0 ? (
+          <p className="safe-error">
+            Hold: the draft failed verification and is not in the approval
+            queue.
+          </p>
+        ) : null}
         {detail.run.safeError !== null ? (
           <p className="safe-error">{detail.run.safeError.message}</p>
         ) : null}
@@ -244,28 +270,55 @@ export function RunDossier({
         ) : null}
       </section>
 
-      <section className="event-history" aria-labelledby="event-history-title">
-        <p className="section-index">Append-only history</p>
-        <h3 id="event-history-title">Lifecycle events</h3>
-        <ol>
-          {detail.events.map((event) => (
-            <li key={event.eventId}>
-              <span>{String(event.sequence).padStart(2, '0')}</span>
-              <div>
-                <strong>{readable(event.name)}</strong>
-                <small>
-                  {new Date(event.occurredAt).toLocaleTimeString()} · attempt{' '}
-                  {event.attempt}
-                </small>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
+      <DraftSection
+        draft={detail.draft}
+        skipReason={detail.run.draftSkipReason}
+        client={operationsClient}
+        onChanged={refresh}
+      />
+      <VerificationSection
+        verification={detail.verification}
+        holds={detail.run.holds}
+      />
+      <EnrichmentEvidenceSection
+        evidence={detail.enrichment}
+        emailCheck={detail.emailCheck}
+        completeness={detail.run.evidenceCompleteness}
+      />
 
       {detail.qualification !== null ? (
         <Qualification result={detail.qualification} />
       ) : null}
+
+      <section className="event-history" aria-labelledby="event-history-title">
+        <p className="section-index">Append-only history</p>
+        <h3 id="event-history-title">Lifecycle events</h3>
+        <details>
+          <summary>
+            {detail.events.length} events
+            {detail.events.length > 0
+              ? ` · last: ${readable(detail.events.at(-1)?.name ?? '')}`
+              : ''}
+          </summary>
+          <ol>
+            {detail.events.map((event) => (
+              <li key={event.eventId}>
+                <span>{String(event.sequence).padStart(2, '0')}</span>
+                <div>
+                  <strong>
+                    {readable(event.name)}
+                    {event.step === null ? '' : ` · ${readable(event.step)}`}
+                  </strong>
+                  <small>
+                    {new Date(event.occurredAt).toLocaleTimeString()} · attempt{' '}
+                    {event.attempt}
+                  </small>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </details>
+      </section>
 
       {detail.simulation !== null ? (
         <section

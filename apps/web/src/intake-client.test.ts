@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { submitIntake } from './intake-client.js';
 
 const intake: IntakeSubmission = {
-  schemaVersion: 'intake-v1',
+  schemaVersion: 'intake-v2',
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Jordan',
@@ -18,6 +18,7 @@ const intake: IntakeSubmission = {
   needTimeline: 'days_31_to_90',
   requestDetails: 'Synthetic test request.',
   emailContactConsent: false,
+  consentRecord: null,
 };
 
 const accepted = {

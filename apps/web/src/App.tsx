@@ -1,7 +1,10 @@
 import {
+  CONSENT_WORDINGS,
+  CURRENT_CONSENT_WORDING_VERSION,
   IntakeSubmissionSchema,
-  PHASE_ONE_VERSIONS,
+  CONTRACT_VERSIONS,
   TEST_EMAIL_DOMAINS,
+  currentConsentRecord,
   type IntakeAcceptedResponse,
   type SafeError,
 } from '@leadflow-ai/domain';
@@ -11,6 +14,7 @@ import {
   type IntakeClient,
   type IntakeClientResult,
 } from './intake-client.js';
+import { Masthead, SimulationStrip } from './Masthead.js';
 import { RunDossier } from './RunDossier.js';
 import type { RunClient } from './run-client.js';
 
@@ -70,6 +74,8 @@ function getFieldErrorMessage(field: FieldName, fallback: string) {
     case 'givenName':
     case 'familyName':
       return `Enter a fictional ${field === 'givenName' ? 'first' : 'last'} name.`;
+    case 'vehicleMake':
+      return 'Enter a make with at least one letter or number, or leave it blank.';
     default:
       return fallback;
   }
@@ -154,8 +160,9 @@ export function App({
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const yearValue = String(formData.get('vehicleYear') ?? '').trim();
+    const consentGiven = formData.get('emailContactConsent') === 'on';
     const candidate = {
-      schemaVersion: PHASE_ONE_VERSIONS.intake,
+      schemaVersion: CONTRACT_VERSIONS.intake,
       identityClass: 'fictional' as const,
       givenName: String(formData.get('givenName') ?? ''),
       familyName: String(formData.get('familyName') ?? ''),
@@ -168,7 +175,8 @@ export function App({
       requestIntent: getOptionalText(formData, 'requestIntent'),
       needTimeline: getOptionalText(formData, 'needTimeline'),
       requestDetails: getOptionalText(formData, 'requestDetails'),
-      emailContactConsent: formData.get('emailContactConsent') === 'on',
+      emailContactConsent: consentGiven,
+      consentRecord: consentGiven ? currentConsentRecord() : null,
     };
     const result = IntakeSubmissionSchema.safeParse(candidate);
 
@@ -245,29 +253,8 @@ export function App({
 
   return (
     <>
-      <div className="simulation-strip" role="note">
-        <span className="simulation-mark" aria-hidden="true" />
-        <strong>SIMULATION</strong>
-        <span aria-hidden="true">·</span>
-        <span>Synthetic leads and outcomes</span>
-        <span className="simulation-scope">Local only</span>
-      </div>
-
-      <header className="masthead">
-        <a className="brand" href="#main-content" aria-label="LeadFlow AI home">
-          <span className="brand-mark" aria-hidden="true">
-            LF
-          </span>
-          <span>
-            <strong>LeadFlow AI</strong>
-            <small>Operator workspace</small>
-          </span>
-        </a>
-        <div className="phase-stamp">
-          <span>Phase 1</span>
-          <strong>Intake + qualification</strong>
-        </div>
-      </header>
+      <SimulationStrip />
+      <Masthead view="intake" />
 
       <main id="main-content" className="page-shell">
         <section className="page-intro" aria-labelledby="page-title">
@@ -289,7 +276,7 @@ export function App({
                 <p className="section-index">01 / Intake record</p>
                 <h2 id="intake-title">Synthetic lead intake</h2>
               </div>
-              <span className="schema-tag">intake-v1</span>
+              <span className="schema-tag">intake-v2</span>
             </div>
 
             <form noValidate onSubmit={handleSubmit} onReset={handleReset}>
@@ -568,11 +555,12 @@ export function App({
                   />
                   <div>
                     <label htmlFor="emailContactConsent">
-                      Record email contact consent
+                      {CONSENT_WORDINGS[CURRENT_CONSENT_WORDING_VERSION].text}
                     </label>
                     <p id="consent-help">
-                      Off by default. Consent contributes no score and Phase 1
-                      creates or sends no outreach.
+                      Off by default. Consent adds no score; it only allows a
+                      draft for human review, and nothing is ever sent. Wording{' '}
+                      {CURRENT_CONSENT_WORDING_VERSION}.
                     </p>
                     <FieldError field="emailContactConsent" errors={errors} />
                   </div>
@@ -603,7 +591,11 @@ export function App({
                     ? 'Start another intake'
                     : 'Restore example'}
                 </button>
-                <p>Required fields are marked with an asterisk.</p>
+                <p>
+                  Required fields are marked with an asterisk. Storing the lead
+                  looks up its vehicle make and year and its ZIP Code in public
+                  sources, unless the API runs with saved responses.
+                </p>
               </div>
             </form>
           </section>
@@ -676,18 +668,26 @@ export function App({
               <ol>
                 <li>
                   <span>01</span>
-                  Stored identity and revision
+                  Stored run, status and revision
                 </li>
                 <li>
                   <span>02</span>
-                  Lifecycle events and retries
+                  Draft decision and its verification
                 </li>
                 <li>
                   <span>03</span>
-                  Marketing-readiness evidence
+                  Enrichment evidence by source
                 </li>
                 <li>
                   <span>04</span>
+                  Marketing-readiness evidence
+                </li>
+                <li>
+                  <span>05</span>
+                  Lifecycle events and retries
+                </li>
+                <li>
+                  <span>06</span>
                   Separately labeled synthetic outcome
                 </li>
               </ol>
@@ -696,8 +696,10 @@ export function App({
             <div className="boundary-note">
               <p className="summary-label">Operating boundary</p>
               <p>
-                Local Firestore Emulator only. No model, enrichment, quote,
-                insurer decision, outreach, or external submission is active.
+                Leads are stored only in the local Firestore Emulator. Vehicle
+                and ZIP lookups read NHTSA vPIC and Zippopotam.us, and each
+                result is labelled live, recorded or mock. No model, quote,
+                insurer decision or outreach is active, and nothing is sent.
               </p>
             </div>
           </aside>

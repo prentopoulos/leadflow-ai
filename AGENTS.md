@@ -61,8 +61,8 @@ to code gets a code review before it merges (WORKFLOW.md).
 Phase 0 establishes exact Node version, package manager, backend HTTP framework, lockfile, local
 bootstrap, and quality gate. Do not claim those commands exist before Phase 0 verifies them.
 
-Architecture diagrams: C4 as code (Structurizr DSL in `docs/architecture/`, Mermaid in READMEs),
-created in Phase 1; see the showcase skill. Figma is for slides and mocks.
+Architecture diagrams: C4 as code (Structurizr DSL in `docs/architecture/`), rendered with the
+diagram-design skill; READMEs follow the showcase skill and never use Mermaid. Figma is for slides and mocks.
 
 Windows working notes:
 - write multi-line scripts to a file and run it; long bash heredocs mangle backslashes;

@@ -26,10 +26,13 @@ function readyStartup(): PhaseOneStartup {
   return {
     status: 'ready',
     configuration: {
-      configurationVersion: 'phase-1-local-v1',
+      configurationVersion: 'phase-2-local-v1',
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
+      apiHost: 'localhost',
       localResetEnabled: false,
+      enrichmentMode: 'recorded',
+      webOrigin: 'http://127.0.0.1:5173',
     },
     firestore: {
       app: {} as never,
@@ -63,10 +66,17 @@ function idFactory() {
   return () => values[index++] ?? requestId;
 }
 
-function buildApp(dependencies: ResumeRouteDependencies) {
+function buildApp(
+  dependencies: Omit<ResumeRouteDependencies, 'schedule'> & {
+    schedule?: ResumeRouteDependencies['schedule'];
+  },
+) {
   const app = createApp({
     phaseOne: readyStartup(),
-    resume: dependencies,
+    resume: {
+      ...dependencies,
+      schedule: dependencies.schedule ?? (() => undefined),
+    },
     requestIdFactory: idFactory(),
   });
   apps.add(app);
@@ -75,10 +85,17 @@ function buildApp(dependencies: ResumeRouteDependencies) {
 
 describe('POST /v1/runs/:runId/resume', () => {
   it('passes the expected revision and server correlation into explicit resume', async () => {
-    const resume = vi.fn(async () => ({}) as never);
+    const continuation = vi.fn(async () => ({}) as never);
+    const begin = vi.fn(async () => ({
+      resumedFrom: 'persisted' as const,
+      run: { runId, revision: 1, status: 'running' } as never,
+      continuation,
+    }));
+    const schedule = vi.fn();
     const app = buildApp({
-      resume: { resume },
+      resume: { begin },
       details: { get: async () => detail('complete', 9) },
+      schedule,
     });
 
     const response = await app.inject({
@@ -87,15 +104,15 @@ describe('POST /v1/runs/:runId/resume', () => {
       payload: { expectedRevision: 0 },
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(202);
     expect(response.json()).toEqual({
       schemaVersion: 'resume-response-v1',
       runId,
-      revision: 9,
-      status: 'complete',
+      revision: 1,
+      status: 'running',
       replayed: false,
     });
-    expect(resume).toHaveBeenCalledWith({
+    expect(begin).toHaveBeenCalledWith({
       runId,
       expectedRevision: 0,
       ownerId: `api:${requestId}`,
@@ -104,12 +121,13 @@ describe('POST /v1/runs/:runId/resume', () => {
       requestId,
       authorization: 'allowed',
     });
+    expect(schedule).toHaveBeenCalledWith(runId, continuation);
   });
 
   it('returns a durable replay only when history proves the requested resume committed', async () => {
     const app = buildApp({
       resume: {
-        resume: async () => {
+        begin: async () => {
           throw new RunRevisionConflictError();
         },
       },
@@ -134,7 +152,7 @@ describe('POST /v1/runs/:runId/resume', () => {
   it('keeps an unrelated stale revision as a conflict', async () => {
     const app = buildApp({
       resume: {
-        resume: async () => {
+        begin: async () => {
           throw new RunRevisionConflictError();
         },
       },
@@ -165,7 +183,7 @@ describe('POST /v1/runs/:runId/resume', () => {
     async (failure, status, code, retryable) => {
       const app = buildApp({
         resume: {
-          resume: async () => {
+          begin: async () => {
             throw failure;
           },
         },
@@ -188,9 +206,9 @@ describe('POST /v1/runs/:runId/resume', () => {
   );
 
   it('rejects invalid revisions before invoking resume', async () => {
-    const resume = vi.fn(async () => ({}) as never);
+    const begin = vi.fn(async () => ({}) as never);
     const app = buildApp({
-      resume: { resume },
+      resume: { begin },
       details: { get: async () => detail('persisted', 0) },
     });
 
@@ -204,6 +222,6 @@ describe('POST /v1/runs/:runId/resume', () => {
     expect(response.json()).toMatchObject({
       error: { code: 'validation_failed', retryable: false },
     });
-    expect(resume).not.toHaveBeenCalled();
+    expect(begin).not.toHaveBeenCalled();
   });
 });

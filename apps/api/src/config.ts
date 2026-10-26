@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { LEADFLOW_LOCAL_PROJECT_ID } from '@leadflow-ai/domain';
+import {
+  EnrichmentModeSchema,
+  LEADFLOW_LOCAL_PROJECT_ID,
+} from '@leadflow-ai/domain';
 import { LEADFLOW_FIRESTORE_EMULATOR_HOST } from '@leadflow-ai/runtime';
 
 const ServerConfigSchema = z.object({
@@ -11,13 +14,24 @@ export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 
 const PhaseOneConfigSchema = z
   .object({
-    configurationVersion: z.literal('phase-1-local-v1'),
+    configurationVersion: z.literal('phase-2-local-v1'),
     projectId: z.literal(LEADFLOW_LOCAL_PROJECT_ID),
     firestoreHost: z.literal(LEADFLOW_FIRESTORE_EMULATOR_HOST),
+    // Hostname only: the listener port may be selected dynamically in local
+    // probes, while DNS-rebinding protection still requires an exact host.
+    apiHost: z.enum(['127.0.0.1', 'localhost']).default('127.0.0.1'),
     localResetEnabled: z
       .enum(['true', 'false'])
       .default('false')
       .transform((value) => value === 'true'),
+    // Required with no default: the evidence class of every lookup must be
+    // an explicit operator choice (live, recorded or mock).
+    enrichmentMode: EnrichmentModeSchema,
+    // The only browser origin allowed to send state-changing requests.
+    webOrigin: z
+      .string()
+      .regex(/^http:\/\/(?:127\.0\.0\.1|localhost):\d{2,5}$/u)
+      .default('http://127.0.0.1:5173'),
   })
   .strict();
 
@@ -36,9 +50,12 @@ export function loadPhaseOneConfig(
   environment: NodeJS.ProcessEnv = process.env,
 ): PhaseOneConfig {
   return PhaseOneConfigSchema.parse({
-    configurationVersion: 'phase-1-local-v1',
+    configurationVersion: 'phase-2-local-v1',
     projectId: environment.GCLOUD_PROJECT,
     firestoreHost: environment.FIRESTORE_EMULATOR_HOST,
+    apiHost: environment.LEADFLOW_API_HOST,
     localResetEnabled: environment.LEADFLOW_LOCAL_RESET_ENABLED,
+    enrichmentMode: environment.LEADFLOW_ENRICHMENT_MODE,
+    webOrigin: environment.LEADFLOW_WEB_ORIGIN,
   });
 }

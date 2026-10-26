@@ -67,16 +67,16 @@ agent-runtime, state, monitoring, or provider changes.
   design-eval before UI readiness. Paid 21st generation requires owner approval.
 - Architecture diagrams: C4 as code, drawn to the c4model.com notation guide (context and
   container views, plus an ERD once there is a data schema). One Structurizr DSL model in
-  `docs/architecture/`, exported to SVG, with Mermaid where a README shows a diagram.
+  `docs/architecture/` as the source model, rendered with the diagram-design skill
+  (`pnpm docs:diagrams`); READMEs follow the showcase skill and never use Mermaid.
 - Code review: every change to code is reviewed before merge (WORKFLOW.md).
 
 Gate: `. .\scripts\activate-toolchain.ps1` followed by `pnpm check`. The gate is credential-free
 and offline after the frozen dependency install. Run `pnpm audit:dependencies` separately when
 registry access is authorized; it is evidence, not part of the offline gate.
-Public GitHub repository planned; no remote exists yet. Do not run `git push` or `gh` until the
-owner authorizes repository creation/publication. Once a remote exists, push phase branches and
-open PRs at the points WORKFLOW.md sets; nothing goes straight to main, and a PR merges only after
-review and the owner's go-ahead.
+The public repository is `github.com/prentopoulos/leadflow-ai` (owner-authorized 2026-10-26; see
+the publication gate in section 6). Push phase branches and open PRs at the points WORKFLOW.md sets;
+nothing goes straight to main, and a PR merges only after review and the owner's go-ahead.
 
 ### Phase 0 decisions
 
@@ -134,6 +134,71 @@ Accepted by Peter on 2026-10-24 for the Phase 1 proposal:
   changing the accepted Node/pnpm versions. Normal `pnpm check` remains credential-free and offline
   after the frozen dependency/tool bootstrap.
 
+### Phase 2 decisions
+
+Accepted by Peter on 2026-10-25 for the Phase 2 proposal (round-1 grilling; every recommendation
+was accepted as presented):
+
+- Phase 2 builds enrichment, outreach drafts, verification, the dashboard and run monitoring.
+  Firebase Auth moves to Phase 3's access-control task with deployment. Phase 2 records a fixed,
+  labelled local operator principal on approvals and adds a loopback Host/Origin allowlist.
+- Peter authorizes live, read-only GET requests from the local machine to exactly
+  `vpic.nhtsa.dot.gov` and `api.zippopotam.us`: only ZIP and vehicle year/make leave the machine,
+  one request per source per lead, a 5-second timeout, and at most one retry on network error, 429
+  or 5xx. Live reads run only for operator-submitted leads and a separately named probe. The offline
+  gate uses fixtures labelled `recorded` (captured from an authorized live call, with date) or
+  `mock` (hand-written). Evidence credits NHTSA vPIC and Zippopotam.us / GeoNames.
+- Vehicle enrichment keeps year/make/model and checks it with vPIC `GetModelsForMakeYear`. The claim
+  is only "make/model listed by NHTSA vPIC for that model year"; matching is exact and
+  case-insensitive, and a mismatch is reported, never corrected. VIN decoding is deferred until the
+  Military.com VIN question is verified.
+- The paid-API gate stays unresolved. The interpreter stays deterministic and drafts come from a
+  deterministic slot template behind a provider-neutral port; provider cases remain `not_run`.
+- Outreach is an email draft only, created when consent is true and qualification is not held, for
+  every priority. States are `pending_review -> approved | rejected`; an edit creates a new immutable
+  revision back in `pending_review`; approval binds to the revision digest, operator and time.
+  Approved means approved for manual use (copy/export). No send path exists and a check enforces it.
+  Follow-up actions: high "Review today", standard "Review this week", nurture "Add to nurture
+  list". Drafts carry a fixed CAN-SPAM notice and never invent a postal address.
+- Metric definitions (`metrics-definitions-v1`): processing time runs from `lead.persisted` to the
+  last automated event, excluding human review (reported as review latency), with median, p90, mean
+  and n. Enrichment success is per source lookup: valid found or not-found answers succeed;
+  unavailable, timeout, 429, 5xx and malformed fail; not-attempted lookups are excluded but counted;
+  a found-rate is separate. Agent failures are runs whose latest state is failed among finished
+  runs, with a per-agent breakdown; a recovered retry is not a failure. The approval queue counts
+  drafts whose latest revision is `pending_review`. Every metric names numerator, denominator,
+  exclusions and window, filters to the current system bundle, shows `insufficient_data` for empty
+  denominators, keeps simulator outcomes in a separate SYNTHETIC panel, and splits live from
+  recorded evidence. Priority labels stay high/standard/nurture plus held and not scored.
+- An unavailable enrichment source leaves the run complete but `partial`; a draft that fails
+  verification is stored `verification_blocked` outside the approval queue with a visible hold;
+  corrupt internal state fails the run terminally.
+- Intake moves to a new schema version that records the consent wording version and a digest of the
+  exact text shown. Phase 1 emulator data is cleared, not migrated.
+- Each lookup stores a bounded raw response and its SHA-256 until local reset; no cache is shared
+  across leads.
+- A run completes when its draft reaches `pending_review`; approve/reject are separate append-only
+  review records, not a LangGraph interrupt.
+- WCAG 2.2 AA is the explicit UI target: chart text equivalents, no colour-only encoding, 3:1 chart
+  marks, unobscured focus, 24px targets, polite live regions and reduced-motion charts.
+- A fixed fictional seed command runs 40 leads through the real pipeline with `recorded` enrichment.
+- Peter authorizes downloading recharts, lucide-react, and the shadcn/ui components with their Radix
+  dependencies, recorded in `docs/dependencies/phase-2.md`. No SSE, Firebase client or provider SDK.
+- The interface has three views: intake -> run dossier; a leads/runs list with the approval queue as
+  a filter and run monitoring; and the metrics dashboard. Alerting stays deferred.
+- At the close (2026-10-26) Peter licensed the project under MIT and approved publishing it as the
+  public repository `prentopoulos/leadflow-ai` after the pre-publication scans (section 6 gate).
+
+Settled by the agent with a cited basis and accepted in the same confirmation: syntax-plus-
+reserved-domain email check with no network call (recorded/fact); revision-aware polling through
+Fastify (default); background in-process execution with resume returning 202 and a fixed
+qualify -> enrich -> draft -> verify -> finalize graph (default); `rubric-v1` unchanged by enrichment
+(recorded); the Phase 1 visual direction extended, free 21st inspiration only (recorded);
+verification rules derived from section 5 and mapped to OWASP LLM Top 10 2025 and ASVS 5.0
+(recorded); frozen `phase-2.0` cases (recorded); event-v1 as the telemetry system of record with
+OpenTelemetry HTTP attribute names and no SDK (default); diagram and README rendering per the
+owner's 2026-10-25 feedback.
+
 ## 5. Non-negotiables
 
 These rules and the gates in section 6 are this project's constitution. They override AGENTS.md,
@@ -188,8 +253,8 @@ Milestones are ordered by dependency.
 |---|---|---|
 | 0 | Toolchain, app skeleton, lockfile, quality gate with constitution copy check, smoke checks, and offline AI evaluation scaffold | Done |
 | 1 | Verified intake, immediate Firestore persistence, LangGraph orchestration, qualification agent, and C4 architecture diagrams as code | Done |
-| 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, Firebase Auth, responsive live dashboard, and run monitoring | Planned |
-| 3 | Owner-authorized Cloud Run deployment, public-repository polish, evidence bundle, README, and demonstration walkthrough | Planned |
+| 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, responsive live dashboard, and run monitoring (Firebase Auth moved to Phase 3) | Done |
+| 3 | Owner-authorized Cloud Run deployment with Firebase Auth access control, evidence bundle, README, and demonstration walkthrough (the repository went public under MIT at the close of Phase 2) | Planned |
 
 ### Lean task budgets for remaining phases
 
@@ -213,9 +278,9 @@ resolve or waive any gate below.
 
 **Phase 3 blueprint — at most six tasks**
 
-1. Resolve the deployment and public-publication gates without broadening product scope.
+1. Resolve the deployment gate without broadening product scope (publication was resolved in Phase 2).
 2. Implement the approved Cloud Run/GCP configuration with secrets, budget, rollback, and access controls.
-3. Prepare the public repository, README, licensing decision, and secret/private-data/history scans.
+3. Keep the public repository and README current, and rerun the secret/private-data scans before each push of new material.
 4. Produce the evidence bundle and demonstration walkthrough from verified stored results.
 5. Run authorized deployment smoke, security, cost, observability, and rollback checks.
 6. Run one consolidated review, fix findings, update final handoff evidence, and prepare archive/merge.
@@ -242,8 +307,13 @@ resolve or waive any gate below.
 
 ### Before public GitHub publication
 
-- [ ] Owner approves the public repository name and framing after secret, private-data, licensing,
-  generated-asset, and history scans pass.
+- [x] Owner approves the public repository name and framing after secret, private-data, licensing,
+  generated-asset, and history scans pass. Resolved 2026-10-26: Peter approved the public repository
+  `prentopoulos/leadflow-ai` under the MIT License, publishing every tracked file and the full
+  history. The scans found no secret in any of the 1,002 history blobs (scanner proven on planted
+  keys), no real personal data, no third-party binary and no unlicensed bundled skill. The two
+  home-directory paths in current docs were neutralised; Peter chose to keep the commit email and
+  three older blobs containing the home path in history rather than rewrite it.
 
 ### Before claiming Military.com intake parity
 
