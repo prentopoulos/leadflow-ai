@@ -41,6 +41,10 @@ The README, diagrams, walkthrough text, stills and evidence summary SHALL explai
 proof of concept to a newcomer using fictional recorded-mode data and SHALL exclude owner/project/
 auth/billing values, production claims, live-cloud-enrichment claims and intake-parity claims.
 
+#### Scenario: Hosted demo data is prepared
+- **WHEN** the hosted walkthrough needs leads
+- **THEN** the operator enters a few fictional leads through the authenticated interface using only vehicle and ZIP subjects present in the recorded fixtures, including the intake form's defaults, and no cloud seeding script or IAP bypass is added
+
 #### Scenario: Walkthrough preview is produced
 - **WHEN** the roughly two-minute captioned MP4 is recorded from the verified candidate
 - **THEN** it follows `docs/walkthrough.md`, carries synthetic/recorded labels, and is sent privately to the owner before any publication decision

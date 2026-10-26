@@ -88,6 +88,13 @@ public artifacts. Missing, forged, expired, wrong-issuer, wrong-audience and non
 fail before state access. No browser Firebase SDK is introduced. OAuth support/contact metadata is
 configured privately and may be visible only on Google's sign-in surface.
 
+Verification uses an exact-pinned direct dependency, `google-auth-library` (its IAP public-key
+verification), recorded in the Phase 3 dependency record. It is already in the lockfile as a
+transitive dependency of `firebase-admin`, but pnpm's strict layout forbids importing it without
+declaring it. Because the project has no Google Cloud organization, its OAuth client cannot be
+created programmatically: the first IAP enable happens once in the Cloud Run console, and later
+releases use the scripted path.
+
 Alternatives rejected: public Cloud Run plus Firebase tokens contradicts the access gate; IAP plus
 Firebase duplicates session systems; raw IAM browser access has unsuitable UX.
 
@@ -121,7 +128,10 @@ account receives the minimum practical data role; client rules remain deny-all. 
 credentials, so no JSON key or `GOOGLE_APPLICATION_CREDENTIALS` exists.
 
 Every retained lead/run/event/checkpoint/evidence/draft/review/result document and subcollection
-document gains an `expiresAt` compatible with a seven-day collection-group TTL. Because TTL is
+document gains an `expiresAt` stored as a Firestore timestamp. Firestore Standard TTL acts only on
+"Date and time" values and silently ignores text, so this field cannot reuse the ISO strings the
+domain records use. Each collection group, including every subcollection group, needs its own TTL
+policy, and the field is exempted from single-field indexing. Because TTL is
 eventual and billed, the phase also provides an explicit, enumerated recursive purge that operates
 only on the configured project/database after owner confirmation. No backup or PITR is enabled; data
 is synthetic and seedable, and purge is intentionally unrecoverable.
@@ -177,6 +187,11 @@ The existing art direction remains. The phase adds signing-in/loading, signed-in
 session-expired and retry states; success focus/next-pending flow; `aria-pressed` filters; run-card
 accessible names; quieter polling announcements; chart focus inside its explanatory frame;
 disclosure markers; and documented keyboard shortcuts. Desktop and 390 px remain required.
+
+Hosted mode is recorded-only, so the intake form's default lead must use a vehicle and ZIP present in
+the recorded fixtures; the current 2021 Subaru Outback default has no recording and would show as
+unavailable. Hosted demo data is entered through the authenticated interface with recorded subjects;
+no cloud seeding script or IAP bypass is added.
 
 The README and diagrams distinguish local and private-cloud boundaries and do not claim production,
 live-cloud enrichment or intake parity. `docs/walkthrough.md` scripts a roughly two-minute captioned

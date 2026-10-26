@@ -82,9 +82,10 @@ walkthrough.
 - **Infrastructure:** one private Cloud Run service, one Artifact Registry repository, one Firestore
   Standard database, direct IAP, Cloud Build, IAM/service-usage controls, default platform logs and
   metrics, the existing Cloud Run spend cap, and a project-wide alert budget. Creation remains gated.
-- **Dependencies:** the final design prefers existing Firebase Admin and Google authentication
-  transitive support; any new direct dependency must be exact-pinned, justified, and recorded before
-  installation.
+- **Dependencies:** `google-auth-library` becomes an exact-pinned direct dependency for IAP
+  assertion verification (already in the lockfile through `firebase-admin`, but pnpm forbids
+  undeclared imports). Any other new direct dependency must be exact-pinned, justified, and recorded
+  before installation.
 - **Public artifacts:** PROJECT, AI_OPS, HANDOFF, README, architecture diagrams, deployment templates,
   sanitized evidence, and walkthrough text/stills. Private project, identity, audience, IAM, billing,
   token, cookie, and service-URL values never enter public artifacts.

@@ -9,6 +9,10 @@ configuration containing `allUsers` or `allAuthenticatedUsers`.
 - **WHEN** a browser without a valid IAP session requests any application or API route
 - **THEN** IAP denies or redirects the request before application state is returned
 
+#### Scenario: IAP is enabled for the first time
+- **WHEN** the project has no Google Cloud organization and IAP has never been enabled in it
+- **THEN** the runbook enables IAP once from the Cloud Run console, because the OAuth client cannot be created programmatically, and later releases use the scripted path
+
 #### Scenario: Public principal is detected
 - **WHEN** candidate IAM evidence includes `allUsers` or `allAuthenticatedUsers`
 - **THEN** the deployment gate fails and the service is not approved for demonstration
@@ -16,7 +20,9 @@ configuration containing `allUsers` or `allAuthenticatedUsers`.
 ### Requirement: Signed assertion and subject authorization
 The application SHALL validate the IAP assertion signature, issuer, audience, timestamps and stable
 subject for every hosted request and SHALL authorize only subjects in a private exact allowlist;
-unsigned headers, email addresses and display names SHALL NOT grant authority.
+unsigned headers, email addresses and display names SHALL NOT grant authority. Verification SHALL use
+an exact-pinned direct dependency recorded in the Phase 3 dependency record (for example
+`google-auth-library`'s IAP public-key verification), never an undeclared transitive import.
 
 #### Scenario: Allowed owner request arrives
 - **WHEN** the request carries a current correctly signed assertion for the configured audience and an allowlisted stable subject

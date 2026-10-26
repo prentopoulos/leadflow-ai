@@ -17,8 +17,10 @@ emulator export or private deployment value.
 ### Requirement: Regional Firestore with bounded retention
 The hosted application SHALL use the default Firestore Standard Native database in
 `northamerica-northeast2`, SHALL stamp every retained application and subcollection document with a
-seven-day `expiresAt`, and SHALL provide an exact-project/database guarded recursive purge; backup
-and PITR SHALL remain disabled.
+seven-day `expiresAt` stored as a Firestore timestamp ("Date and time"), not the text timestamps the
+domain records use, SHALL define one TTL policy per collection group (top-level collections and each
+subcollection group) with the TTL field exempt from single-field indexing, and SHALL provide an
+exact-project/database guarded recursive purge; backup and PITR SHALL remain disabled.
 
 #### Scenario: Database plan differs
 - **WHEN** the target database edition, mode, ID or location differs from the accepted values
@@ -26,7 +28,11 @@ and PITR SHALL remain disabled.
 
 #### Scenario: Retained document is written
 - **WHEN** hosted runtime stores a lead, run, event, checkpoint, evidence, draft, review, result or related subcollection document
-- **THEN** it carries a valid expiry under the accepted policy without changing domain evidence or event time
+- **THEN** it carries a timestamp-typed expiry under the accepted policy without changing domain evidence or event time
+
+#### Scenario: Expiry field has the wrong type
+- **WHEN** a hosted document would store `expiresAt` as text, null or any non-timestamp value
+- **THEN** the write is rejected by the deterministic TTL check, because Firestore TTL silently ignores non-timestamp values
 
 #### Scenario: Purge guard does not match
 - **WHEN** the configured project/database, explicit confirmation or authenticated operator is absent or different
