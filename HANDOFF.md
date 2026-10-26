@@ -7,19 +7,23 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Branch `phase-2-enrichment-outreach-dashboard`, OpenSpec change
 `phase-2-enrichment-outreach-dashboard`. Decisions are in PROJECT.md "Phase 2 decisions".
 
-- Done and committed: 1.1 contracts and UI dependencies, 2.1 live enrichment adapters plus the
+- Done in task commits: 1.1 contracts and UI dependencies, 2.1 live enrichment adapters plus the
   authorized probe (18 of 18 answered; fixtures in `packages/runtime/fixtures/`), 3.1 composer,
-  verification rules, reviews and the no-send governance check.
-- In progress, uncommitted in the working tree: task 4.1. Done so far: the seven-node graph in
-  `packages/runtime/src/workflow.ts` (enrich, compose, verify nodes), `executor.ts`,
-  `QualificationResumeService.begin()`, a 202 resume route, `LEADFLOW_ENRICHMENT_MODE` and
-  `LEADFLOW_WEB_ORIGIN` config, API composition with transport, executor and drafts, and run detail
-  returning Phase 2 records. Not yet typechecked or tested.
-- Next step: run `tsc -p tsconfig.check.json`, then update callers that now need `enrichment`,
-  `events` and `emailContactConsent` (workflow.test.ts, resume.test.ts, run-detail.test.ts, API
-  tests and `scripts/verify-runtime-firestore.mjs`), set `LEADFLOW_ENRICHMENT_MODE` in
-  `scripts/run-local-api.mjs` and the smokes, add crash-during-enrichment reclaim coverage, then
-  commit 4.1 and continue with tasks 5.1–9.1.
+  verification rules, reviews and the no-send governance check, and 4.1's seven-node workflow and
+  asynchronous execution boundary.
+- Task 4.1 includes the seven-node `phase-2-graph-v1`, Phase 2 linked
+  records and failure semantics, the deduplicating in-process executor, durable 202 resume,
+  graceful executor drain, Phase 2 run detail, explicit enrichment mode/origin configuration, and
+  crash-during-enrichment reclaim with fresh linked evidence while earlier evidence remains stored
+  as superseded history.
+- Task 4.1 checks passed: strict TypeScript; ESLint on affected files; runtime 28 files/192 tests;
+  API 10 files/78 tests; affected formatting and `git diff --check`; and the direct isolated
+  Firestore verifier against the already-running project emulator (built API, workflow recovery,
+  asynchronous resume and verified flush). The wrapper first retained a port-8080 collision, and
+  the first direct probe exposed stale Phase 1 revision assertions before the corrected probe passed.
+- Next step: implement task 5.1 — Host/Origin allowlisting; leads, metrics, revision and review
+  routes; Phase 2 readiness/run detail; and the expanded built-API emulator smoke — then continue
+  tasks 6.1–9.1.
 - Capture leaf-check output with `cmd /c "node node_modules\...> file 2>&1"` (docs/development.md).
 
 ## Phase 1 record

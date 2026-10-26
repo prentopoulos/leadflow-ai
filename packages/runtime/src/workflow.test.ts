@@ -1,5 +1,10 @@
 import type { DocumentData } from 'firebase-admin/firestore';
 import { MemorySaver } from '@langchain/langgraph';
+import {
+  currentConsentRecord,
+  deriveRevisionStates,
+  type IntakeSubmission,
+} from '@leadflow-ai/domain';
 import { describe, expect, it } from 'vitest';
 import type {
   FirestoreAtomicStore,
@@ -15,6 +20,11 @@ import {
 } from './interpreter.js';
 import { LifecyclePersistenceService } from './lifecycle.js';
 import { createFirestoreRepositories } from './repositories.js';
+import {
+  EnrichmentTimeoutError,
+  type EnrichmentTransport,
+} from './enrichment.js';
+import type { RunEventReader } from './run-detail.js';
 import {
   QUALIFICATION_GRAPH_NODES,
   compileQualificationWorkflow,
@@ -104,6 +114,64 @@ class WorkflowMemoryStore
   }
 }
 
+const enrichmentTransport: EnrichmentTransport = {
+  mode: 'mock',
+  async get(url) {
+    if (url.host === 'vpic.nhtsa.dot.gov') {
+      return {
+        status: 200,
+        body: JSON.stringify({
+          Count: 1,
+          Results: [{ Make_Name: 'Example Motors', Model_Name: 'Demo One' }],
+        }),
+        capturedAt: null,
+      };
+    }
+    return {
+      status: 200,
+      body: JSON.stringify({
+        'post code': '10001',
+        places: [
+          {
+            'place name': 'New York City',
+            state: 'New York',
+            'state abbreviation': 'NY',
+          },
+        ],
+      }),
+      capturedAt: null,
+    };
+  },
+};
+
+class MemoryRunEventReader implements RunEventReader {
+  constructor(private readonly store: WorkflowMemoryStore) {}
+
+  async list(runId: string, limit: number): Promise<unknown[]> {
+    return [...this.store.documents.entries()]
+      .filter(([path]) => path.startsWith(`runs/${runId}/events/`))
+      .map(([, value]) => structuredClone(value))
+      .sort(
+        (left, right) =>
+          (left as { sequence: number }).sequence -
+          (right as { sequence: number }).sequence,
+      )
+      .slice(0, limit);
+  }
+}
+
+function phaseTwoDependencies(store: WorkflowMemoryStore) {
+  return {
+    enrichment: {
+      transport: enrichmentTransport,
+      sleep: async () => undefined,
+      random: () => 0,
+    },
+    events: new MemoryRunEventReader(store),
+    idFactory: deterministicIds(200),
+  };
+}
+
 function deterministicIds(start = 0) {
   let sequence = start;
   return () => {
@@ -186,6 +254,7 @@ async function executeInjectedWorkflow(
     repositories,
     checkpointer: new MemorySaver(),
     now: clock,
+    ...phaseTwoDependencies(store),
   });
   const output = await graph.invoke(
     initialQualificationGraphState({
@@ -196,6 +265,7 @@ async function executeInjectedWorkflow(
       systemBundleId: bundleId,
       runRevision: claimed.run.revision,
       projection: qualificationProjectionFromLead(lead),
+      emailContactConsent: lead.intake.emailContactConsent,
     }),
     { configurable: { thread_id: initial.runId } },
   );
@@ -260,6 +330,7 @@ async function executeAmbiguousResultWrite(
     repositories,
     checkpointer: new MemorySaver(),
     now: clock,
+    ...phaseTwoDependencies(store),
   });
   const output = await graph.invoke(
     initialQualificationGraphState({
@@ -270,6 +341,7 @@ async function executeAmbiguousResultWrite(
       systemBundleId: bundleId,
       runRevision: claimed.run.revision,
       projection: qualificationProjectionFromLead(lead),
+      emailContactConsent: lead.intake.emailContactConsent,
     }),
     { configurable: { thread_id: initial.runId } },
   );
@@ -283,8 +355,85 @@ async function executeAmbiguousResultWrite(
   };
 }
 
+async function executeSuccessfulWorkflow(
+  submittedIntake: IntakeSubmission,
+  transport: EnrichmentTransport = enrichmentTransport,
+) {
+  const store = new WorkflowMemoryStore();
+  const repositories = createFirestoreRepositories(store);
+  const persisted = await new IntakePersistenceService({
+    atomicStore: store,
+    repositories,
+    idFactory: deterministicIds(),
+    now: () => '2026-10-25T00:19:00.000Z',
+  }).persist({
+    idempotencyKey: `workflow-success-${submittedIntake.givenName}`,
+    intake: submittedIntake,
+    systemBundleId: bundleId,
+    traceId,
+    requestId,
+  });
+  const clock = tickingClock();
+  const lifecycle = new LifecyclePersistenceService({
+    atomicStore: store,
+    repositories,
+    idFactory: deterministicIds(100),
+    now: clock,
+  });
+  const claimed = await lifecycle.claim({
+    runId: persisted.runId,
+    expectedRevision: 0,
+    ownerId: 'workflow-worker',
+    leaseDurationMs: 300_000,
+    traceId,
+    requestId,
+    authorization: 'not_applicable',
+  });
+  const lead = await repositories.leads.get(persisted.leadId);
+  if (lead === null) throw new Error('lead fixture missing');
+  const graph = compileQualificationWorkflow({
+    interpreter: new DeterministicQualificationInterpreter(clock),
+    lifecycle,
+    repositories,
+    checkpointer: new MemorySaver(),
+    now: clock,
+    ...phaseTwoDependencies(store),
+    enrichment: {
+      transport,
+      sleep: async () => undefined,
+      random: () => 0,
+    },
+  });
+  const output = await graph.invoke(
+    initialQualificationGraphState({
+      runId: persisted.runId,
+      leadId: persisted.leadId,
+      traceId,
+      requestId,
+      systemBundleId: bundleId,
+      runRevision: claimed.run.revision,
+      projection: qualificationProjectionFromLead(lead),
+      emailContactConsent: lead.intake.emailContactConsent,
+    }),
+    { configurable: { thread_id: persisted.runId } },
+  );
+  const run = await repositories.runs.get(persisted.runId);
+  if (run === null) throw new Error('run fixture missing');
+  const revision =
+    run.draftId === null
+      ? null
+      : ([...store.documents.entries()].find(([path]) =>
+          path.startsWith(`outreachDrafts/${run.draftId}/revisions/`),
+        )?.[1] ?? null);
+  const verification =
+    run.verificationResultId === null
+      ? null
+      : await repositories.verificationResults.get(run.verificationResultId);
+  return { output, run, revision, verification };
+}
+
 describe('phase-2-graph-v1', () => {
-  it('executes the fixed four nodes with durable ordered events and checkpoints', async () => {
+  it('executes the fixed seven nodes with durable ordered events and checkpoints', async () => {
     const store = new WorkflowMemoryStore();
     const repositories = createFirestoreRepositories(store);
     const initial = await new IntakePersistenceService({
@@ -324,6 +473,7 @@ describe('phase-2-graph-v1', () => {
       repositories,
       checkpointer,
       now: lifecycleClock,
+      ...phaseTwoDependencies(store),
     });
     const graphConfig = {
       configurable: {
@@ -339,6 +489,7 @@ describe('phase-2-graph-v1', () => {
         systemBundleId: bundleId,
         runRevision: claimed.run.revision,
         projection: qualificationProjectionFromLead(lead),
+        emailContactConsent: lead.intake.emailContactConsent,
       }),
       graphConfig,
     );
@@ -347,7 +498,7 @@ describe('phase-2-graph-v1', () => {
       schemaVersion: 'phase-2-graph-state-v1',
       runId: initial.runId,
       leadId: initial.leadId,
-      runRevision: 9,
+      runRevision: 20,
       finalized: true,
       interpretation: {
         interpreterVersion: 'deterministic-interpreter-v1',
@@ -365,12 +516,15 @@ describe('phase-2-graph-v1', () => {
     const finalRun = await repositories.runs.get(initial.runId);
     expect(finalRun).toMatchObject({
       status: 'complete',
-      revision: 9,
-      nextEventSequence: 11,
+      revision: 20,
+      nextEventSequence: 22,
       currentStep: null,
       completedSteps: [
         'interpret_qualification',
         'score_qualification',
+        'enrich_lead',
+        'compose_draft',
+        'verify_outputs',
         'simulate_outcome',
         'finalize_run',
       ],
@@ -394,9 +548,9 @@ describe('phase-2-graph-v1', () => {
           event as { sequence: number; name: string; step: string | null },
       )
       .sort((left, right) => left.sequence - right.sequence);
-    expect(events.map(({ sequence }) => sequence)).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-    ]);
+    expect(events.map(({ sequence }) => sequence)).toEqual(
+      Array.from({ length: 21 }, (_, index) => index + 1),
+    );
     expect(
       events
         .filter(({ name }) => name === 'step.started')
@@ -404,6 +558,9 @@ describe('phase-2-graph-v1', () => {
     ).toEqual([
       'interpret_qualification',
       'score_qualification',
+      'enrich_lead',
+      'compose_draft',
+      'verify_outputs',
       'simulate_outcome',
       'finalize_run',
     ]);
@@ -421,7 +578,7 @@ describe('phase-2-graph-v1', () => {
     );
     expect(checkpoints[0]?.checkpoint.channel_values).toMatchObject({
       finalized: true,
-      runRevision: 9,
+      runRevision: 20,
     });
   });
 
@@ -432,11 +589,11 @@ describe('phase-2-graph-v1', () => {
 
       expect(result.output).toMatchObject({
         finalized: true,
-        runRevision: 9,
+        runRevision: 20,
       });
       expect(result.run).toMatchObject({
         status: 'complete',
-        revision: 9,
+        revision: 20,
       });
       expect(result.resultPaths).toHaveLength(1);
       expect(result.resultCreates).toHaveLength(1);
@@ -456,12 +613,12 @@ describe('phase-2-graph-v1', () => {
     expect(result.output).toMatchObject({
       finalized: true,
       safeError: null,
-      runRevision: 12,
+      runRevision: 23,
     });
     expect(result.run).toMatchObject({
       status: 'complete',
-      revision: 12,
-      nextEventSequence: 14,
+      revision: 23,
+      nextEventSequence: 25,
       attempt: 2,
       retryCount: 1,
       safeError: null,
@@ -475,6 +632,17 @@ describe('phase-2-graph-v1', () => {
       'step.started',
       'step.completed',
       'step.started',
+      'step.completed',
+      'step.started',
+      'enrichment.lookup_completed',
+      'enrichment.lookup_completed',
+      'email_check.completed',
+      'step.completed',
+      'step.started',
+      'draft.skipped',
+      'step.completed',
+      'step.started',
+      'verification.completed',
       'step.completed',
       'step.started',
       'simulation.completed',
@@ -491,6 +659,87 @@ describe('phase-2-graph-v1', () => {
       { attempt: 2, retryCount: 1 },
       { attempt: 2, retryCount: 1 },
     ]);
+  });
+
+  it('creates a verified pending draft only when consent is recorded', async () => {
+    const result = await executeSuccessfulWorkflow({
+      ...intake,
+      emailContactConsent: true,
+      consentRecord: currentConsentRecord(),
+    });
+
+    expect(result.run).toMatchObject({
+      status: 'complete',
+      draftSkipReason: null,
+      holds: [],
+    });
+    expect(result.revision).toMatchObject({ origin: 'template' });
+    expect(result.verification).toMatchObject({
+      integrityPassed: true,
+      draftPassed: true,
+    });
+    expect(
+      deriveRevisionStates({
+        revisions: [result.revision as never],
+        reviews: [],
+        verifications: new Map([
+          [
+            result.verification?.verificationResultId ?? '',
+            result.verification as never,
+          ],
+        ]),
+      }).get((result.revision as { revisionId: string }).revisionId),
+    ).toBe('pending_review');
+  });
+
+  it('stores a verification-blocked draft outside the approval queue', async () => {
+    const result = await executeSuccessfulWorkflow({
+      ...intake,
+      givenName: 'Quote',
+      email: 'quote@example.com',
+      emailContactConsent: true,
+      consentRecord: currentConsentRecord(),
+    });
+
+    expect(result.run).toMatchObject({
+      status: 'complete',
+      holds: ['draft_verification_blocked'],
+    });
+    expect(result.verification).toMatchObject({
+      integrityPassed: true,
+      draftPassed: false,
+    });
+    expect(
+      deriveRevisionStates({
+        revisions: [result.revision as never],
+        reviews: [],
+        verifications: new Map([
+          [
+            result.verification?.verificationResultId ?? '',
+            result.verification as never,
+          ],
+        ]),
+      }).get((result.revision as { revisionId: string }).revisionId),
+    ).toBe('verification_blocked');
+  });
+
+  it('finishes with partial evidence when one source is unavailable', async () => {
+    const result = await executeSuccessfulWorkflow(intake, {
+      mode: 'mock',
+      async get(url) {
+        if (url.host === 'api.zippopotam.us') {
+          throw new EnrichmentTimeoutError();
+        }
+        return enrichmentTransport.get(url, 5_000);
+      },
+    });
+
+    expect(result.output.finalized).toBe(true);
+    expect(result.run).toMatchObject({
+      status: 'complete',
+      evidenceCompleteness: 'partial',
+      holds: [],
+    });
   });
 
   it('ends retryable after two transient failures without a third attempt', async () => {

@@ -15,9 +15,11 @@ const environment = {
   ...process.env,
   GCLOUD_PROJECT: 'demo-leadflow-ai-local',
   FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080',
+  LEADFLOW_ENRICHMENT_MODE: 'live',
+  LEADFLOW_WEB_ORIGIN: 'http://127.0.0.1:5173',
 };
 
-const bundle = await createSystemBundle();
+const bundle = await createSystemBundle({ enrichmentMode: 'live' });
 const boundary = createEmulatorFirestoreBoundary(environment);
 try {
   const repositories = createFirestoreRepositories(boundary.database);

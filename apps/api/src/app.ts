@@ -32,6 +32,7 @@ export interface CreateAppOptions {
   runs?: RunRouteDependencies;
   resume?: ResumeRouteDependencies;
   reset?: ResetRouteDependencies;
+  executor?: { idle(): Promise<void> };
   requestIdFactory?: RequestIdFactory;
 }
 
@@ -78,7 +79,10 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
   });
 
   if (phaseOne.status === 'ready') {
-    app.addHook('onClose', async () => phaseOne.firestore.close());
+    app.addHook('onClose', async () => {
+      await options.executor?.idle();
+      await phaseOne.firestore.close();
+    });
   }
 
   app.get(

@@ -140,6 +140,8 @@ function readyStartup(): PhaseOneStartup {
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
       localResetEnabled: false,
+      enrichmentMode: 'recorded',
+      webOrigin: 'http://127.0.0.1:5173',
     },
     firestore: {
       app: {} as never,

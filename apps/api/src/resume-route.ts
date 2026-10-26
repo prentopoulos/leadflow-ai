@@ -27,8 +27,10 @@ const ResumeBodySchema = z
 const RequestIdSchema = z.string().uuid();
 
 export interface ResumeRouteDependencies {
-  resume: Pick<QualificationResumeService, 'resume'>;
+  resume: Pick<QualificationResumeService, 'begin'>;
   details: Pick<RunDetailService, 'get'>;
+  // Runs the committed continuation in the background executor.
+  schedule: (runId: string, continuation: () => Promise<unknown>) => void;
 }
 
 function error(
@@ -78,6 +80,7 @@ export function registerResumeRoute(
         body: ResumeBodySchema,
         response: {
           200: ResumeResponseSchema,
+          202: ResumeResponseSchema,
           400: ErrorResponseSchema,
           404: ErrorResponseSchema,
           409: ErrorResponseSchema,
@@ -106,7 +109,7 @@ export function registerResumeRoute(
       const requestId = RequestIdSchema.parse(requestIdFactory());
       const traceId = RequestIdSchema.parse(requestIdFactory());
       try {
-        await dependencies.resume.resume({
+        const started = await dependencies.resume.begin({
           runId,
           expectedRevision,
           ownerId: `api:${requestId}`,
@@ -115,7 +118,18 @@ export function registerResumeRoute(
           requestId,
           authorization: 'allowed',
         });
-        return responseFromDetail(await dependencies.details.get(runId), false);
+        // The resume request is durable; the workflow continues in the
+        // background and its progress is read from stored run state.
+        dependencies.schedule(runId, started.continuation);
+        return reply.code(202).send(
+          ResumeResponseSchema.parse({
+            schemaVersion: 'resume-response-v1',
+            runId,
+            revision: started.run.revision,
+            status: started.run.status,
+            replayed: false,
+          }),
+        );
       } catch (cause) {
         if (cause instanceof RunRevisionConflictError) {
           try {

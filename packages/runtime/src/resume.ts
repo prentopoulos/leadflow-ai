@@ -60,6 +60,14 @@ export interface QualificationResumeResult {
   state: QualificationGraphState;
 }
 
+// The durable half of a resume: the request is committed and the workflow is
+// ready to continue, so a caller can answer 202 and run it in the background.
+export interface QualificationResumeStart {
+  resumedFrom: QualificationResumeResult['resumedFrom'];
+  run: RunDocument;
+  continuation: () => Promise<QualificationGraphState>;
+}
+
 function graphConfig(run: RunDocument): RunnableConfig {
   return {
     configurable: {
@@ -79,6 +87,16 @@ export class QualificationResumeService {
   async resume(
     request: QualificationResumeRequest,
   ): Promise<QualificationResumeResult> {
+    const started = await this.begin(request);
+    return {
+      resumedFrom: started.resumedFrom,
+      state: await started.continuation(),
+    };
+  }
+
+  async begin(
+    request: QualificationResumeRequest,
+  ): Promise<QualificationResumeStart> {
     const run = await this.dependencies.repositories.runs.get(request.runId);
     if (run === null) throw new RunNotFoundError();
     if (run.revision !== request.expectedRevision) {
@@ -119,7 +137,9 @@ export class QualificationResumeService {
         : run.status === 'persisted'
           ? 'persisted'
           : 'checkpoint',
-      state: await this.dependencies.workflow.invoke(state, graphConfig(run)),
+      run: resumed.run,
+      continuation: () =>
+        this.dependencies.workflow.invoke(state, graphConfig(run)),
     };
   }
 
@@ -139,6 +159,7 @@ export class QualificationResumeService {
       systemBundleId: run.systemBundleId,
       runRevision: run.revision,
       projection: qualificationProjectionFromLead(lead),
+      emailContactConsent: lead.intake.emailContactConsent,
     });
   }
 

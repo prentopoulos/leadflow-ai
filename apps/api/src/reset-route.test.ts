@@ -23,6 +23,8 @@ function startup(localResetEnabled: boolean): PhaseOneStartup {
       projectId: LEADFLOW_LOCAL_PROJECT_ID,
       firestoreHost: '127.0.0.1:8080',
       localResetEnabled,
+      enrichmentMode: 'recorded',
+      webOrigin: 'http://127.0.0.1:5173',
     },
     firestore: {
       app: {} as never,

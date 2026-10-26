@@ -3,6 +3,7 @@ export const runtimePackageVersion = '0.0.0' as const;
 export * from './checkpointer.js';
 export * from './drafts.js';
 export * from './enrichment.js';
+export * from './executor.js';
 export * from './firestore.js';
 export * from './intake.js';
 export * from './interpreter.js';

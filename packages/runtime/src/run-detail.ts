@@ -3,6 +3,7 @@ import {
   RunDetailResponseSchema,
   type LifecycleEvent,
   type RunDocument,
+  type DraftView,
   type RunDetailResponse,
 } from '@leadflow-ai/domain';
 import type { Firestore } from 'firebase-admin/firestore';
@@ -52,6 +53,10 @@ export class AdminRunEventReader implements RunEventReader {
 export interface RunDetailDependencies {
   repositories: FirestoreRepositories;
   events: RunEventReader;
+  // Builds the draft view; absent only for callers that never read drafts.
+  drafts?: {
+    history(draftId: string): Promise<{ view: DraftView } | null>;
+  };
   now?: () => string;
 }
 
@@ -145,6 +150,7 @@ export class RunDetailService {
         'Completed run results are incomplete.',
       );
     }
+    const phaseTwo = await this.phaseTwoRecords(run);
     const confirmedRun = await this.dependencies.repositories.runs.get(runId);
     if (confirmedRun === null || !isDeepStrictEqual(confirmedRun, run)) {
       throw new RunDetailSnapshotUnavailableError();
@@ -156,20 +162,103 @@ export class RunDetailService {
       run,
       events,
       qualification,
-      enrichment: [],
-      emailCheck: null,
-      draft: null,
-      verification: null,
+      ...phaseTwo,
       simulation,
       retrievedAt: this.now(),
       evidenceClass: 'synthetic-local',
     });
   }
+
+  private async phaseTwoRecords(run: RunDocument) {
+    const { repositories } = this.dependencies;
+    const [enrichment, emailCheck, verification] = await Promise.all([
+      Promise.all(
+        run.enrichmentEvidenceIds.map((id) =>
+          repositories.enrichmentEvidence.get(id),
+        ),
+      ),
+      run.emailCheckId === null
+        ? Promise.resolve(null)
+        : repositories.emailChecks.get(run.emailCheckId),
+      run.verificationResultId === null
+        ? Promise.resolve(null)
+        : repositories.verificationResults.get(run.verificationResultId),
+    ]);
+    if (
+      enrichment.some(
+        (record) =>
+          record === null ||
+          record.runId !== run.runId ||
+          record.leadId !== run.leadId,
+      )
+    ) {
+      throw new RunDetailIntegrityError(
+        'Linked enrichment evidence is incompatible.',
+      );
+    }
+    if (
+      (run.emailCheckId !== null &&
+        (emailCheck?.runId !== run.runId ||
+          emailCheck.leadId !== run.leadId)) ||
+      (run.verificationResultId !== null &&
+        (verification?.runId !== run.runId ||
+          verification.leadId !== run.leadId))
+    ) {
+      throw new RunDetailIntegrityError(
+        'Linked Phase 2 records are incompatible.',
+      );
+    }
+    if (run.status === 'complete' && verification === null) {
+      throw new RunDetailIntegrityError(
+        'A completed run lacks its verification.',
+      );
+    }
+    let draft: DraftView | null = null;
+    if (run.draftId !== null) {
+      const history = await this.dependencies.drafts?.history(run.draftId);
+      if (history === null || history === undefined) {
+        throw new RunDetailIntegrityError('The linked draft is unavailable.');
+      }
+      if (
+        history.view.revisions.length === 0 ||
+        history.view.revisions.some(
+          ({ revision, verification: draftVerification }) =>
+            revision.draftId !== run.draftId ||
+            revision.runId !== run.runId ||
+            revision.leadId !== run.leadId ||
+            draftVerification.runId !== run.runId ||
+            draftVerification.leadId !== run.leadId ||
+            draftVerification.revisionId !== revision.revisionId,
+        ) ||
+        history.view.reviews.some(
+          (review) =>
+            review.draftId !== run.draftId ||
+            review.runId !== run.runId ||
+            review.leadId !== run.leadId,
+        )
+      ) {
+        throw new RunDetailIntegrityError(
+          'The linked draft history is incompatible.',
+        );
+      }
+      draft = history.view;
+    }
+    return {
+      enrichment: enrichment.filter((record) => record !== null),
+      emailCheck,
+      draft,
+      verification,
+    };
+  }
 }
 
-export function createRunDetailService(database: Firestore): RunDetailService {
+export function createRunDetailService(
+  database: Firestore,
+  drafts?: RunDetailDependencies['drafts'],
+): RunDetailService {
   return new RunDetailService({
     repositories: createFirestoreRepositories(database),
     events: new AdminRunEventReader(database),
+    ...(drafts === undefined ? {} : { drafts }),
   });
 }

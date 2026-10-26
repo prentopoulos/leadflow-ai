@@ -12,7 +12,7 @@
 
 ## 4. Verification, graph and execution
 
-- [ ] 4.1 Implement the eight verification rules and their failure semantics, extend the graph to `phase-2-graph-v1` (interpret → score → enrich → draft → verify → simulate → finalize) with Phase 2 events and linked records, move execution to the in-process background executor, make resume return 202, and cover crash-during-enrichment reclaim with superseded evidence.
+- [x] 4.1 Implement the eight verification rules and their failure semantics, extend the graph to `phase-2-graph-v1` (interpret → score → enrich → draft → verify → simulate → finalize) with Phase 2 events and linked records, move execution to the in-process background executor, make resume return 202, and cover crash-during-enrichment reclaim with superseded evidence.
 
 ## 5. API boundaries
 

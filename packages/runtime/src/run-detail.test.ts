@@ -1,6 +1,11 @@
 import type { DocumentData } from 'firebase-admin/firestore';
 import { describe, expect, it } from 'vitest';
-import { scoreQualification, simulateOutcome } from '@leadflow-ai/domain';
+import {
+  scoreQualification,
+  simulateOutcome,
+  verifyOutputs,
+  LifecycleEventSchema,
+} from '@leadflow-ai/domain';
 import type { FirestoreDocumentStore } from './firestore.js';
 import { createFirestoreRepositories } from './repositories.js';
 import {
@@ -223,17 +228,34 @@ describe('stored run detail', () => {
       runId: ids.run,
       generatedAt: timestamp,
     });
+    const verification = verifyOutputs({
+      verificationResultId: ids.run,
+      runId: ids.run,
+      leadId: ids.lead,
+      verifiedAt: timestamp,
+      intake: lead.intake,
+      priority: qualification.priority,
+      evidence: [],
+      sha256: () => 'a'.repeat(64),
+      events: [LifecycleEventSchema.parse(event())],
+      draft: null,
+      scope: 'run',
+    });
     const completedRun = run({
       status: 'complete',
       revision: 1,
       completedSteps: [
         'interpret_qualification',
         'score_qualification',
+        'enrich_lead',
+        'compose_draft',
+        'verify_outputs',
         'simulate_outcome',
         'finalize_run',
       ],
       qualificationResultId: qualification.resultId,
       simulationRecordId: simulation.simulationRecordId,
+      verificationResultId: verification.verificationResultId,
     });
     const { repositories, service } = await fixture(completedRun, [
       event({
@@ -245,6 +267,7 @@ describe('stored run detail', () => {
     ]);
     await repositories.qualificationResults.create(qualification);
     await repositories.simulationRecords.create(simulation);
+    await repositories.verificationResults.create(verification);
 
     const response = await service.get(ids.run);
 

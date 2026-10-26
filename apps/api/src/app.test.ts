@@ -34,12 +34,16 @@ describe('API skeleton', () => {
         GCLOUD_PROJECT: 'demo-leadflow-ai-local',
         FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080',
         LEADFLOW_LOCAL_RESET_ENABLED: 'false',
+        LEADFLOW_ENRICHMENT_MODE: 'recorded',
+        LEADFLOW_WEB_ORIGIN: 'http://127.0.0.1:5173',
       }),
     ).toEqual({
       configurationVersion: 'phase-2-local-v1',
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
       localResetEnabled: false,
+      enrichmentMode: 'recorded',
+      webOrigin: 'http://127.0.0.1:5173',
     });
   });
 
@@ -78,6 +82,7 @@ describe('API skeleton', () => {
       {
         GCLOUD_PROJECT: 'demo-leadflow-ai-local',
         FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080',
+        LEADFLOW_ENRICHMENT_MODE: 'recorded',
       },
       (environment) => {
         boundaryEnvironment = environment;

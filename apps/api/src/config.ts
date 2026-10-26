@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { LEADFLOW_LOCAL_PROJECT_ID } from '@leadflow-ai/domain';
+import {
+  EnrichmentModeSchema,
+  LEADFLOW_LOCAL_PROJECT_ID,
+} from '@leadflow-ai/domain';
 import { LEADFLOW_FIRESTORE_EMULATOR_HOST } from '@leadflow-ai/runtime';
 
 const ServerConfigSchema = z.object({
@@ -18,6 +21,14 @@ const PhaseOneConfigSchema = z
       .enum(['true', 'false'])
       .default('false')
       .transform((value) => value === 'true'),
+    // Required with no default: the evidence class of every lookup must be
+    // an explicit operator choice (live, recorded or mock).
+    enrichmentMode: EnrichmentModeSchema,
+    // The only browser origin allowed to send state-changing requests.
+    webOrigin: z
+      .string()
+      .regex(/^http:\/\/(?:127\.0\.0\.1|localhost):\d{2,5}$/u)
+      .default('http://127.0.0.1:5173'),
   })
   .strict();
 
@@ -40,5 +51,7 @@ export function loadPhaseOneConfig(
     projectId: environment.GCLOUD_PROJECT,
     firestoreHost: environment.FIRESTORE_EMULATOR_HOST,
     localResetEnabled: environment.LEADFLOW_LOCAL_RESET_ENABLED,
+    enrichmentMode: environment.LEADFLOW_ENRICHMENT_MODE,
+    webOrigin: environment.LEADFLOW_WEB_ORIGIN,
   });
 }

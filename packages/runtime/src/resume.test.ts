@@ -16,6 +16,12 @@ import {
 import { LifecyclePersistenceService } from './lifecycle.js';
 import { createFirestoreRepositories } from './repositories.js';
 import {
+  lookupVehicle,
+  lookupZip,
+  type EnrichmentTransport,
+} from './enrichment.js';
+import type { RunEventReader } from './run-detail.js';
+import {
   CheckpointIncompatibleError,
   CheckpointMissingError,
   QualificationResumeService,
@@ -95,6 +101,64 @@ class ResumeMemoryStore
       release();
     }
   }
+}
+
+const enrichmentTransport: EnrichmentTransport = {
+  mode: 'mock',
+  async get(url) {
+    if (url.host === 'vpic.nhtsa.dot.gov') {
+      return {
+        status: 200,
+        body: JSON.stringify({
+          Count: 1,
+          Results: [{ Make_Name: 'Example Motors', Model_Name: 'Demo One' }],
+        }),
+        capturedAt: null,
+      };
+    }
+    return {
+      status: 200,
+      body: JSON.stringify({
+        'post code': '10001',
+        places: [
+          {
+            'place name': 'New York City',
+            state: 'New York',
+            'state abbreviation': 'NY',
+          },
+        ],
+      }),
+      capturedAt: null,
+    };
+  },
+};
+
+class MemoryRunEventReader implements RunEventReader {
+  constructor(private readonly store: ResumeMemoryStore) {}
+
+  async list(runId: string, limit: number): Promise<unknown[]> {
+    return [...this.store.documents.entries()]
+      .filter(([path]) => path.startsWith(`runs/${runId}/events/`))
+      .map(([, value]) => structuredClone(value))
+      .sort(
+        (left, right) =>
+          (left as { sequence: number }).sequence -
+          (right as { sequence: number }).sequence,
+      )
+      .slice(0, limit);
+  }
+}
+
+function phaseTwoDependencies(store: ResumeMemoryStore) {
+  return {
+    enrichment: {
+      transport: enrichmentTransport,
+      sleep: async () => undefined,
+      random: () => 0,
+    },
+    events: new MemoryRunEventReader(store),
+    idFactory: deterministicIds(200),
+  };
 }
 
 function deterministicIds(start = 0) {
@@ -189,6 +253,7 @@ async function failRetryably(base: Awaited<ReturnType<typeof fixture>>) {
     repositories: base.repositories,
     checkpointer: saver,
     now: base.clock,
+    ...phaseTwoDependencies(base.store),
   });
   const config = { configurable: { thread_id: base.persisted.runId } };
   await graph.invoke(
@@ -200,6 +265,7 @@ async function failRetryably(base: Awaited<ReturnType<typeof fixture>>) {
       systemBundleId: bundleId,
       runRevision: claimed.run.revision,
       projection: qualificationProjectionFromLead(base.lead),
+      emailContactConsent: base.lead.intake.emailContactConsent,
     }),
     config,
   );
@@ -220,6 +286,7 @@ function resumeService(
     repositories: base.repositories,
     checkpointer: saver,
     now: base.clock,
+    ...phaseTwoDependencies(base.store),
   });
   return new QualificationResumeService({
     repositories: base.repositories,
@@ -238,13 +305,13 @@ describe('QualificationResumeService', () => {
     );
 
     expect(result.resumedFrom).toBe('persisted');
-    expect(result.state).toMatchObject({ finalized: true, runRevision: 9 });
+    expect(result.state).toMatchObject({ finalized: true, runRevision: 20 });
     await expect(
       base.repositories.runs.get(base.persisted.runId),
     ).resolves.toMatchObject({
       status: 'complete',
-      revision: 9,
-      nextEventSequence: 11,
+      revision: 20,
+      nextEventSequence: 22,
       lease: null,
     });
     expect(events(base.store)[1]).toMatchObject({
@@ -263,13 +330,13 @@ describe('QualificationResumeService', () => {
     );
 
     expect(result.resumedFrom).toBe('checkpoint');
-    expect(result.state).toMatchObject({ finalized: true, runRevision: 16 });
+    expect(result.state).toMatchObject({ finalized: true, runRevision: 27 });
     await expect(
       base.repositories.runs.get(base.persisted.runId),
     ).resolves.toMatchObject({
       status: 'complete',
-      revision: 16,
-      nextEventSequence: 18,
+      revision: 27,
+      nextEventSequence: 29,
       attempt: 2,
       retryCount: 1,
       lease: null,
@@ -302,6 +369,70 @@ describe('QualificationResumeService', () => {
     expect(events(base.store).map((event) => event.name)).toContain(
       'run.lease_reclaimed',
     );
+  });
+
+  it('reclaims a crash during enrichment with fresh linked evidence and retained superseded records', async () => {
+    const base = await fixture();
+    const claimed = await base.lifecycle.claim({
+      ...request(base.persisted.runId, 0),
+      leaseDurationMs: 1,
+      authorization: 'not_applicable',
+    });
+    const previousVehicleId = '90000000-0000-4000-8000-000000000001';
+    const previousZipId = '90000000-0000-4000-8000-000000000002';
+    const lookupContext = (evidenceId: string) => ({
+      transport: enrichmentTransport,
+      runId: base.persisted.runId,
+      leadId: base.persisted.leadId,
+      evidenceId,
+      now: base.clock,
+      sleep: async () => undefined,
+      random: () => 0,
+    });
+    const [previousVehicle, previousZip] = await Promise.all([
+      lookupVehicle(base.lead.intake, lookupContext(previousVehicleId)),
+      lookupZip(base.lead.intake.zipCode, lookupContext(previousZipId)),
+    ]);
+    await base.repositories.enrichmentEvidence.create(previousVehicle.evidence);
+    await base.repositories.enrichmentEvidence.create(previousZip.evidence);
+
+    // The process died after evidence writes but before the run-link commit.
+    // The expired running record identifies enrichment as the interrupted step.
+    base.store.documents.set(
+      base.repositories.runs.pathFor(base.persisted.runId),
+      {
+        ...claimed.run,
+        currentStep: 'enrich_lead',
+        completedSteps: ['interpret_qualification', 'score_qualification'],
+      },
+    );
+
+    const result = await resumeService(base, new MemorySaver()).resume(
+      request(base.persisted.runId, claimed.run.revision),
+    );
+    const completed = await base.repositories.runs.get(base.persisted.runId);
+
+    expect(result.resumedFrom).toBe('lease_reclaim');
+    expect(result.state.finalized).toBe(true);
+    expect(completed).toMatchObject({
+      status: 'complete',
+      evidenceCompleteness: 'complete',
+      enrichmentMode: 'mock',
+    });
+    expect(completed?.enrichmentEvidenceIds).toHaveLength(2);
+    expect(completed?.enrichmentEvidenceIds).not.toContain(previousVehicleId);
+    expect(completed?.enrichmentEvidenceIds).not.toContain(previousZipId);
+    await expect(
+      base.repositories.enrichmentEvidence.get(previousVehicleId),
+    ).resolves.toEqual(previousVehicle.evidence);
+    await expect(
+      base.repositories.enrichmentEvidence.get(previousZipId),
+    ).resolves.toEqual(previousZip.evidence);
+    expect(
+      [...base.store.documents.keys()].filter((path) =>
+        path.startsWith('enrichmentEvidence/'),
+      ),
+    ).toHaveLength(4);
   });
 
   it('refuses to reclaim a running run whose lease is still active', async () => {
@@ -378,6 +509,7 @@ describe('QualificationResumeService', () => {
         lifecycle: base.lifecycle,
         repositories: base.repositories,
         checkpointer: failed.saver,
+        ...phaseTwoDependencies(base.store),
       }),
       now: base.clock,
     });

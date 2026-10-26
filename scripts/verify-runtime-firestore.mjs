@@ -6,7 +6,9 @@ import {
   createIntakePersistenceService,
   createLifecyclePersistenceService,
   createRunDetailService,
+  createEnrichmentTransport,
   compileQualificationWorkflow,
+  AdminRunEventReader,
   DeterministicQualificationInterpreter,
   initialQualificationGraphState,
   LOCAL_RESET_CONFIRMATION,
@@ -84,6 +86,14 @@ try {
     confirmation: LOCAL_RESET_CONFIRMATION,
   });
   const repositories = createFirestoreRepositories(boundary.database);
+  const phaseTwoWorkflowDependencies = {
+    enrichment: {
+      transport: await createEnrichmentTransport('recorded'),
+      sleep: async () => undefined,
+      random: () => 0,
+    },
+    events: new AdminRunEventReader(boundary.database),
+  };
   await repositories.systemBundles.create(bundle);
   const stored = await repositories.systemBundles.get(systemBundleId);
   if (JSON.stringify(stored) !== JSON.stringify(bundle)) {
@@ -249,6 +259,7 @@ try {
     repositories,
     checkpointer: saver,
     now: graphClock,
+    ...phaseTwoWorkflowDependencies,
   });
   const graphConfig = {
     configurable: {
@@ -265,16 +276,17 @@ try {
       systemBundleId,
       runRevision: reclaim.run.revision,
       projection: qualificationProjectionFromLead(storedLead),
+      emailContactConsent: storedLead.intake.emailContactConsent,
     }),
     graphConfig,
   );
   const completedRun = await repositories.runs.get(first.runId);
   if (
     !graphOutput.finalized ||
-    graphOutput.runRevision !== 10 ||
+    graphOutput.runRevision !== 21 ||
     completedRun?.status !== 'complete' ||
-    completedRun.revision !== 10 ||
-    completedRun.nextEventSequence !== 12 ||
+    completedRun.revision !== 21 ||
+    completedRun.nextEventSequence !== 23 ||
     (await repositories.qualificationResults.get(
       graphOutput.qualification?.resultId ?? '',
     )) === null ||
@@ -290,8 +302,8 @@ try {
     first.runId,
   );
   if (
-    storedDetail.run.revision !== 10 ||
-    storedDetail.events.length !== 11 ||
+    storedDetail.run.revision !== 21 ||
+    storedDetail.events.length !== 22 ||
     storedDetail.events.at(-1)?.name !== 'run.completed' ||
     storedDetail.qualification?.runId !== first.runId ||
     storedDetail.simulation?.runId !== first.runId ||
@@ -346,6 +358,7 @@ try {
     repositories,
     checkpointer: saver,
     now: graphClock,
+    ...phaseTwoWorkflowDependencies,
   });
   const retryOutput = await retryGraph.invoke(
     initialQualificationGraphState({
@@ -356,6 +369,7 @@ try {
       systemBundleId,
       runRevision: retryClaim.run.revision,
       projection: qualificationProjectionFromLead(retryLead),
+      emailContactConsent: retryLead.intake.emailContactConsent,
     }),
     {
       configurable: {
@@ -374,11 +388,11 @@ try {
   if (
     interpreterCalls !== 2 ||
     !retryOutput.finalized ||
-    retryOutput.runRevision !== 12 ||
+    retryOutput.runRevision !== 23 ||
     retryRun?.status !== 'complete' ||
     retryRun.attempt !== 2 ||
     retryRun.retryCount !== 1 ||
-    retryEvents.filter(({ name }) => name === 'step.started').length !== 5 ||
+    retryEvents.filter(({ name }) => name === 'step.started').length !== 8 ||
     retryEvents.filter(({ name }) => name === 'step.retry_scheduled').length !==
       1
   ) {
@@ -416,6 +430,7 @@ try {
     repositories,
     checkpointer: saver,
     now: graphClock,
+    ...phaseTwoWorkflowDependencies,
   });
   await exhaustionGraph.invoke(
     initialQualificationGraphState({
@@ -426,6 +441,7 @@ try {
       systemBundleId,
       runRevision: resumeClaim.run.revision,
       projection: qualificationProjectionFromLead(resumeLead),
+      emailContactConsent: resumeLead.intake.emailContactConsent,
     }),
     {
       configurable: {
@@ -446,6 +462,8 @@ try {
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
       localResetEnabled: false,
+      enrichmentMode: 'recorded',
+      webOrigin: 'http://127.0.0.1:5173',
     },
     firestore: apiBoundary,
   };
@@ -504,12 +522,24 @@ try {
     );
     const resumeBody = await resumeResponse.json();
     if (
-      !resumeResponse.ok ||
-      resumeBody.status !== 'complete' ||
-      resumeBody.revision !== 16 ||
+      resumeResponse.status !== 202 ||
+      resumeBody.status !== 'running' ||
+      resumeBody.revision !== exhaustedRun.revision + 1 ||
       resumeBody.replayed
     ) {
-      throw new Error('Built API explicit resume did not complete the run.');
+      throw new Error('Built API explicit resume was not durably accepted.');
+    }
+    let resumedDetail;
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const response = await apiFetch(`/v1/runs/${resumeIntake.runId}`);
+      if (response.ok) {
+        resumedDetail = await response.json();
+        if (resumedDetail.run?.status === 'complete') break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    if (resumedDetail?.run?.status !== 'complete') {
+      throw new Error('Built API resumed workflow did not complete in time.');
     }
     const resumeReplayResponse = await apiFetch(
       `/v1/runs/${resumeIntake.runId}/resume`,
@@ -620,7 +650,7 @@ try {
     .get();
   if (
     resumedRun?.status !== 'complete' ||
-    resumedRun.revision !== 16 ||
+    resumedRun.revision !== 27 ||
     resumedEvents.docs.filter(
       (document) => document.data().name === 'run.resume_requested',
     ).length !== 1
