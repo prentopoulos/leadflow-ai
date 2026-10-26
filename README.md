@@ -135,8 +135,7 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 
 ## Licence and credits
 
-No licence has been chosen yet. That decision belongs to the public-release phase in
-[PROJECT.md](PROJECT.md), so no reuse rights are granted until then. Vehicle data comes from NHTSA's
+Released under the [MIT License](LICENSE). Vehicle data comes from NHTSA's
 vPIC API, and ZIP data comes from Zippopotam.us, which uses GeoNames data. Diagrams are drawn with
 the MIT-licensed [diagram-design](.agents/skills/diagram-design/SKILL.md) skill. Dependencies and
 their licences are listed in [docs/dependencies/phase-1.md](docs/dependencies/phase-1.md) and
