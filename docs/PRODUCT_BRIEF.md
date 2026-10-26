@@ -61,7 +61,7 @@ help marketing/sales prioritize opportunities without claiming insurance decisio
 
 Do not add a Bayesian engine, fully autonomous self-hosted agents, or extra services without an
 observed MVP need. Build this with the same spec-first, phase-gated, visual-review discipline used
-for `C:\Users\Peter\Documents\financial_research_agent`, and prepare it for a later public GitHub
+for the owner's earlier `financial_research_agent` project, and prepare it for a later public GitHub
 repository.
 
 ## Evidence still required

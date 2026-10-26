@@ -114,7 +114,7 @@ cloud Firestore, external communication, or other credentialed service.
 - Run `pnpm` from PowerShell after `. .\scripts\activate-toolchain.ps1`. Git Bash cannot resolve
   the standalone pnpm shim.
 - If Git reports `dubious ownership` because the checkout belongs to another Windows account, pass
-  a one-command override such as `git -c safe.directory=C:/Users/Peter/Documents/leadflow_ai status`
+  a one-command override such as `git -c safe.directory=<absolute checkout path> status`
   rather than changing global configuration, unless the owner adds the directory permanently.
 - Windows PowerShell 5.1 turns any native stderr line into a `NativeCommandError`, so a passing
   `pnpm exec vitest` can still report failure. To capture a leaf check's output, run the tool's Node
