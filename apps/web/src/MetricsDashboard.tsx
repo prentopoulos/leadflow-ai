@@ -45,6 +45,12 @@ function useReducedMotion() {
   return reduced;
 }
 
+const sourceLabels: Record<string, string> = {
+  all: 'All sources',
+  nhtsa_vpic: 'NHTSA vPIC',
+  zippopotam_us: 'Zippopotam.us',
+};
+
 export function MetricsDashboard({
   client = defaultClient,
 }: {
@@ -67,8 +73,7 @@ export function MetricsDashboard({
   if (snapshot === null) {
     return (
       <div className="operations-loading" aria-live="polite">
-        <p className="section-index">Stored metrics</p>
-        <h2>Loading the current bundle window…</h2>
+        <h2>Loading…</h2>
         {error === null ? null : <p>{error.message}</p>}
       </div>
     );
@@ -86,45 +91,27 @@ export function MetricsDashboard({
   return (
     <div className="metrics-dashboard">
       <div className="operations-heading">
-        <div>
-          <p className="eyebrow">Current system bundle</p>
-          <h1>Operational evidence, with the denominator attached.</h1>
-        </div>
-        <p>
-          Calculated only from stored run records. Recorded/mock enrichment is
-          kept separate from live enrichment; synthetic outcomes are never
-          presented as operational results.
-        </p>
+        <h1>Metrics</h1>
       </div>
 
       {error === null ? null : (
         <div className="stale-state" role="status">
-          <strong>Metrics refresh is unavailable.</strong>
-          <span>
-            Showing the snapshot retrieved{' '}
-            {new Date(snapshot.retrievedAt).toLocaleTimeString()}.
-          </span>
+          <strong>Refresh failed</strong>
         </div>
       )}
 
       <section className="metric-ledger" aria-labelledby="metric-ledger-title">
         <div className="section-heading operations-section-heading">
-          <div>
-            <p className="section-index">01 / Window</p>
-            <h2 id="metric-ledger-title">Current stored workload</h2>
-          </div>
-          <span className="state-tag">metrics-definitions-v1</span>
+          <h2 id="metric-ledger-title">Workload</h2>
         </div>
         <dl className="metric-strip">
           <div>
             <dt>Lead volume</dt>
             <dd>{report.leadVolume}</dd>
-            <small>{report.window.otherBundleRuns} other-bundle excluded</small>
           </div>
           <div>
             <dt>Approval queue</dt>
             <dd>{report.approvalQueue}</dd>
-            <small>Latest pending revisions</small>
           </div>
           <div>
             <dt>Agent failures</dt>
@@ -146,22 +133,14 @@ export function MetricsDashboard({
             >
               {milliseconds(report.processingTime.medianMs)}
             </dd>
-            <small>
-              n={report.processingTime.n}; {report.processingTime.excluded}{' '}
-              active excluded
-            </small>
+            <small>n={report.processingTime.n}</small>
           </div>
         </dl>
       </section>
 
       <div className="metrics-grid">
         <section className="chart-section" aria-labelledby="priority-title">
-          <p className="section-index">02 / Distribution</p>
-          <h2 id="priority-title">Marketing-readiness priority</h2>
-          <p className="section-note">
-            Labels support outreach triage only—not insurance eligibility,
-            pricing, underwriting, or risk.
-          </p>
+          <h2 id="priority-title">Priority</h2>
           <div className="chart-frame" aria-hidden="true">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={priorityData} margin={{ left: -18, right: 8 }}>
@@ -185,7 +164,7 @@ export function MetricsDashboard({
             </ResponsiveContainer>
           </div>
           <table className="data-table compact-table">
-            <caption>Text equivalent for priority distribution chart</caption>
+            <caption className="sr-only">Priority distribution</caption>
             <thead>
               <tr>
                 <th scope="col">Priority</th>
@@ -204,8 +183,7 @@ export function MetricsDashboard({
         </section>
 
         <section className="chart-section" aria-labelledby="timing-title">
-          <p className="section-index">03 / Timing</p>
-          <h2 id="timing-title">Stored processing and review</h2>
+          <h2 id="timing-title">Timing</h2>
           <dl className="definition-list">
             <div>
               <dt>Processing median / p90 / mean</dt>
@@ -214,10 +192,7 @@ export function MetricsDashboard({
                 {milliseconds(report.processingTime.p90Ms)} /{' '}
                 {milliseconds(report.processingTime.meanMs)}
               </dd>
-              <small>
-                Finished runs n={report.processingTime.n}; active exclusions{' '}
-                {report.processingTime.excluded}.
-              </small>
+              <small>n={report.processingTime.n}</small>
             </div>
             <div>
               <dt>Review median / p90 / mean</dt>
@@ -226,10 +201,7 @@ export function MetricsDashboard({
                 {milliseconds(report.reviewLatency.p90Ms)} /{' '}
                 {milliseconds(report.reviewLatency.meanMs)}
               </dd>
-              <small>
-                Reviewed drafts n={report.reviewLatency.n}; unreviewed
-                exclusions {report.reviewLatency.excluded}.
-              </small>
+              <small>n={report.reviewLatency.n}</small>
             </div>
           </dl>
         </section>
@@ -239,8 +211,7 @@ export function MetricsDashboard({
         className="metric-table-section"
         aria-labelledby="enrichment-title"
       >
-        <p className="section-index">04 / Source evidence</p>
-        <h2 id="enrichment-title">Enrichment outcomes stay separated</h2>
+        <h2 id="enrichment-title">Enrichment</h2>
         <div
           className="table-scroll"
           tabIndex={0}
@@ -248,8 +219,8 @@ export function MetricsDashboard({
           aria-labelledby="enrichment-title"
         >
           <table className="data-table">
-            <caption>
-              Success and found rates by evidence class and source
+            <caption className="sr-only">
+              Enrichment rates by class and source
             </caption>
             <thead>
               <tr>
@@ -261,14 +232,14 @@ export function MetricsDashboard({
               </tr>
             </thead>
             <tbody>
-              {[...recorded, ...live].map((item) => (
+              {[...live, ...recorded].map((item) => (
                 <tr key={`${item.classGroup}-${item.source}`}>
                   <th scope="row">
                     {item.classGroup === 'recorded_or_mock'
                       ? 'Recorded / mock'
                       : 'Live'}
                   </th>
-                  <td>{item.source.replaceAll('_', ' ')}</td>
+                  <td>{sourceLabels[item.source]}</td>
                   <td>
                     {percent(item.success)}{' '}
                     <RateDefinition metric={item.success} />
@@ -290,8 +261,7 @@ export function MetricsDashboard({
           className="metric-table-section"
           aria-labelledby="failure-title"
         >
-          <p className="section-index">05 / Recovery</p>
-          <h2 id="failure-title">Failures by workflow step</h2>
+          <h2 id="failure-title">Failures</h2>
           <dl className="failure-ledger">
             {Object.entries(report.failuresByStep).map(([step, count]) => (
               <div key={step}>
@@ -303,8 +273,7 @@ export function MetricsDashboard({
         </section>
 
         <section className="synthetic-panel" aria-labelledby="synthetic-title">
-          <p className="section-index">SYNTHETIC · not live · not predictive</p>
-          <h2 id="synthetic-title">Simulator contract exercise</h2>
+          <h2 id="synthetic-title">Simulation</h2>
           <dl>
             <div>
               <dt>Runs</dt>
@@ -323,17 +292,8 @@ export function MetricsDashboard({
               <dd>{report.simulation.appointment}</dd>
             </div>
           </dl>
-          <p>
-            These fixed-seed outcomes are never included in operational rates.
-          </p>
         </section>
       </div>
-
-      <p className="metrics-footnote">
-        Retrieved {new Date(snapshot.retrievedAt).toLocaleString()} · bundle{' '}
-        {report.systemBundleId} · synthetic leads stored locally; each lookup
-        row names its own evidence class
-      </p>
     </div>
   );
 }

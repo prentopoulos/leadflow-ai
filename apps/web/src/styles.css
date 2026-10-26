@@ -227,6 +227,13 @@ p {
   overflow-wrap: anywhere;
 }
 
+/* Headings are one or two words and always stay on one line. */
+h1,
+h2,
+h3 {
+  white-space: nowrap;
+}
+
 h1 {
   max-width: 16ch;
   margin: 0;

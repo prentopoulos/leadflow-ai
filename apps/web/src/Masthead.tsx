@@ -22,10 +22,7 @@ export function Masthead({ view }: { view: AppView }) {
         <span className="brand-mark" aria-hidden="true">
           LF
         </span>
-        <span>
-          <strong>LeadFlow AI</strong>
-          <small>Operator workspace</small>
-        </span>
+        <strong>LeadFlow AI</strong>
       </a>
       <nav className="workspace-nav" aria-label="Workspace">
         <a href="#intake" aria-current={operations ? undefined : 'page'}>
@@ -35,10 +32,6 @@ export function Masthead({ view }: { view: AppView }) {
           Operations
         </a>
       </nav>
-      <div className="phase-stamp">
-        <span>Phase 2</span>
-        <strong>Enrichment + review</strong>
-      </div>
     </header>
   );
 }

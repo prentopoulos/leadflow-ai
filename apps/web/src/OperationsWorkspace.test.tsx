@@ -317,9 +317,7 @@ describe('operations workspace', () => {
       );
       const list = await screen.findByRole('list');
       await vi.advanceTimersByTimeAsync(3_100);
-      expect(
-        await screen.findByText(/Run-list refresh is unavailable/u),
-      ).toBeInTheDocument();
+      expect(await screen.findByText('Refresh failed')).toBeInTheDocument();
       expect(within(list).getByText('Lead 11111111')).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
@@ -331,15 +329,15 @@ describe('metrics dashboard', () => {
   it('names denominators, shows insufficient data and keeps synthetic outcomes apart', async () => {
     render(<MetricsDashboard client={operationsClient()} />);
     expect(
-      await screen.findByText('metrics-definitions-v1'),
+      await screen.findByRole('heading', { level: 1, name: 'Metrics' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Text equivalent for priority distribution chart'),
+      screen.getByRole('table', { name: 'Priority distribution' }),
     ).toBeInTheDocument();
     expect(screen.getAllByText(/Insufficient data/u).length).toBeGreaterThan(0);
     expect(screen.getAllByText('1 / 10; 0 excluded').length).toBeGreaterThan(0);
     expect(
-      screen.getByText(/SYNTHETIC · not live · not predictive/u),
+      screen.getByRole('heading', { name: 'Simulation' }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole('row', { name: /Live/u })).toHaveLength(3);
   });
@@ -358,7 +356,7 @@ describe('draft review', () => {
         onChanged={onChanged}
       />,
     );
-    expect(screen.getByText(/LeadFlow never sends email/u)).toBeInTheDocument();
+    expect(screen.getByText(/Nothing is sent/u)).toBeInTheDocument();
     expect(screen.getByText(/Not sendable as written/u)).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: /Copy/u }),
@@ -388,9 +386,7 @@ describe('draft review', () => {
         onChanged={async () => undefined}
       />,
     );
-    expect(
-      screen.getByText(/No email-contact consent was recorded/u),
-    ).toBeInTheDocument();
+    expect(screen.getByText('No consent')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });

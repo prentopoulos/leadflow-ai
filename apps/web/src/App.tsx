@@ -258,25 +258,13 @@ export function App({
 
       <main id="main-content" className="page-shell">
         <section className="page-intro" aria-labelledby="page-title">
-          <div>
-            <p className="eyebrow">New synthetic inquiry</p>
-            <h1 id="page-title">Prepare a lead for qualification.</h1>
-          </div>
-          <p>
-            Capture a fictional request, verify its local contract, then store
-            it before the qualification workflow begins. This measures marketing
-            readiness—not insurance eligibility, pricing, underwriting, or risk.
-          </p>
+          <h1 id="page-title">New lead</h1>
         </section>
 
         <div className="workspace">
           <section className="intake-pane" aria-labelledby="intake-title">
             <div className="section-heading">
-              <div>
-                <p className="section-index">01 / Intake record</p>
-                <h2 id="intake-title">Synthetic lead intake</h2>
-              </div>
-              <span className="schema-tag">intake-v2</span>
+              <h2 id="intake-title">Intake</h2>
             </div>
 
             <form noValidate onSubmit={handleSubmit} onReset={handleReset}>
@@ -287,8 +275,7 @@ export function App({
                   role="alert"
                   tabIndex={-1}
                 >
-                  <p className="summary-label">Check this intake</p>
-                  <h3>Some fields need attention.</h3>
+                  <h3>Check fields</h3>
                   <ul>
                     {Object.entries(errors).map(([field, message]) => (
                       <li key={field}>
@@ -314,38 +301,22 @@ export function App({
                   role="alert"
                   tabIndex={-1}
                 >
-                  <p className="summary-label">Lead not stored</p>
-                  <h3>The local intake request did not complete.</h3>
+                  <h3>Not stored</h3>
                   <p>{submissionError.message}</p>
-                  <small>
-                    {submissionError.retryable
-                      ? 'Retrying this unchanged intake uses the same request key.'
-                      : 'Review the intake before trying a new request.'}
-                  </small>
                 </div>
               ) : null}
 
               {submissionStatus === 'submitting' ? (
                 <div className="validation-status" role="status">
-                  <strong>Storing the synthetic lead…</strong>
-                  <span>Qualification cannot begin before this commit.</span>
+                  <strong>Storing…</strong>
                 </div>
               ) : null}
 
               <fieldset className="form-section source-section">
                 <legend>
                   <span className="legend-number">A</span>
-                  Verified source field
+                  Location
                 </legend>
-                <p className="fieldset-note" id="zip-source-note">
-                  <strong>ZIP Code</strong> is the only exact field verified
-                  from the current public{' '}
-                  <a href="https://auto.military.com/">
-                    Military.com auto page
-                  </a>
-                  , retrieved October 24, 2026. Full intake parity remains
-                  unverified.
-                </p>
                 <div className="field field-short">
                   <label htmlFor="zipCode">
                     ZIP Code <span aria-hidden="true">*</span>
@@ -358,7 +329,7 @@ export function App({
                     maxLength={5}
                     required
                     defaultValue="22150"
-                    {...fieldA11y('zipCode', errors, 'zip-source-note')}
+                    {...fieldA11y('zipCode', errors)}
                   />
                   <FieldError field="zipCode" errors={errors} />
                 </div>
@@ -369,11 +340,6 @@ export function App({
                   <span className="legend-number">B</span>
                   LeadFlow demo fields
                 </legend>
-                <p className="fieldset-note" id="demo-fields-note">
-                  These fields demonstrate the LeadFlow workflow. They are not
-                  verified Military.com questions. Use fictional names and
-                  reserved example-domain contact details only.
-                </p>
 
                 <div className="field-grid two-columns">
                   <div className="field">
@@ -386,7 +352,7 @@ export function App({
                       autoComplete="off"
                       required
                       defaultValue="Avery"
-                      {...fieldA11y('givenName', errors, 'demo-fields-note')}
+                      {...fieldA11y('givenName', errors)}
                     />
                     <FieldError field="givenName" errors={errors} />
                   </div>
@@ -400,7 +366,7 @@ export function App({
                       autoComplete="off"
                       required
                       defaultValue="Jordan"
-                      {...fieldA11y('familyName', errors, 'demo-fields-note')}
+                      {...fieldA11y('familyName', errors)}
                     />
                     <FieldError field="familyName" errors={errors} />
                   </div>
@@ -417,18 +383,13 @@ export function App({
                     autoComplete="off"
                     required
                     defaultValue="avery.jordan@example.com"
-                    {...fieldA11y('email', errors, 'email-help')}
+                    {...fieldA11y('email', errors)}
                   />
-                  <p className="field-help" id="email-help">
-                    Allowed domains: example.com, example.org, and example.net.
-                    Real contact details are rejected.
-                  </p>
                   <FieldError field="email" errors={errors} />
                 </div>
 
                 <div className="subsection-heading">
                   <span>Vehicle</span>
-                  <small>Optional details improve record completeness</small>
                 </div>
                 <div className="field-grid vehicle-grid">
                   <div className="field">
@@ -532,13 +493,8 @@ export function App({
                     rows={5}
                     maxLength={1000}
                     defaultValue="Looking for a clearer comparison before renewal."
-                    {...fieldA11y('requestDetails', errors, 'details-help')}
+                    {...fieldA11y('requestDetails', errors)}
                   />
-                  <p className="field-help" id="details-help">
-                    Plain text only, up to 1,000 characters. Instructions
-                    entered here cannot change scoring, consent, or system
-                    authority.
-                  </p>
                   <FieldError field="requestDetails" errors={errors} />
                 </div>
 
@@ -547,21 +503,12 @@ export function App({
                     id="emailContactConsent"
                     name="emailContactConsent"
                     type="checkbox"
-                    {...fieldA11y(
-                      'emailContactConsent',
-                      errors,
-                      'consent-help',
-                    )}
+                    {...fieldA11y('emailContactConsent', errors)}
                   />
                   <div>
                     <label htmlFor="emailContactConsent">
                       {CONSENT_WORDINGS[CURRENT_CONSENT_WORDING_VERSION].text}
                     </label>
-                    <p id="consent-help">
-                      Off by default. Consent adds no score; it only allows a
-                      draft for human review, and nothing is ever sent. Wording{' '}
-                      {CURRENT_CONSENT_WORDING_VERSION}.
-                    </p>
                     <FieldError field="emailContactConsent" errors={errors} />
                   </div>
                 </div>
@@ -591,23 +538,16 @@ export function App({
                     ? 'Start another intake'
                     : 'Restore example'}
                 </button>
-                <p>
-                  Required fields are marked with an asterisk. Storing the lead
-                  looks up its vehicle make and year and its ZIP Code in public
-                  sources, unless the API runs with saved responses.
-                </p>
+                <p>* Required</p>
               </div>
             </form>
           </section>
 
           <aside className="run-pane" aria-labelledby="run-dossier-title">
             <div className="section-heading">
-              <div>
-                <p className="section-index">02 / Stored evidence</p>
-                <h2 id="run-dossier-title" ref={runHeadingRef} tabIndex={-1}>
-                  Run dossier
-                </h2>
-              </div>
+              <h2 id="run-dossier-title" ref={runHeadingRef} tabIndex={-1}>
+                Dossier
+              </h2>
               <span className="state-tag">
                 {accepted === null
                   ? 'No stored run'
@@ -620,22 +560,12 @@ export function App({
                 <span className="empty-glyph" aria-hidden="true">
                   00
                 </span>
-                <h3>Waiting for a persisted lead.</h3>
-                <p>
-                  This space will show the run only after the API confirms the
-                  lead, run, idempotency record, and first lifecycle event were
-                  stored.
-                </p>
+                <h3>Waiting</h3>
               </div>
             ) : (
               <>
                 <div className="stored-run" role="status">
-                  <p className="summary-label">
-                    {accepted.replayed
-                      ? 'Stored request replay confirmed'
-                      : 'Persistence confirmed'}
-                  </p>
-                  <h3>The lead is stored before processing.</h3>
+                  <h3>{accepted.replayed ? 'Already stored' : 'Stored'}</h3>
                   <dl>
                     <div>
                       <dt>Run ID</dt>
@@ -662,53 +592,12 @@ export function App({
                 />
               </>
             )}
-
-            <div className="dossier-index" aria-label="Run dossier contents">
-              <p className="summary-label">Evidence order</p>
-              <ol>
-                <li>
-                  <span>01</span>
-                  Stored run, status and revision
-                </li>
-                <li>
-                  <span>02</span>
-                  Draft decision and its verification
-                </li>
-                <li>
-                  <span>03</span>
-                  Enrichment evidence by source
-                </li>
-                <li>
-                  <span>04</span>
-                  Marketing-readiness evidence
-                </li>
-                <li>
-                  <span>05</span>
-                  Lifecycle events and retries
-                </li>
-                <li>
-                  <span>06</span>
-                  Separately labeled synthetic outcome
-                </li>
-              </ol>
-            </div>
-
-            <div className="boundary-note">
-              <p className="summary-label">Operating boundary</p>
-              <p>
-                Leads are stored only in the local Firestore Emulator. Vehicle
-                and ZIP lookups read NHTSA vPIC and Zippopotam.us, and each
-                result is labelled live, recorded or mock. No model, quote,
-                insurer decision or outreach is active, and nothing is sent.
-              </p>
-            </div>
           </aside>
         </div>
       </main>
 
       <footer className="page-footer">
         <span>LeadFlow AI · local prototype</span>
-        <span>No Military.com intake-parity claim is made.</span>
       </footer>
     </>
   );

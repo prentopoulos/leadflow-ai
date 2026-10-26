@@ -278,11 +278,8 @@ describe('run dossier', () => {
       />,
     );
 
-    expect(screen.getByText('Stored · rev 0')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', {
-        name: /loading the first stored snapshot/i,
-      }),
+      screen.getByRole('heading', { name: 'Loading…' }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/revision 1/i)).not.toBeInTheDocument();
   });
@@ -337,21 +334,12 @@ describe('run dossier', () => {
       await screen.findByRole('heading', { name: 'High priority' }),
     ).toBeInTheDocument();
     expect(screen.getByText('90', { selector: 'strong' })).toBeInTheDocument();
-    expect(
-      screen.getByText(/marketing readiness only; not an insurance decision/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Lifecycle events' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Events' })).toBeInTheDocument();
     expect(screen.getByText('Lead persisted')).toBeInTheDocument();
     expect(
-      screen.getByText(/neither a live outcome nor evidence/i),
+      screen.getByRole('heading', { name: 'Simulation' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        new RegExp(`Evidence synthetic · source run ${ids.run}`),
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getAllByText(/^Simulated (yes|no)$/u)).toHaveLength(3);
   });
 
   it('exposes explicit resume only for an eligible stored failure', async () => {
@@ -457,10 +445,10 @@ describe('run dossier', () => {
       />,
     );
 
+    expect(await screen.findByText('Refresh failed')).toBeInTheDocument();
     expect(
-      await screen.findByText('Newer state is unavailable.'),
+      screen.getByRole('heading', { name: 'Running' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Stored run · revision 3')).toBeInTheDocument();
   });
 
   it('keeps external control focus while polling appends long stored history', async () => {
