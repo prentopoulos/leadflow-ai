@@ -180,8 +180,34 @@ describe('template drafts', () => {
     ]);
   });
 
-  it('rejects a history with a missing linked verification result', async () => {
+  it('hides a latest revision still awaiting verification and refuses to review it', async () => {
     const { store, service, revision } = await seededDraft();
+    store.documents.delete(
+      `verificationResults/${revision.verificationResultId}`,
+    );
+    const history = await service.history(revision.draftId);
+    expect(history?.view.revisions).toEqual([]);
+    await expect(
+      service.review({
+        ...context,
+        draftId: revision.draftId,
+        revisionId: revision.revisionId,
+        contentSha256: revision.contentSha256,
+        decision: 'approved',
+      }),
+    ).rejects.toBeInstanceOf(DraftConflictError);
+  });
+
+  it('rejects a history whose superseded revision lost its verification', async () => {
+    const { store, service, revision } = await seededDraft();
+    await service.revise({
+      ...context,
+      draftId: revision.draftId,
+      baseRevisionId: revision.revisionId,
+      baseContentSha256: revision.contentSha256,
+      subject: revision.subject,
+      body: revision.body.replace('Hi Avery', 'Hello Avery'),
+    });
     store.documents.delete(
       `verificationResults/${revision.verificationResultId}`,
     );

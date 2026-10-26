@@ -2,22 +2,32 @@ import { describe, expect, it, vi } from 'vitest';
 import { WorkflowExecutor } from './executor.js';
 
 describe('WorkflowExecutor', () => {
-  it('runs one background task per run and becomes idle after settlement', async () => {
+  it('queues a second task for a run behind the first and becomes idle after both', async () => {
     let release: () => void = () => undefined;
     const blocked = new Promise<void>((resolve) => {
       release = resolve;
     });
-    const task = vi.fn(async () => blocked);
+    const order: string[] = [];
+    const first = vi.fn(async () => {
+      order.push('first:start');
+      await blocked;
+      order.push('first:end');
+    });
+    const second = vi.fn(async () => {
+      order.push('second');
+    });
     const executor = new WorkflowExecutor();
 
-    expect(executor.schedule('run-1', task)).toBe(true);
-    expect(executor.schedule('run-1', task)).toBe(false);
+    expect(executor.schedule('run-1', first)).toBe(true);
+    expect(executor.schedule('run-1', second)).toBe(false);
     expect(executor.running).toBe(1);
+    await Promise.resolve();
+    expect(second).not.toHaveBeenCalled();
 
     release();
     await executor.idle();
 
-    expect(task).toHaveBeenCalledTimes(1);
+    expect(order).toEqual(['first:start', 'first:end', 'second']);
     expect(executor.running).toBe(0);
   });
 

@@ -127,29 +127,33 @@ function RunsView({
   const [loadingMore, setLoadingMore] = useState(false);
   const pageCount = useRef(1);
 
-  const refresh = useCallback(async () => {
-    let cursor: string | undefined;
-    const items: RunSummary[] = [];
-    let latest: RunListResponse | null = null;
-    for (let page = 0; page < pageCount.current; page += 1) {
-      const result = await client.list(filter, cursor, 12);
-      if (result.status === 'error') {
-        setError(result.error);
-        return;
+  const refresh = useCallback(
+    async (isCurrent: () => boolean = () => true) => {
+      let cursor: string | undefined;
+      const items: RunSummary[] = [];
+      let latest: RunListResponse | null = null;
+      for (let page = 0; page < pageCount.current; page += 1) {
+        const result = await client.list(filter, cursor, 12);
+        if (!isCurrent()) return;
+        if (result.status === 'error') {
+          setError(result.error);
+          return;
+        }
+        latest = result.value;
+        items.push(...result.value.items);
+        cursor = result.value.nextCursor ?? undefined;
+        if (cursor === undefined) break;
       }
-      latest = result.value;
-      items.push(...result.value.items);
-      cursor = result.value.nextCursor ?? undefined;
-      if (cursor === undefined) break;
-    }
-    if (latest === null) return;
-    setSnapshot({ ...latest, items, nextCursor: cursor ?? null });
-    setError(null);
-    setSelected((current) => {
-      if (current === null) return items[0] ?? null;
-      return items.find((item) => item.runId === current.runId) ?? current;
-    });
-  }, [client, filter]);
+      if (latest === null) return;
+      setSnapshot({ ...latest, items, nextCursor: cursor ?? null });
+      setError(null);
+      setSelected((current) => {
+        if (current === null) return items[0] ?? null;
+        return items.find((item) => item.runId === current.runId) ?? current;
+      });
+    },
+    [client, filter],
+  );
   useVisiblePolling(refresh);
 
   const changeFilter = (next: RunListFilter) => {

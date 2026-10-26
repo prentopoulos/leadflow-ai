@@ -120,6 +120,10 @@ function latestDraftState(
   history: DraftHistory | null,
 ): RunSummary['draftState'] {
   if (history === null) return 'none';
+  // A revision still awaiting its verdict is not presentable yet.
+  if (!history.verifications.has(history.latest.verificationResultId)) {
+    return 'none';
+  }
   const state = history.view.revisions.find(
     ({ revision }) => revision.revisionId === history.latest.revisionId,
   )?.state;

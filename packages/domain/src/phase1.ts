@@ -126,7 +126,16 @@ export const IntakeSubmissionSchema = z
     email: TestEmailSchema,
     zipCode: z.string().regex(/^\d{5}$/u),
     vehicleYear: z.number().int().min(1981).max(2027).nullable().default(null),
-    vehicleMake: z.string().trim().min(1).max(80).nullable().default(null),
+    // The make becomes a vPIC path segment: one with no letter or digit
+    // (such as "..") names no make and would not survive URL normalization.
+    vehicleMake: z
+      .string()
+      .trim()
+      .min(1)
+      .max(80)
+      .regex(/[\p{L}\p{N}]/u)
+      .nullable()
+      .default(null),
     vehicleModel: z.string().trim().min(1).max(80).nullable().default(null),
     coverageFocus: CoverageFocusSchema.nullable().default(null),
     requestIntent: RequestIntentSchema.nullable().default(null),

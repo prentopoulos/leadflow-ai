@@ -307,12 +307,15 @@ export const DraftSlotSchema = z
   );
 export type DraftSlot = z.infer<typeof DraftSlotSchema>;
 
+// Edits beyond this are refused: a draft is a short email, not a document.
+export const MAX_DRAFT_REVISIONS = 50;
+
 export const OutreachDraftRevisionSchema = z
   .object({
     schemaVersion: z.literal(CONTRACT_VERSIONS.outreachDraft),
     draftId: IdentifierSchema,
     revisionId: IdentifierSchema,
-    revisionNumber: z.number().int().min(1).max(50),
+    revisionNumber: z.number().int().min(1).max(MAX_DRAFT_REVISIONS),
     previousRevisionId: IdentifierSchema.nullable(),
     runId: IdentifierSchema,
     leadId: IdentifierSchema,

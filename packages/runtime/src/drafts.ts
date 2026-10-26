@@ -8,6 +8,7 @@ import {
   deriveRevisionStates,
   DraftViewSchema,
   LOCAL_OPERATOR_PRINCIPAL,
+  MAX_DRAFT_REVISIONS,
   OutreachDraftRevisionSchema,
   verifyOutputs,
   type DraftReview,
@@ -237,8 +238,14 @@ export class DraftService {
         const result = await repositories.verificationResults.get(
           revision.verificationResultId,
         );
+        // Only the latest revision may still be awaiting its verdict.
+        if (result === null) {
+          if (revision.revisionNumber === revisions.length) return;
+          throw new DraftIntegrityError(
+            'A superseded revision has no verification.',
+          );
+        }
         if (
-          result === null ||
           result.runId !== revision.runId ||
           result.leadId !== revision.leadId ||
           result.verificationResultId !== revision.verificationResultId ||
@@ -293,6 +300,26 @@ export class DraftService {
       throw new DraftConflictError();
     }
     return { history, run };
+  }
+
+  // Runs inside a commit attempt, after the run is read: a concurrent draft
+  // change also bumps the run revision, so a retry must see it here.
+  private async assertLatest(
+    draftId: string,
+    revisionId: string,
+    state?: 'pending_review',
+  ): Promise<void> {
+    const history = await this.history(draftId);
+    const entry = history?.view.revisions.find(
+      ({ revision }) => revision.revisionId === revisionId,
+    );
+    if (
+      history === null ||
+      history.latest.revisionId !== revisionId ||
+      (state !== undefined && entry?.state !== state)
+    ) {
+      throw new DraftConflictError();
+    }
   }
 
   private async commitWithRetry(
@@ -353,8 +380,13 @@ export class DraftService {
       decidedAt: this.now(),
       meaning: 'approved for manual use only; nothing is sent',
     });
-    await this.commitWithRetry(run.runId, (current) =>
-      this.dependencies.lifecycle.commitRunEvent({
+    await this.commitWithRetry(run.runId, async (current) => {
+      await this.assertLatest(
+        request.draftId,
+        request.revisionId,
+        'pending_review',
+      );
+      return this.dependencies.lifecycle.commitRunEvent({
         runId: current.runId,
         expectedRevision: current.revision,
         next: { ...current },
@@ -365,8 +397,8 @@ export class DraftService {
         requestId: request.requestId,
         authorization: 'allowed',
         creates: [review],
-      }),
-    );
+      });
+    });
     const updated = await this.history(request.draftId);
     if (updated === null) throw new DraftNotFoundError();
     return updated.view;
@@ -398,6 +430,11 @@ export class DraftService {
       await this.dependencies.events.list(run.runId, 201)
     ).map((value) => this.dependencies.repositories.events.parseStored(value));
     const revisionNumber = history.latest.revisionNumber + 1;
+    if (revisionNumber > MAX_DRAFT_REVISIONS) {
+      throw new DraftConflictError(
+        'This draft has reached its revision limit.',
+      );
+    }
     const revisionId = revisionIdFor(request.draftId, revisionNumber);
     const createdAt = this.now();
     const revision =
@@ -441,8 +478,9 @@ export class DraftService {
         }),
       );
     const blocked = verification.data.draftPassed !== true;
-    await this.commitWithRetry(run.runId, (current) =>
-      this.dependencies.lifecycle.commitRunEvent({
+    await this.commitWithRetry(run.runId, async (current) => {
+      await this.assertLatest(request.draftId, request.baseRevisionId);
+      return this.dependencies.lifecycle.commitRunEvent({
         runId: current.runId,
         expectedRevision: current.revision,
         next: {
@@ -456,8 +494,8 @@ export class DraftService {
         requestId: request.requestId,
         authorization: 'allowed',
         creates: [revision, verification],
-      }),
-    );
+      });
+    });
     const updated = await this.history(request.draftId);
     if (updated === null) throw new DraftNotFoundError();
     return updated.view;

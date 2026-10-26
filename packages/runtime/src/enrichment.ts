@@ -391,6 +391,9 @@ async function performLookup(
     const startedAt = attempt === 1 ? requestedAt : now();
     let failureKind: EnrichmentFailureKind | null = null;
     let status: number | null = null;
+    // The evidence describes the final attempt only, never a mix of two.
+    response = null;
+    retrievedAt = null;
     try {
       response = await context.transport.get(
         url,

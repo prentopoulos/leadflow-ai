@@ -150,6 +150,20 @@ describe('Phase 1 and 2 boundary schemas', () => {
     expect(TestEmailSchema.safeParse('avery@real.test').success).toBe(false);
   });
 
+  it('rejects a vehicle make with no letter or digit', () => {
+    for (const vehicleMake of ['.', '..', ' --- ']) {
+      expect(
+        IntakeSubmissionSchema.safeParse({ ...intake, vehicleMake }).success,
+      ).toBe(false);
+    }
+    expect(
+      IntakeSubmissionSchema.safeParse({
+        ...intake,
+        vehicleMake: 'Mercedes-Benz',
+      }).success,
+    ).toBe(true);
+  });
+
   it('normalizes omitted consent and optional inputs without accepting extras', () => {
     const parsed = IntakeSubmissionSchema.parse({
       schemaVersion: 'intake-v2',

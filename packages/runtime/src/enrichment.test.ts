@@ -297,6 +297,26 @@ describe('ZIP lookup', () => {
     });
   });
 
+  it('describes only the final attempt when a 503 is followed by a timeout', async () => {
+    const { evidence } = await lookupZip(
+      '22150',
+      context(
+        new ScriptedTransport([
+          ok('<html>Service Unavailable</html>', 503),
+          new EnrichmentTimeoutError(),
+        ]),
+      ),
+    );
+    expect(evidence).toMatchObject({
+      outcome: 'unavailable',
+      failureKind: 'timeout',
+      httpStatus: null,
+      rawBody: null,
+      rawBodySha256: null,
+      attempts: 2,
+    });
+  });
+
   it('bounds the stored body and keeps the digest of the full body', async () => {
     const huge = { ...zipBody, padding: 'x'.repeat(70_000) };
     const { evidence } = await lookupZip(

@@ -7,7 +7,11 @@ import {
   deriveRevisionStates,
   DRAFT_SUBJECT,
 } from './outreach.js';
-import { currentConsentRecord, type IntakeSubmission } from './phase1.js';
+import {
+  currentConsentRecord,
+  type IntakeSubmission,
+  type LifecycleEvent,
+} from './phase1.js';
 import {
   COMPLIANCE_NOTICE,
   ENRICHMENT_ENDPOINTS,
@@ -370,6 +374,68 @@ describe('request-text rule calibration', () => {
         request,
       ),
     ).toBe(true);
+  });
+
+  it('passes a template draft whose request text repeats the lead’s own vehicle', () => {
+    const result = verify(revisionFor(foundEvidence), foundEvidence, 'run', {
+      intake: {
+        ...intake,
+        requestDetails: 'I drive a 2022 Toyota Camry and need coverage.',
+      },
+    });
+    expect(rule(result, 'draft.no_request_text')?.outcome).toBe('pass');
+  });
+});
+
+describe('event privacy rule calibration', () => {
+  const event = (message: string | null): LifecycleEvent => ({
+    schemaVersion: 'event-v2',
+    eventId: '88888888-8888-4888-8888-888888888888',
+    runId: ids.run,
+    traceId: '99999999-9999-4999-8999-999999999999',
+    requestId: '99999999-9999-4999-8999-999999999998',
+    sequence: 1,
+    runRevision: 1,
+    name: 'run.failed',
+    occurredAt: timestamp,
+    step: 'enrich_lead',
+    status: 'failed_retryable',
+    durationMs: null,
+    attempt: 1,
+    retryCount: 0,
+    authorization: 'not_applicable',
+    safeError:
+      message === null
+        ? null
+        : {
+            code: 'storage_unavailable',
+            category: 'storage',
+            retryable: true,
+            message,
+          },
+    systemBundleId: ids.verification,
+    evidenceClass: 'synthetic-local',
+    externalCall: null,
+    usage: null,
+    usageUnavailableReason: 'no_model_or_paid_tool',
+  });
+
+  it('ignores lead names that collide with field names, enum values or identifiers', () => {
+    const result = verify(revisionFor(foundEvidence), foundEvidence, 'run', {
+      intake: { ...intake, givenName: 'Trace', familyName: 'Mock' },
+      events: [event('The run could not be stored.')],
+    });
+    expect(rule(result, 'events.private')?.outcome).toBe('pass');
+  });
+
+  it('still fails when an event message carries a lead value', () => {
+    const result = verify(revisionFor(foundEvidence), foundEvidence, 'run', {
+      events: [event('Lookup failed for Jordan.')],
+    });
+    expect(rule(result, 'events.private')).toMatchObject({
+      outcome: 'fail',
+      detail: 'event_contains_lead_value',
+    });
   });
 });
 

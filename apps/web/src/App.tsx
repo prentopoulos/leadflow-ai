@@ -74,6 +74,8 @@ function getFieldErrorMessage(field: FieldName, fallback: string) {
     case 'givenName':
     case 'familyName':
       return `Enter a fictional ${field === 'givenName' ? 'first' : 'last'} name.`;
+    case 'vehicleMake':
+      return 'Enter a make with at least one letter or number, or leave it blank.';
     default:
       return fallback;
   }

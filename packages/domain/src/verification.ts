@@ -10,6 +10,7 @@ import {
   CONTRACT_VERSIONS,
   type IntakeSubmission,
   type LifecycleEvent,
+  LifecycleEventSchema,
 } from './phase1.js';
 import {
   COMPLIANCE_NOTICE,
@@ -52,22 +53,38 @@ const templateText = normalizeText(TEMPLATE_PHRASES.join(' | '));
 // True when any run of REQUEST_TEXT_WINDOW characters from the request text
 // appears in the draft, after whitespace and case normalization. Runs that the
 // template's own fixed phrases contain are ignored: common wording such as
-// " would like " proves nothing about copying.
+// " would like " proves nothing about copying. So are runs inside the lead's
+// structured values (name, vehicle, ZIP) and grounded slot values, which a
+// draft may repeat even when the request text mentions them too.
 export function containsRequestText(
   draft: string,
   requestDetails: string | null,
+  allowed: readonly string[] = [],
 ): boolean {
   if (requestDetails === null) return false;
   const request = normalizeText(requestDetails);
   const haystack = normalizeText(draft);
   if (request.length < REQUEST_TEXT_WINDOW) return false;
+  const known = [templateText, ...allowed.map(normalizeText)].join(' | ');
   for (let start = 0; start + REQUEST_TEXT_WINDOW <= request.length; start++) {
     const window = request.slice(start, start + REQUEST_TEXT_WINDOW);
-    if (haystack.includes(window) && !templateText.includes(window)) {
+    if (haystack.includes(window) && !known.includes(window)) {
       return true;
     }
   }
   return false;
+}
+
+function structuredValues(intake: IntakeSubmission): string[] {
+  const vehicle = [intake.vehicleYear, intake.vehicleMake, intake.vehicleModel]
+    .filter((value) => value !== null)
+    .join(' ');
+  return [
+    `${intake.givenName} ${intake.familyName}`,
+    intake.email,
+    intake.zipCode,
+    vehicle,
+  ];
 }
 
 export interface VerificationInput {
@@ -134,8 +151,28 @@ function evidenceComplete(input: VerificationInput): Outcome {
   return pass();
 }
 
+function containsWord(text: string, value: string): boolean {
+  const escaped = value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+  return new RegExp(
+    `(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`,
+    'u',
+  ).test(text);
+}
+
+// Events are strict: every string field except safeError.message is an enum,
+// literal, identifier or timestamp, so only that message can carry a lead
+// value. Matching whole words there avoids false hits on field names, enum
+// values and hex identifiers (a lead named "Trace" or "Mock").
 function eventsPrivate(input: VerificationInput): Outcome {
-  const serialized = JSON.stringify(input.events).toLocaleLowerCase('en-US');
+  if (
+    input.events.some((event) => !LifecycleEventSchema.safeParse(event).success)
+  ) {
+    return fail('event_schema_invalid');
+  }
+  const messages = input.events
+    .map((event) => event.safeError?.message ?? '')
+    .join(' | ')
+    .toLocaleLowerCase('en-US');
   const sensitive = [
     input.intake.email,
     input.intake.givenName,
@@ -145,10 +182,10 @@ function eventsPrivate(input: VerificationInput): Outcome {
   ]
     .filter((value): value is string => value !== null && value.length >= 4)
     .map((value) => value.toLocaleLowerCase('en-US'));
-  if (sensitive.some((value) => serialized.includes(value))) {
+  if (sensitive.some((value) => containsWord(messages, value))) {
     return fail('event_contains_lead_value');
   }
-  if (containsRequestText(serialized, input.intake.requestDetails)) {
+  if (containsRequestText(messages, input.intake.requestDetails)) {
     return fail('event_contains_request_text');
   }
   return pass();
@@ -233,7 +270,10 @@ export function verifyOutputs(input: VerificationInput): VerificationResult {
     );
     outcomes.set(
       'draft.no_request_text',
-      containsRequestText(text, input.intake.requestDetails)
+      containsRequestText(text, input.intake.requestDetails, [
+        ...structuredValues(input.intake),
+        ...draft.slots.map((slot) => slot.value),
+      ])
         ? fail('request_text_present')
         : pass(),
     );

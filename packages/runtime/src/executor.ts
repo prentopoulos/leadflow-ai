@@ -11,19 +11,22 @@ export class WorkflowExecutor {
     ) => void = () => {},
   ) {}
 
-  // Schedules one execution per run; a second request while one is in
-  // flight is declined so a run never has two local workers.
+  // One local worker per run: a task scheduled while another is in flight
+  // runs after it settles instead of being dropped, because its trigger (a
+  // resume or reclaim) is already committed. Returns false when queued.
   schedule(runId: string, task: () => Promise<unknown>): boolean {
-    if (this.inFlight.has(runId)) return false;
-    const execution = Promise.resolve()
+    const previous = this.inFlight.get(runId);
+    const execution = (previous ?? Promise.resolve())
       .then(task)
       .then(
         () => undefined,
         (error: unknown) => this.onFailure(runId, error),
       )
-      .finally(() => this.inFlight.delete(runId));
+      .finally(() => {
+        if (this.inFlight.get(runId) === execution) this.inFlight.delete(runId);
+      });
     this.inFlight.set(runId, execution);
-    return true;
+    return previous === undefined;
   }
 
   get running(): number {
