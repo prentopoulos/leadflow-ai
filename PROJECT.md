@@ -74,10 +74,9 @@ agent-runtime, state, monitoring, or provider changes.
 Gate: `. .\scripts\activate-toolchain.ps1` followed by `pnpm check`. The gate is credential-free
 and offline after the frozen dependency install. Run `pnpm audit:dependencies` separately when
 registry access is authorized; it is evidence, not part of the offline gate.
-Public GitHub repository planned; no remote exists yet. Do not run `git push` or `gh` until the
-owner authorizes repository creation/publication. Once a remote exists, push phase branches and
-open PRs at the points WORKFLOW.md sets; nothing goes straight to main, and a PR merges only after
-review and the owner's go-ahead.
+The public repository is `github.com/prentopoulos/leadflow-ai` (owner-authorized 2026-10-26; see
+the publication gate in section 6). Push phase branches and open PRs at the points WORKFLOW.md sets;
+nothing goes straight to main, and a PR merges only after review and the owner's go-ahead.
 
 ### Phase 0 decisions
 
@@ -187,6 +186,8 @@ was accepted as presented):
   dependencies, recorded in `docs/dependencies/phase-2.md`. No SSE, Firebase client or provider SDK.
 - The interface has three views: intake -> run dossier; a leads/runs list with the approval queue as
   a filter and run monitoring; and the metrics dashboard. Alerting stays deferred.
+- At the close (2026-10-26) Peter licensed the project under MIT and approved publishing it as the
+  public repository `prentopoulos/leadflow-ai` after the pre-publication scans (section 6 gate).
 
 Settled by the agent with a cited basis and accepted in the same confirmation: syntax-plus-
 reserved-domain email check with no network call (recorded/fact); revision-aware polling through
@@ -252,8 +253,8 @@ Milestones are ordered by dependency.
 |---|---|---|
 | 0 | Toolchain, app skeleton, lockfile, quality gate with constitution copy check, smoke checks, and offline AI evaluation scaffold | Done |
 | 1 | Verified intake, immediate Firestore persistence, LangGraph orchestration, qualification agent, and C4 architecture diagrams as code | Done |
-| 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, responsive live dashboard, and run monitoring (Firebase Auth moved to Phase 3) | In progress |
-| 3 | Owner-authorized Cloud Run deployment with Firebase Auth access control, public-repository polish, evidence bundle, README, and demonstration walkthrough | Planned |
+| 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, responsive live dashboard, and run monitoring (Firebase Auth moved to Phase 3) | Done |
+| 3 | Owner-authorized Cloud Run deployment with Firebase Auth access control, evidence bundle, README, and demonstration walkthrough (the repository went public under MIT at the close of Phase 2) | Planned |
 
 ### Lean task budgets for remaining phases
 
@@ -277,9 +278,9 @@ resolve or waive any gate below.
 
 **Phase 3 blueprint — at most six tasks**
 
-1. Resolve the deployment and public-publication gates without broadening product scope.
+1. Resolve the deployment gate without broadening product scope (publication was resolved in Phase 2).
 2. Implement the approved Cloud Run/GCP configuration with secrets, budget, rollback, and access controls.
-3. Prepare the public repository, README, licensing decision, and secret/private-data/history scans.
+3. Keep the public repository and README current, and rerun the secret/private-data scans before each push of new material.
 4. Produce the evidence bundle and demonstration walkthrough from verified stored results.
 5. Run authorized deployment smoke, security, cost, observability, and rollback checks.
 6. Run one consolidated review, fix findings, update final handoff evidence, and prepare archive/merge.
@@ -306,8 +307,13 @@ resolve or waive any gate below.
 
 ### Before public GitHub publication
 
-- [ ] Owner approves the public repository name and framing after secret, private-data, licensing,
-  generated-asset, and history scans pass.
+- [x] Owner approves the public repository name and framing after secret, private-data, licensing,
+  generated-asset, and history scans pass. Resolved 2026-10-26: Peter approved the public repository
+  `prentopoulos/leadflow-ai` under the MIT License, publishing every tracked file and the full
+  history. The scans found no secret in any of the 1,002 history blobs (scanner proven on planted
+  keys), no real personal data, no third-party binary and no unlicensed bundled skill. The two
+  home-directory paths in current docs were neutralised; Peter chose to keep the commit email and
+  three older blobs containing the home path in history rather than rewrite it.
 
 ### Before claiming Military.com intake parity
 

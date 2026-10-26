@@ -2,7 +2,38 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
-## Phase 2 checkpoint (mid-phase, 2026-10-25)
+## Phase 2 closing checkpoint (2026-10-26)
+
+Phase 2 is complete and merged into `main` with a merge commit. All nine tasks passed, and the
+OpenSpec change is archived with its requirements synchronized into `openspec/specs/`. PROJECT.md
+records Phase 2 as `Done`. The project is licensed MIT and published as the public repository
+`github.com/prentopoulos/leadflow-ai` (PROJECT.md section 6 publication gate, resolved 2026-10-26).
+No phase is in progress; the next step is proposing Phase 3 in a fresh session with `/next-phase`.
+
+Closing evidence (task 9.1):
+- Full offline gate (`pnpm check`): the first run failed at governance because a Phase 2 eval
+  fixture named a fictional outbound host; the fixture now uses the other source's template, and
+  the rerun passed every step (38 files/259 tests then; 265 after the review fixes).
+- `pnpm emulator:runtime` passed against the isolated emulator.
+- Live local run: one fictional operator lead made exactly two read-only GETs (vPIC and
+  Zippopotam.us), both found and labelled live; all eight rules passed; the draft waited in review.
+- Code review (`/code-review high` over `main...HEAD`): 10 findings, all confirmed and fixed in
+  `fix: resolve phase two code review findings` (draft history during verification, review/revise
+  retry race, revision limit, request-text and event-privacy calibration, executor dropping a
+  committed resume, mixed retry evidence, dot-only vehicle make, polling races).
+- Design eval (impeccable critique, two isolated reviewers; taste reviewer skipped for app
+  screens): 20/40 with four P1s. Peter chose P1s plus the five callouts and a decision-first
+  dossier; fixed in `fix: resolve phase two design review findings`. After the fixes the detector
+  reports 0 findings, and no page has text under 12 px or horizontal overflow at 390 px.
+- Deferred to Phase 3 by Peter's scope choice (design P2s): focused success notice and next-pending
+  flow, `aria-pressed` filters, a run-card accessible name, quieter poll announcements, chart focus
+  inside the hidden frame, summary disclosure markers, keyboard shortcuts.
+- Pre-publication scans per `.agents/skills/showcase/references/pre-publication.md`: no secret in
+  1,002 history blobs (scanner proven on planted keys), no real personal data, no binaries; home
+  paths neutralised in current docs; commit email and three older blobs with the home path kept by
+  Peter's choice.
+
+## Phase 2 record
 
 Branch `phase-2-enrichment-outreach-dashboard`, OpenSpec change
 `phase-2-enrichment-outreach-dashboard`. Decisions are in PROJECT.md "Phase 2 decisions".
@@ -738,6 +769,7 @@ gates remain unresolved.
 
 ## Next action
 
-Continue with task 9.1 on branch `phase-2-enrichment-outreach-dashboard` (see the Phase 2
-checkpoint above). Tasks 1.1–8.1 are committed. No remote exists, so there is no draft PR or hosted
-CI.
+Start Phase 3 in a fresh session with `/next-phase` (see the Phase 2 closing checkpoint above). The
+public remote exists, so Phase 3 follows WORKFLOW.md's pull-request steps: push the phase branch and
+open a draft PR after the spec-only commit. Rerun the secret and private-data scans before pushing
+new material. Hosted CI is not configured yet.

@@ -84,6 +84,16 @@ maps AI capabilities to current evidence. Read
   pending review, 10 consent skips, 0 failures; one draft approved through the UI and the Origin
   check; 390 px views had no overflow, no target under 24 px and no focus hidden by the strip.
   It found and fixed a request-text false positive that had blocked 6 of 30 clean drafts.
+- Live local run (2026-10-26, task 9.1): one operator-submitted fictional lead (2021 Subaru
+  Outback, ZIP 22150) made exactly two read-only GETs, one per authorized host, both HTTP 200 and
+  `found`, labelled `live`; the vPIC request carried only make and model year. All eight rules
+  passed, the score was 90/100 (30/30/30, high), and the draft waited in review. Metrics kept the
+  live class separate and reported recorded/mock and review latency as `insufficient_data`.
+- Consolidated review (task 9.1) found and fixed two more rule calibrations before closing: the
+  request-text rule now ignores the lead's own structured values and grounded slots (a request
+  naming the lead's own vehicle had blocked a clean draft), and the event-privacy rule checks the
+  strict event schema plus whole words in the one free-text field (lead names such as "Trace" or
+  "Mock" had failed integrity). Regression tests cover both.
 - These are local synthetic results, not provider, production, conversion or deliverability
   evidence. Recheck on any adapter, rule, template, metric-definition or fixture change.
 

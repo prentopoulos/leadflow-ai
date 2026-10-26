@@ -32,4 +32,4 @@
 
 ## 9. Completion
 
-- [ ] 9.1 Integrate the remaining checks into the offline gate, run one clean full gate plus the emulator runtime probe and a live local run, perform one consolidated branch review (code, lead quality, security/state, UI, architecture), fix findings, and update PROJECT, AI_OPS and HANDOFF for archive and owner merge approval.
+- [x] 9.1 Integrate the remaining checks into the offline gate, run one clean full gate plus the emulator runtime probe and a live local run, perform one consolidated branch review (code, lead quality, security/state, UI, architecture), fix findings, and update PROJECT, AI_OPS and HANDOFF for archive and owner merge approval.
