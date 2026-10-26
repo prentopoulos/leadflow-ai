@@ -1,12 +1,12 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './App.js';
+import { Root } from './Root.js';
 import './styles.css';
 
 const root = document.querySelector<HTMLElement>('#root');
 if (!root) throw new Error('Application root not found.');
 
-let content = <App />;
+let content = <Root />;
 if (import.meta.env.DEV) {
   const fixtureName = new URLSearchParams(window.location.search).get(
     'fixture',
@@ -27,7 +27,7 @@ if (import.meta.env.DEV) {
           <p className="development-fixture-notice" role="status">
             {fixture.label}
           </p>
-          <App
+          <Root
             intakeClient={fixture.intakeClient}
             runClient={fixture.runClient}
             idempotencyKeyFactory={() => `fixture-${fixtureName}`}

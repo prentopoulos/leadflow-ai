@@ -14,6 +14,7 @@ import {
   type IntakeClient,
   type IntakeClientResult,
 } from './intake-client.js';
+import { Masthead, SimulationStrip } from './Masthead.js';
 import { RunDossier } from './RunDossier.js';
 import type { RunClient } from './run-client.js';
 
@@ -250,29 +251,8 @@ export function App({
 
   return (
     <>
-      <div className="simulation-strip" role="note">
-        <span className="simulation-mark" aria-hidden="true" />
-        <strong>SIMULATION</strong>
-        <span aria-hidden="true">·</span>
-        <span>Synthetic leads and outcomes</span>
-        <span className="simulation-scope">Local only</span>
-      </div>
-
-      <header className="masthead">
-        <a className="brand" href="#main-content" aria-label="LeadFlow AI home">
-          <span className="brand-mark" aria-hidden="true">
-            LF
-          </span>
-          <span>
-            <strong>LeadFlow AI</strong>
-            <small>Operator workspace</small>
-          </span>
-        </a>
-        <div className="phase-stamp">
-          <span>Phase 1</span>
-          <strong>Intake + qualification</strong>
-        </div>
-      </header>
+      <SimulationStrip />
+      <Masthead view="intake" />
 
       <main id="main-content" className="page-shell">
         <section className="page-intro" aria-labelledby="page-title">
@@ -294,7 +274,7 @@ export function App({
                 <p className="section-index">01 / Intake record</p>
                 <h2 id="intake-title">Synthetic lead intake</h2>
               </div>
-              <span className="schema-tag">intake-v1</span>
+              <span className="schema-tag">intake-v2</span>
             </div>
 
             <form noValidate onSubmit={handleSubmit} onReset={handleReset}>

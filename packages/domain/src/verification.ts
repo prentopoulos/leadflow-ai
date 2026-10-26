@@ -3,6 +3,7 @@ import {
   composeDraft,
   composerInputFrom,
   DRAFT_SUBJECT,
+  TEMPLATE_PHRASES,
 } from './outreach.js';
 import {
   ConsentRecordSchema,
@@ -46,8 +47,12 @@ export function findDecisionLanguage(text: string): string[] {
 const normalizeText = (value: string) =>
   value.toLocaleLowerCase('en-US').replace(/\s+/gu, ' ').trim();
 
+const templateText = normalizeText(TEMPLATE_PHRASES.join(' | '));
+
 // True when any run of REQUEST_TEXT_WINDOW characters from the request text
-// appears in the draft, after whitespace and case normalization.
+// appears in the draft, after whitespace and case normalization. Runs that the
+// template's own fixed phrases contain are ignored: common wording such as
+// " would like " proves nothing about copying.
 export function containsRequestText(
   draft: string,
   requestDetails: string | null,
@@ -57,7 +62,8 @@ export function containsRequestText(
   const haystack = normalizeText(draft);
   if (request.length < REQUEST_TEXT_WINDOW) return false;
   for (let start = 0; start + REQUEST_TEXT_WINDOW <= request.length; start++) {
-    if (haystack.includes(request.slice(start, start + REQUEST_TEXT_WINDOW))) {
+    const window = request.slice(start, start + REQUEST_TEXT_WINDOW);
+    if (haystack.includes(window) && !templateText.includes(window)) {
       return true;
     }
   }

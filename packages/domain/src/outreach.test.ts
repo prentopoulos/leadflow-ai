@@ -357,6 +357,22 @@ describe('verification rules', () => {
   });
 });
 
+describe('request-text rule calibration', () => {
+  it('ignores wording shared with fixed template copy but still catches copying', () => {
+    const request = 'New vehicle next month; would like a call back by email.';
+    const draft = composeDraft(
+      composerInputFrom({ intake, priority: 'high', evidence: foundEvidence }),
+    );
+    expect(containsRequestText(draft.body, request)).toBe(false);
+    expect(
+      containsRequestText(
+        draft.body.replace('Hi Avery', 'Hi Avery, a call back by email'),
+        request,
+      ),
+    ).toBe(true);
+  });
+});
+
 describe('revision states', () => {
   const verification = verify(revisionFor(foundEvidence));
   const first = revisionFor(foundEvidence);

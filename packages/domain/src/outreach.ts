@@ -82,6 +82,19 @@ export const TEMPLATE_FIXED_COPY = {
   notice: COMPLIANCE_NOTICE,
 } as const;
 
+// Every phrase the template itself can produce. Text shared with these
+// phrases cannot show that request details were copied into a draft.
+export const TEMPLATE_PHRASES: readonly string[] = [
+  DRAFT_SUBJECT,
+  ...Object.values(TEMPLATE_FIXED_COPY),
+  ...Object.values(intentPhrases),
+  ...Object.values(timelineSentences),
+  ...Object.values(focusPhrases),
+  ' We have your',
+  ' on file for the conversation.',
+  ' We see you are in the',
+];
+
 function fixed(key: keyof typeof TEMPLATE_FIXED_COPY): DraftSlot {
   return {
     key,

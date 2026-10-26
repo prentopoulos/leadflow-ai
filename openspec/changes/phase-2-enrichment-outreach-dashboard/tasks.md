@@ -20,7 +20,7 @@
 
 ## 6. Operator views and seed data
 
-- [ ] 6.1 Build the leads/runs view with the approval-queue filter and run monitoring, the extended dossier (evidence, email check, draft, verification, review with copy/export), and the metrics dashboard with Recharts and shadcn/ui under the Phase 1 direction, polling every 3 s; add `pnpm seed:local` with 40 fixed fictional leads; verify WCAG 2.2 AA behavior at desktop and 390 px in the running app and run design-eval before readiness.
+- [x] 6.1 Build the leads/runs view with the approval-queue filter and run monitoring, the extended dossier (evidence, email check, draft, verification, review with copy/export), and the metrics dashboard with Recharts and shadcn/ui under the Phase 1 direction, polling every 3 s; add `pnpm seed:local` with 40 fixed fictional leads; verify WCAG 2.2 AA behavior at desktop and 390 px in the running app and run design-eval before readiness.
 
 ## 7. Evaluation and AI operations
 

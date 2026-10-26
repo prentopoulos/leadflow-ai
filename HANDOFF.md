@@ -7,7 +7,7 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 Branch `phase-2-enrichment-outreach-dashboard`, OpenSpec change
 `phase-2-enrichment-outreach-dashboard`. Decisions are in PROJECT.md "Phase 2 decisions".
 
-- Done in task commits: 1.1 contracts and UI dependencies, 2.1 live enrichment adapters plus the
+- Done in task commits: 6.1 operator views and seed data (below), 1.1 contracts and UI dependencies, 2.1 live enrichment adapters plus the
   authorized probe (18 of 18 answered; fixtures in `packages/runtime/fixtures/`), 3.1 composer,
   verification rules, reviews and the no-send governance check, 4.1's seven-node workflow and
   asynchronous execution boundary, and 5.1's Phase 2 API boundary.
@@ -30,9 +30,23 @@ Branch `phase-2-enrichment-outreach-dashboard`, OpenSpec change
   API 14 files/88 tests; affected formatting and `git diff --check`; production build; strict
   OpenSpec validation; and the direct isolated Firestore verifier against the already-running
   project emulator, including workflow recovery and verified flush.
-- Next step: implement task 6.1 — operator runs/approval queue, extended dossier, metrics dashboard,
-  3 s polling, and `pnpm seed:local` with 40 fixed fictional leads — then perform the required
-  running desktop/390 px accessibility review and design-eval before readiness.
+- Task 6.1 adds hash-routed Intake / Operations views (lazy-loaded Recharts), the leads/runs list
+  with approval-queue and attention filters, the extended dossier (enrichment evidence with class
+  and capture time, email check, verification rules, draft review, edit-as-revision, copy/export
+  after approval), the metrics dashboard with text-table equivalents, 3 s visible-tab polling, and
+  `pnpm seed:local` (40 fixed fictional leads, recorded enrichment only, keys per system bundle).
+- Task 6.1 checks passed: all 38 test files/258 tests, ESLint, strict TypeScript, governance with
+  the no-send check, production build, and a running-app review (emulator, recorded-mode API, seed,
+  Vite on 5174): 40/40 runs complete, 30 pending drafts, 10 consent skips, 0 failures; UI approval
+  through the real Origin check; 390 px views with no horizontal overflow, no target under 24 px
+  and no focus hidden by the sticky strip.
+- Findings fixed while running it: the request-text rule falsely blocked 6 of 30 clean drafts by
+  matching common template wording (" would like "), so runs shared with fixed template phrases are
+  now ignored; filter changes waited for the next 3 s poll; reseeding after a code change replayed
+  the previous bundle's leads; the Phase 1 simulation panel overflowed the dossier at 390 px; score
+  summaries were under 24 px; the sticky strip needed scroll padding.
+- Next step: task 7.1 (freeze `phase-2.0` evaluation cases, update AI_OPS), then 8.1 diagrams and
+  README, then 9.1, whose consolidated review includes the design-eval pass before readiness.
 - Capture leaf-check output with `cmd /c "node node_modules\...> file 2>&1"` (docs/development.md).
 
 ## Phase 1 record

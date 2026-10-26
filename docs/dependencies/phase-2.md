@@ -28,12 +28,12 @@ unchanged.
 
 ## shadcn/ui method
 
-shadcn/ui is copied source, not a runtime package. The components (button, badge, card, table,
-tabs) are placed under `apps/web/src/components/ui/` from the shadcn 4.22.1 `radix` base, with
+shadcn/ui is copied source, not a runtime package. The views need two components, button and
+tabs, placed under `apps/web/src/components/ui/` from the shadcn 4.22.1 `radix` base, with
 imports pointed at the two individual Radix primitives and a local `cn` helper in
-`apps/web/src/lib/utils.ts`. The `shadcn init` command was not run, because it rewrites the global
-stylesheet and Vite configuration that carry the accepted Phase 1 visual direction. Component styles
-use the existing Phase 1 tokens.
+`apps/web/src/lib/utils.ts`. Tables and panels stay semantic HTML on the Phase 1 tokens. The
+`shadcn init` command was not run, because it rewrites the global stylesheet and Vite configuration
+that carry the accepted Phase 1 visual direction. Component styles use the existing Phase 1 tokens.
 
 ## Alternatives considered
 

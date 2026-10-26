@@ -99,6 +99,16 @@ Development listeners must remain on `127.0.0.1`. Phase 2 adds owner-authorized 
 `vpic.nhtsa.dot.gov` and `api.zippopotam.us` only; there is still no hosted model, authentication,
 cloud Firestore, external communication, or other credentialed service.
 
+## Phase 2 local operator session
+
+1. `pnpm emulator:start` (ephemeral), then `pnpm build`.
+2. `pnpm api:local` runs live enrichment (owner-authorized reads). Pass `-- --enrichment=recorded`
+   for recorded fixtures; set `LEADFLOW_WEB_ORIGIN` when the web app is not on 127.0.0.1:5173.
+3. `pnpm seed:local` adds 40 fixed fictional leads. It refuses unless the running API is in recorded
+   mode. Leads are keyed per system bundle, so after a code change it fills the new metrics window.
+4. Start Vite (`node node_modules/vite/bin/vite.js --config apps/web/vite.config.ts --port 5174
+   --strictPort` if 5173 is taken) and open `#runs` or `#metrics`.
+
 ## Known shell workarounds
 
 - Run `pnpm` from PowerShell after `. .\scripts\activate-toolchain.ps1`. Git Bash cannot resolve
