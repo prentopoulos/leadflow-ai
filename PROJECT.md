@@ -67,7 +67,8 @@ agent-runtime, state, monitoring, or provider changes.
   design-eval before UI readiness. Paid 21st generation requires owner approval.
 - Architecture diagrams: C4 as code, drawn to the c4model.com notation guide (context and
   container views, plus an ERD once there is a data schema). One Structurizr DSL model in
-  `docs/architecture/`, exported to SVG, with Mermaid where a README shows a diagram.
+  `docs/architecture/` as the source model, rendered with the diagram-design skill
+  (`pnpm docs:diagrams`); READMEs follow the showcase skill and never use Mermaid.
 - Code review: every change to code is reviewed before merge (WORKFLOW.md).
 
 Gate: `. .\scripts\activate-toolchain.ps1` followed by `pnpm check`. The gate is credential-free
@@ -133,6 +134,69 @@ Accepted by Peter on 2026-10-24 for the Phase 1 proposal:
 - Pin and locally activate Java 21 for the Firestore Emulator and Structurizr tooling without
   changing the accepted Node/pnpm versions. Normal `pnpm check` remains credential-free and offline
   after the frozen dependency/tool bootstrap.
+
+### Phase 2 decisions
+
+Accepted by Peter on 2026-10-25 for the Phase 2 proposal (round-1 grilling; every recommendation
+was accepted as presented):
+
+- Phase 2 builds enrichment, outreach drafts, verification, the dashboard and run monitoring.
+  Firebase Auth moves to Phase 3's access-control task with deployment. Phase 2 records a fixed,
+  labelled local operator principal on approvals and adds a loopback Host/Origin allowlist.
+- Peter authorizes live, read-only GET requests from the local machine to exactly
+  `vpic.nhtsa.dot.gov` and `api.zippopotam.us`: only ZIP and vehicle year/make leave the machine,
+  one request per source per lead, a 5-second timeout, and at most one retry on network error, 429
+  or 5xx. Live reads run only for operator-submitted leads and a separately named probe. The offline
+  gate uses fixtures labelled `recorded` (captured from an authorized live call, with date) or
+  `mock` (hand-written). Evidence credits NHTSA vPIC and Zippopotam.us / GeoNames.
+- Vehicle enrichment keeps year/make/model and checks it with vPIC `GetModelsForMakeYear`. The claim
+  is only "make/model listed by NHTSA vPIC for that model year"; matching is exact and
+  case-insensitive, and a mismatch is reported, never corrected. VIN decoding is deferred until the
+  Military.com VIN question is verified.
+- The paid-API gate stays unresolved. The interpreter stays deterministic and drafts come from a
+  deterministic slot template behind a provider-neutral port; provider cases remain `not_run`.
+- Outreach is an email draft only, created when consent is true and qualification is not held, for
+  every priority. States are `pending_review -> approved | rejected`; an edit creates a new immutable
+  revision back in `pending_review`; approval binds to the revision digest, operator and time.
+  Approved means approved for manual use (copy/export). No send path exists and a check enforces it.
+  Follow-up actions: high "Review today", standard "Review this week", nurture "Add to nurture
+  list". Drafts carry a fixed CAN-SPAM notice and never invent a postal address.
+- Metric definitions (`metrics-definitions-v1`): processing time runs from `lead.persisted` to the
+  last automated event, excluding human review (reported as review latency), with median, p90, mean
+  and n. Enrichment success is per source lookup: valid found or not-found answers succeed;
+  unavailable, timeout, 429, 5xx and malformed fail; not-attempted lookups are excluded but counted;
+  a found-rate is separate. Agent failures are runs whose latest state is failed among finished
+  runs, with a per-agent breakdown; a recovered retry is not a failure. The approval queue counts
+  drafts whose latest revision is `pending_review`. Every metric names numerator, denominator,
+  exclusions and window, filters to the current system bundle, shows `insufficient_data` for empty
+  denominators, keeps simulator outcomes in a separate SYNTHETIC panel, and splits live from
+  recorded evidence. Priority labels stay high/standard/nurture plus held and not scored.
+- An unavailable enrichment source leaves the run complete but `partial`; a draft that fails
+  verification is stored `verification_blocked` outside the approval queue with a visible hold;
+  corrupt internal state fails the run terminally.
+- Intake moves to a new schema version that records the consent wording version and a digest of the
+  exact text shown. Phase 1 emulator data is cleared, not migrated.
+- Each lookup stores a bounded raw response and its SHA-256 until local reset; no cache is shared
+  across leads.
+- A run completes when its draft reaches `pending_review`; approve/reject are separate append-only
+  review records, not a LangGraph interrupt.
+- WCAG 2.2 AA is the explicit UI target: chart text equivalents, no colour-only encoding, 3:1 chart
+  marks, unobscured focus, 24px targets, polite live regions and reduced-motion charts.
+- A fixed fictional seed command runs 40 leads through the real pipeline with `recorded` enrichment.
+- Peter authorizes downloading recharts, lucide-react, and the shadcn/ui components with their Radix
+  dependencies, recorded in `docs/dependencies/phase-2.md`. No SSE, Firebase client or provider SDK.
+- The interface has three views: intake -> run dossier; a leads/runs list with the approval queue as
+  a filter and run monitoring; and the metrics dashboard. Alerting stays deferred.
+
+Settled by the agent with a cited basis and accepted in the same confirmation: syntax-plus-
+reserved-domain email check with no network call (recorded/fact); revision-aware polling through
+Fastify (default); background in-process execution with resume returning 202 and a fixed
+qualify -> enrich -> draft -> verify -> finalize graph (default); `rubric-v1` unchanged by enrichment
+(recorded); the Phase 1 visual direction extended, free 21st inspiration only (recorded);
+verification rules derived from section 5 and mapped to OWASP LLM Top 10 2025 and ASVS 5.0
+(recorded); frozen `phase-2.0` cases (recorded); event-v1 as the telemetry system of record with
+OpenTelemetry HTTP attribute names and no SDK (default); diagram and README rendering per the
+owner's 2026-10-25 feedback.
 
 ## 5. Non-negotiables
 
