@@ -1,4 +1,5 @@
 import { HOSTED_TARGET } from '@leadflow-ai/domain';
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 
 // The sanitized Phase 3 deployment evidence index
@@ -47,11 +48,23 @@ const CheckSchema = z
     recordedAt: z.iso.datetime().nullable(),
     observed: z.string().min(1).max(600).nullable(),
     reason: z.string().min(1).max(300).nullable(),
+    // A passing deployed observation is tied to the complete candidate
+    // identity. Changing any identity field invalidates the observation.
+    candidateFingerprint: Sha256.nullable().default(null),
     // Delayed billing is pending with a reason, never zero.
     pending: z.boolean().default(false),
   })
   .strict()
   .superRefine((value, context) => {
+    if (
+      (value.id.startsWith('deployed-') && value.scope !== 'deployed') ||
+      (value.id.startsWith('local-') && value.scope !== 'local')
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'check ID prefix and scope must agree',
+      });
+    }
     const ran = value.outcome === 'pass' || value.outcome === 'fail';
     if (ran && (value.recordedAt === null || value.observed === null)) {
       context.addIssue({
@@ -125,30 +138,92 @@ export const DeploymentEvidenceIndexSchema = z
     }
     const deployedRan = value.checks.some(
       (check) =>
-        check.scope === 'deployed' &&
+        check.id.startsWith('deployed-') &&
         (check.outcome === 'pass' || check.outcome === 'fail'),
     );
-    const { sourceCommit, imageDigest, revision, buildId } = value.candidate;
-    if (
-      deployedRan &&
-      (sourceCommit === null ||
-        imageDigest === null ||
-        revision === null ||
-        buildId === null)
-    ) {
+    if (deployedRan && !completeCandidate(value.candidate)) {
       context.addIssue({
         code: 'custom',
-        message: 'deployed results bind to the exact build, image and revision',
+        message:
+          'deployed results bind to source, lockfile, bundle, build, image and revision',
       });
+    }
+    if (completeCandidate(value.candidate)) {
+      const fingerprint = deploymentCandidateFingerprint(value.candidate);
+      for (const check of value.checks) {
+        const ran = check.outcome === 'pass' || check.outcome === 'fail';
+        if (
+          check.scope === 'deployed' &&
+          ran &&
+          check.candidateFingerprint !== fingerprint
+        ) {
+          context.addIssue({
+            code: 'custom',
+            message: `${check.id} does not bind to the current candidate`,
+          });
+        }
+      }
     }
   });
 export type DeploymentEvidenceIndex = z.infer<
   typeof DeploymentEvidenceIndexSchema
 >;
 
+type Candidate = DeploymentEvidenceIndex['candidate'];
+type CompleteCandidate = Candidate & {
+  sourceCommit: string;
+  lockfileDigest: string;
+  systemBundleId: string;
+  buildId: string;
+  imageDigest: string;
+  revision: string;
+};
+
+function completeCandidate(
+  candidate: Candidate,
+): candidate is CompleteCandidate {
+  return (
+    candidate.sourceCommit !== null &&
+    candidate.lockfileDigest !== null &&
+    candidate.systemBundleId !== null &&
+    candidate.buildId !== null &&
+    candidate.imageDigest !== null &&
+    candidate.revision !== null
+  );
+}
+
+export function deploymentCandidateFingerprint(
+  candidate: CompleteCandidate,
+): string {
+  const identity = [
+    candidate.sourceCommit,
+    candidate.lockfileDigest,
+    candidate.systemBundleId,
+    candidate.buildId,
+    candidate.imageDigest,
+    candidate.revision,
+    candidate.configuration,
+    candidate.service,
+    candidate.region,
+    candidate.runtimeIdentity,
+    candidate.firestore.database,
+    candidate.firestore.location,
+    candidate.firestore.retentionPolicy,
+  ];
+  return createHash('sha256').update(JSON.stringify(identity)).digest('hex');
+}
+
 // Readiness holds unless every required deployed check passed.
 export function deploymentReady(index: DeploymentEvidenceIndex): boolean {
-  return DEPLOYED_CHECK_IDS.every(
-    (id) => index.checks.find((check) => check.id === id)?.outcome === 'pass',
-  );
+  if (!completeCandidate(index.candidate)) return false;
+  const fingerprint = deploymentCandidateFingerprint(index.candidate);
+  return DEPLOYED_CHECK_IDS.every((id) => {
+    const check = index.checks.find((candidate) => candidate.id === id);
+    return (
+      check?.scope === 'deployed' &&
+      check.outcome === 'pass' &&
+      !check.pending &&
+      check.candidateFingerprint === fingerprint
+    );
+  });
 }

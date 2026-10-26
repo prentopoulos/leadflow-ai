@@ -17,7 +17,11 @@ const listeners = new Set<(failure: AuthFailure) => void>();
 
 function authFailureOf(status: number, payload: unknown): AuthFailure | null {
   const parsed = ErrorResponseSchema.safeParse(payload);
-  if (!parsed.success) return status === 401 ? 'expired' : null;
+  if (!parsed.success) {
+    if (status === 401) return 'expired';
+    if (status === 403) return 'denied';
+    return null;
+  }
   if (parsed.data.error.code === 'authentication_required') return 'expired';
   if (parsed.data.error.code === 'access_denied' && status === 403) {
     return parsed.data.error.category === 'access' ? 'denied' : null;

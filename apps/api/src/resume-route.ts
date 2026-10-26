@@ -29,6 +29,7 @@ const RequestIdSchema = z.string().uuid();
 export interface ResumeRouteDependencies {
   resume: Pick<QualificationResumeService, 'begin'>;
   details: Pick<RunDetailService, 'get'>;
+  leaseDurationMs: number;
   // Local mode runs the committed continuation in the background executor;
   // hosted mode resolves only after the bounded continuation stops.
   schedule: (
@@ -117,7 +118,7 @@ export function registerResumeRoute(
           runId,
           expectedRevision,
           ownerId: `api:${requestId}`,
-          leaseDurationMs: 300_000,
+          leaseDurationMs: dependencies.leaseDurationMs,
           traceId,
           requestId,
           authorization: 'allowed',

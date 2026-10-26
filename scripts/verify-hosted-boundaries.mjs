@@ -129,18 +129,32 @@ export async function verifyHostedBoundaries({ systemBundleId }) {
     // The hosted purge refuses the emulator project before any delete.
     let purgeRefused = false;
     try {
-      await purgeHostedData(hosted.database, {
-        configured: {
-          projectId: 'demo-leadflow-ai-local',
-          databaseId: '(default)',
+      await purgeHostedData(
+        {
+          target: {
+            projectId: 'demo-leadflow-ai-local',
+            databaseId: '(default)',
+          },
+          listCollections: () => hosted.database.listCollections(),
+          recursiveDelete: (reference) =>
+            hosted.database.recursiveDelete(reference),
         },
-        requested: {
-          projectId: 'demo-leadflow-ai-local',
-          databaseId: '(default)',
+        {
+          configured: {
+            projectId: 'demo-leadflow-ai-local',
+            databaseId: '(default)',
+          },
+          requested: {
+            projectId: 'demo-leadflow-ai-local',
+            databaseId: '(default)',
+          },
+          confirmation: HOSTED_PURGE_CONFIRMATION,
+          operator: {
+            requiredAccount: 'owner@example.com',
+            authenticatedAccount: 'owner@example.com',
+          },
         },
-        confirmation: HOSTED_PURGE_CONFIRMATION,
-        operatorAuthenticated: true,
-      });
+      );
     } catch (error) {
       purgeRefused = error instanceof HostedPurgeDeniedError;
     }

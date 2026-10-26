@@ -259,6 +259,7 @@ export async function createPhaseOneApiDependencies(
     resume: {
       resume,
       details,
+      leaseDurationMs,
       schedule: hosted
         ? // Hosted resume is request-bound too: the route answers after the
           // bounded continuation stops, and polling shows stored progress.

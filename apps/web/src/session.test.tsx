@@ -102,6 +102,23 @@ describe('session gate', () => {
     expect(screen.queryByText('workspace')).not.toBeInTheDocument();
   });
 
+  it('unmounts the workspace when IAP returns a non-JSON denial', async () => {
+    vi.stubGlobal('fetch', respond(403, '<html>IAP denial</html>'));
+    render(
+      <SessionGate initial={hosted}>
+        <p>workspace</p>
+      </SessionGate>,
+    );
+    expect(screen.getByText('workspace')).toBeInTheDocument();
+    await act(async () => {
+      await apiFetch('/v1/runs');
+    });
+    expect(
+      screen.getByRole('heading', { name: 'Access denied' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('workspace')).not.toBeInTheDocument();
+  });
+
   it('keeps the local label for the loopback operator', () => {
     render(
       <SessionGate
@@ -139,6 +156,7 @@ describe('session loading', () => {
     [401, errorBody('authentication_required', 'access'), 'expired'],
     [403, errorBody('access_denied', 'access'), 'denied'],
     [401, '<html>IAP</html>', 'expired'],
+    [403, '<html>IAP denial</html>', 'denied'],
     [503, errorBody('storage_unavailable', 'storage'), 'unavailable'],
   ])('maps HTTP %s to its session state', async (status, body, expected) => {
     vi.stubGlobal('fetch', respond(status, body));

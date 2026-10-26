@@ -32,6 +32,7 @@
     "seed:local": "node scripts/seed-local.mjs",
     "docs:diagrams": "node scripts/generate-diagrams.mjs",
     "docs:check": "node scripts/check-docs.mjs",
+    "container:inspect": "node scripts/inspect-container-image.mjs",
     "check:openspec": "openspec validate --all --strict",
     "check": "node scripts/run-checks.mjs",
     "audit:dependencies": "node scripts/run-pnpm-audit.mjs"

@@ -89,8 +89,9 @@ maps AI capabilities to current evidence. Read
 - Evidence classes: synthetic unit and contract tests; the isolated emulator probe (hosted
   retention, deny-all client rules, purge guard, held execution, deadline and reclaim); an offline
   container probe with synthetic configuration (process health 200, every other route 401
-  including a forged assertion and an unsigned email header). No cloud resource, build or
-  deployment exists, so every deployed check is `not_run`.
+  including a forged assertion and an unsigned email header). The dedicated project and its Cloud
+  Run spend cap exist, but no application API, service, database, repository, build, image or
+  deployment exists; every deployed check remains `not_run`.
 - Stored lead, run and event records keep the `synthetic-local` data-class literal in hosted mode;
   the hosted environment of each run is identified by its system bundle's `deployment.mode`, and the
   interface labels hosted runs as private hosted synthetic data.
@@ -101,9 +102,10 @@ maps AI capabilities to current evidence. Read
   Toronto Firestore, one scale-to-zero service, recorded-only deployed enrichment, request-bound
   cloud execution, an immutable Cloud Build/Artifact Registry release, bounded cost controls,
   verified rollback, evidence, walkthrough, and teardown.
-- `system-bundle-v3` and `phase-3.0` are planned, not measured. Hosted, IAP, Firestore, build,
-  revision, cost, log, rollback, accessibility, and walkthrough cases remain `not_run` until their
-  named local or separately authorized deployed probes execute.
+- At proposal time `system-bundle-v3` and `phase-3.0` were planned; both are now implemented and
+  measured by the local deterministic suite. Hosted IAP, cloud Firestore, build, revision, cost,
+  log, rollback and teardown cases remain `not_run` until their separately authorized deployed
+  probes execute.
 - Planning, validation, scans, the spec-only commit, push, and draft PR are authorized. No cloud API
   enablement, resource creation, build, deployment, merge, model call, message send, or MP4
   publication is authorized by this record.

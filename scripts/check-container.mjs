@@ -170,6 +170,14 @@ export function inspectDeployTemplates(service, build) {
     ['commit verification', 'git rev-parse HEAD'],
     ['clean clone check', 'git status --porcelain'],
     ['image push', 'images:'],
+    [
+      'digest-pinned git builder',
+      'gcr.io/cloud-builders/git@sha256:68bbb0c02d8bac5339f74a5587d685d1e631e8a0437ab5d02991fbbf9c738012',
+    ],
+    [
+      'digest-pinned Docker builder',
+      'gcr.io/cloud-builders/docker@sha256:0aca0f95e1ba8f9107263d3e9782d5ce99a5b60d35b3f8985e4534b65552636f',
+    ],
   ]) {
     if (!build.includes(text))
       findings.push(`deploy/cloudbuild.yaml: missing ${label}`);

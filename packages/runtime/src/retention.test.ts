@@ -120,13 +120,20 @@ describe('guarded hosted purge', () => {
       databaseId: '(default)',
     },
     confirmation: HOSTED_PURGE_CONFIRMATION,
-    operatorAuthenticated: true,
+    operator: {
+      requiredAccount: 'owner@example.com',
+      authenticatedAccount: 'owner@example.com',
+    },
   };
 
   function fakeDatabase(ids: string[]) {
     const deleted: string[] = [];
     return {
       deleted,
+      target: {
+        projectId: 'synthetic-hosted-project',
+        databaseId: '(default)',
+      },
       listCollections: async () => ids.map((id) => ({ id })),
       recursiveDelete: async (reference: { id: string }) => {
         deleted.push(reference.id);
@@ -135,7 +142,24 @@ describe('guarded hosted purge', () => {
   }
 
   it.each([
-    ['unauthenticated operator', { operatorAuthenticated: false }],
+    [
+      'unauthenticated operator',
+      {
+        operator: {
+          requiredAccount: 'owner@example.com',
+          authenticatedAccount: null,
+        },
+      },
+    ],
+    [
+      'different operator',
+      {
+        operator: {
+          requiredAccount: 'owner@example.com',
+          authenticatedAccount: 'other@example.com',
+        },
+      },
+    ],
     [
       'different project',
       {
@@ -183,6 +207,15 @@ describe('guarded hosted purge', () => {
       deletedCollections: [],
       unknownCollections: ['billingExports'],
     });
+    expect(database.deleted).toEqual([]);
+  });
+
+  it('stops before deleting when the connection target differs', async () => {
+    const database = fakeDatabase(['leads']);
+    database.target.projectId = 'different-hosted-project';
+    await expect(purgeHostedData(database, allowed)).rejects.toThrow(
+      HostedPurgeDeniedError,
+    );
     expect(database.deleted).toEqual([]);
   });
 

@@ -82,6 +82,18 @@ Secret Manager and Cloud Storage stay off. If any step asks for one of them, sto
    Identity-Aware Proxy), set the support contact privately, then use the scripted path for every
    later release.
 
+Before rendering the first service, capture the active owner's stable Google subject without logging
+the token or subject:
+
+```sh
+LEADFLOW_OWNER_EMAIL=OWNER_EMAIL node deploy/capture-owner-subject.mjs
+export LEADFLOW_ALLOWED_SUBJECTS="$(cat .local/owner-subject.txt)"
+```
+
+The script requires the active `gcloud` account to equal `OWNER_EMAIL`, validates the signed-token
+claims supplied by `gcloud`, and writes only to the ignored private record. This avoids a circular
+first deployment and does not expose the proxy-only IAP assertion to browser code.
+
 ## Build
 
 From Cloud Shell, in a clone of the public repository at the candidate commit:
@@ -94,6 +106,11 @@ gcloud builds submit --no-source --region=northamerica-northeast2 \
 Record the build ID and the pushed digest (`gcloud builds describe BUILD_ID --region=... --format='value(results.images[0].digest)'`).
 Then confirm `gcloud storage buckets list` is still empty. If the build failed for lack of a bucket
 or created one, stop: Cloud Storage is not approved.
+
+Before the cloud build, `pnpm container:inspect` builds the exact tracked commit from `git archive`,
+exports the final runtime image, and scans its metadata and `/app` filesystem for source/test files,
+local paths, emulator state, configured private values and credential patterns. Record that local
+result against the same source and lockfile identities used by the cloud build.
 
 ## Deploy
 
@@ -112,10 +129,6 @@ The first release takes 100% of traffic. Later candidates deploy at 0% beside th
 revision with the `candidate` tag. Compare `gcloud run services describe` with the template: image
 digest, limits, concurrency, timeout, identity, region, `Iap Enabled: true`, and an invoker policy
 holding only the IAP service agent. Any difference keeps the release on hold.
-
-The owner's IAP subject comes from the first signed-in request: the application never logs it, so
-read it once from the IAP assertion in the browser's developer tools on the owner's own session and
-store it only in the private record.
 
 ## Smoke and evidence (the authorized deployed probe)
 
@@ -147,11 +160,19 @@ record it in `docs/evidence/phase-3/index.json` with sanitized inputs and observ
 
 ## Purge (synthetic data, unrecoverable by design)
 
-`purgeHostedData` in `packages/runtime/src/retention.ts` deletes only the application's known
-collections and stops if any other collection exists. It requires the configured and requested
-project/database to match, the owner's authenticated ADC session, and the exact confirmation
-`PURGE SYNTHETIC LEADFLOW HOSTED DATA`. Run it from Cloud Shell only after a final evidence export.
-TTL removes documents about seven days after their last create, usually within a further 24 hours.
+`deploy/purge-hosted.mjs` deletes only the application's known collections and stops if any other
+collection exists. It binds the actual Admin SDK connection to the configured and requested target,
+requires both the active `gcloud` account and ADC token to verify as the exact owner, and requires the
+literal confirmation. From Cloud Shell, only after a final evidence export:
+
+```sh
+LEADFLOW_PROJECT_ID=PROJECT_ID LEADFLOW_OWNER_EMAIL=OWNER_EMAIL \
+LEADFLOW_PURGE_CONFIRMATION='PURGE SYNTHETIC LEADFLOW HOSTED DATA' \
+node deploy/purge-hosted.mjs
+```
+
+Any identity, target, confirmation, or unknown-collection mismatch issues no delete. TTL removes
+documents about seven days after their last create, usually within a further 24 hours.
 
 ## Pre-demo, post-demo and monthly
 

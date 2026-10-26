@@ -11,6 +11,8 @@ image. No other direct dependency is added.
 |---|---|---|---|
 | `google-auth-library` (direct, `apps/api`) | `11.3.1`, exact | Apache-2.0 | Verifies the signed `x-goog-iap-jwt-assertion` with IAP's public keys (`getIapPublicKeys`, `verifySignedJwtWithCertsAsync`). |
 | Container base `node:24.22.1-slim` | `sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205` | Node.js and Debian package licences | Official Node image for the build and runtime stages, matching `.node-version`. |
+| Cloud Build `git` helper (amd64) | `sha256:68bbb0c02d8bac5339f74a5587d685d1e631e8a0437ab5d02991fbbf9c738012` | Apache-2.0 | Clones and verifies the fixed public repository and exact commit. |
+| Cloud Build `docker` helper (amd64) | `sha256:0aca0f95e1ba8f9107263d3e9782d5ce99a5b60d35b3f8985e4534b65552636f` | Apache-2.0 | Builds and publishes the reviewed Dockerfile under the fixed release destination. |
 
 `google-auth-library` 11.3.1 was already in the lockfile as `firebase-admin` 14.5.0's own
 dependency, so declaring it installed nothing new (`pnpm add --offline`, lockfile change of three
@@ -19,6 +21,8 @@ lines). pnpm's strict layout forbids importing a transitive package, which is wh
 The base digest is the multi-architecture index digest reported by `docker pull` on 2026-10-26
 (image created 2026-10-21). Every Dockerfile stage uses it through one `ARG`, and
 `scripts/check-container.mjs` fails the gate if the Dockerfile and this record disagree.
+The Cloud Build helper digests are the linux/amd64 manifests resolved read-only from GCR on
+2026-10-26; the release configuration pins them and leaves only the source commit substitutable.
 
 ## Verification notes
 

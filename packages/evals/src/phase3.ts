@@ -409,17 +409,26 @@ export async function observePhaseThree(check: string): Promise<unknown> {
         configured: { projectId: SYNTHETIC_PROJECT, databaseId: '(default)' },
         requested: { projectId: SYNTHETIC_PROJECT, databaseId: '(default)' },
         confirmation: HOSTED_PURGE_CONFIRMATION,
-        operatorAuthenticated: true,
+        operator: {
+          requiredAccount: 'owner@example.com',
+          authenticatedAccount: 'owner@example.com',
+        },
       };
       const deleted: string[] = [];
       const database = (ids: string[]) => ({
+        target: { projectId: SYNTHETIC_PROJECT, databaseId: '(default)' },
         listCollections: async () => ids.map((id) => ({ id })),
         recursiveDelete: async ({ id }: { id: string }) => {
           deleted.push(id);
         },
       });
       const denials: Partial<HostedPurgeRequest>[] = [
-        { operatorAuthenticated: false },
+        {
+          operator: {
+            requiredAccount: 'owner@example.com',
+            authenticatedAccount: null,
+          },
+        },
         {
           requested: { projectId: 'other-project-x', databaseId: '(default)' },
         },

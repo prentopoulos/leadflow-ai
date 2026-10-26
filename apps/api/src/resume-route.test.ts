@@ -68,7 +68,11 @@ function idFactory() {
 }
 
 function buildApp(
-  dependencies: Omit<ResumeRouteDependencies, 'schedule'> & {
+  dependencies: Omit<
+    ResumeRouteDependencies,
+    'leaseDurationMs' | 'schedule'
+  > & {
+    leaseDurationMs?: ResumeRouteDependencies['leaseDurationMs'];
     schedule?: ResumeRouteDependencies['schedule'];
   },
 ) {
@@ -76,6 +80,7 @@ function buildApp(
     phaseOne: readyStartup(),
     resume: {
       ...dependencies,
+      leaseDurationMs: dependencies.leaseDurationMs ?? 300_000,
       schedule: dependencies.schedule ?? (() => undefined),
     },
     requestIdFactory: idFactory(),
@@ -96,6 +101,7 @@ describe('POST /v1/runs/:runId/resume', () => {
     const app = buildApp({
       resume: { begin },
       details: { get: async () => detail('complete', 9) },
+      leaseDurationMs: 75_000,
       schedule,
     });
 
@@ -117,7 +123,7 @@ describe('POST /v1/runs/:runId/resume', () => {
       runId,
       expectedRevision: 0,
       ownerId: `api:${requestId}`,
-      leaseDurationMs: 300_000,
+      leaseDurationMs: 75_000,
       traceId,
       requestId,
       authorization: 'allowed',

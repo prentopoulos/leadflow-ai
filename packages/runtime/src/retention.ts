@@ -147,7 +147,10 @@ export interface HostedPurgeRequest {
   configured: { projectId: string; databaseId: string };
   requested: { projectId: string; databaseId: string };
   confirmation: string;
-  operatorAuthenticated: boolean;
+  operator: {
+    requiredAccount: string;
+    authenticatedAccount: string | null;
+  };
 }
 
 export interface HostedPurgeResult {
@@ -155,8 +158,14 @@ export interface HostedPurgeResult {
   unknownCollections: string[];
 }
 
-export function assertHostedPurgeAllowed(request: HostedPurgeRequest): void {
-  if (!request.operatorAuthenticated) {
+export function assertHostedPurgeAllowed(
+  request: HostedPurgeRequest,
+  actual: { projectId: string; databaseId: string },
+): void {
+  if (
+    request.operator.authenticatedAccount === null ||
+    request.operator.authenticatedAccount !== request.operator.requiredAccount
+  ) {
     throw new HostedPurgeDeniedError('Purge requires the authenticated owner.');
   }
   if (
@@ -165,6 +174,14 @@ export function assertHostedPurgeAllowed(request: HostedPurgeRequest): void {
   ) {
     throw new HostedPurgeDeniedError(
       'Purge target does not match the configured project and database.',
+    );
+  }
+  if (
+    request.configured.projectId !== actual.projectId ||
+    request.configured.databaseId !== actual.databaseId
+  ) {
+    throw new HostedPurgeDeniedError(
+      'Purge target does not match the database connection.',
     );
   }
   if (request.requested.databaseId !== HOSTED_TARGET.firestore.database) {
@@ -181,6 +198,7 @@ export function assertHostedPurgeAllowed(request: HostedPurgeRequest): void {
 }
 
 export interface PurgeDatabase {
+  target: { projectId: string; databaseId: string };
   listCollections(): Promise<{ id: string }[]>;
   recursiveDelete(reference: { id: string }): Promise<void>;
 }
@@ -191,7 +209,7 @@ export async function purgeHostedData(
   database: PurgeDatabase,
   request: HostedPurgeRequest,
 ): Promise<HostedPurgeResult> {
-  assertHostedPurgeAllowed(request);
+  assertHostedPurgeAllowed(request, database.target);
   const collections = await database.listCollections();
   const known = new Set<string>(RETAINED_TOP_LEVEL_COLLECTIONS);
   const unknownCollections = collections
