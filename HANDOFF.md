@@ -2,6 +2,50 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## Phase 3 proposal checkpoint (2026-10-26)
+
+Peter accepted the consolidated Phase 3 decisions. Branch
+`phase-3-deployment-access-evidence` contains the OpenSpec change of the same name; it plans a
+private single-owner Cloud Run proof using direct IAP, backend-only Toronto Firestore,
+request-bound cloud execution, immutable Cloud Build output, recorded enrichment, bounded cost,
+verified rollback, evidence, walkthrough, and teardown. No API, cloud resource, build, deployment,
+merge, or MP4 publication is authorized by this checkpoint.
+
+The authorized next action is to validate and publish the spec-only candidate as a draft PR after
+secret/private-data scans. After owner review, implementation may proceed locally. Before any cloud
+mutation, enumerate the exact APIs, resources, identities, budget controls, and commands for a new
+owner approval; recheck live account, billing, IAM, and service state at that time.
+
+## Phase 3 deployment gate resolution (2026-10-26)
+
+Peter resolved the deployment gate and authorized setup through his existing Google account. The
+following live Google Cloud state was created and verified in the console; no application service,
+API, secret, model provider, or deployment was enabled:
+
+- Google Cloud project: an owner-selected dedicated project, identified only in the owner's private
+  deployment record, attached to the owner's existing active billing account.
+- Deployment region decision: Toronto, `northamerica-northeast2`.
+- Access policy: private; the IAM page showed only the owner principal. No public or anonymous
+  principal was present. Direct IAP is the accepted application-access boundary, with no
+  `allUsers` or `allAuthenticatedUsers` binding.
+- Secret path decision: no Phase 3 runtime secret currently has a consumer. Use ADC and managed IAP
+  credentials; do not enable Secret Manager or add a secret unless a later design and approval name
+  an actual need.
+- Data boundary: fictional identities and test contact details only. Real personal data remains
+  gated.
+- External-action boundary: no paid model call and no automatic outreach sending.
+- Cost control: an enforced monthly spend cap named `LeadFlow AI CA$10 monthly cap` is configured
+  for this project's Cloud Run service, with 50%, 80%, and 100% notifications. The console showed
+  `Configured` and approximately `CA$0.00 / CA$10.00` after creation. Google warns that enforcement
+  is delayed, so a small overage can still be billed; treat CA$10 as a control target, not a
+  bank-style absolute ceiling. Stop before adding another billable service unless its separate cost
+  control is explicitly resolved.
+
+The pre-Phase-3 setup itself incurred no displayed charge. The next session must recheck current
+billing/IAM state before deployment and must keep Cloud Run authenticated; do not add `allUsers` or
+`allAuthenticatedUsers`. The first budget form load failed and was retried successfully; preserve
+that setup failure in the evidence record rather than claiming a single clean attempt.
+
 ## Phase 2 closing checkpoint (2026-10-26)
 
 Phase 2 is complete and merged into `main` with a merge commit. All nine tasks passed, and the
@@ -763,13 +807,15 @@ The dated Military.com research record is `docs/research/military-com-intake-202
 Official LangGraph, Firebase, Structurizr, Adoptium, npm, and release metadata supported the
 dependency record. Approved artifacts are installed only in local workspace/ignored caches.
 
-No GitHub remote, hosted CI, GCP resource, real personal data, provider credential, paid/model call,
-live enrichment call, external communication, or public publication was created. All PROJECT.md
-gates remain unresolved.
+The public GitHub remote and the empty Google Cloud project described above now exist. Hosted CI,
+deployed Cloud Run service, cloud application data, real personal data, provider credential,
+paid/model call, automatic outreach, and production traffic do not exist. Gates not explicitly
+resolved in the Phase 3 deployment-gate record above remain unresolved.
 
 ## Next action
 
-Start Phase 3 in a fresh session with `/next-phase` (see the Phase 2 closing checkpoint above). The
-public remote exists, so Phase 3 follows WORKFLOW.md's pull-request steps: push the phase branch and
-open a draft PR after the spec-only commit. Rerun the secret and private-data scans before pushing
-new material. Hosted CI is not configured yet.
+Review the Phase 3 OpenSpec proposal and draft PR. Once the owner approves the proposal,
+implementation can proceed locally on `phase-3-deployment-access-evidence` under the six outcomes in
+`openspec/changes/phase-3-deployment-access-evidence/tasks.md`. Cloud actions remain blocked until a
+later enumerated approval. Rerun the secret and private-data scans before every push of new material;
+hosted CI is not configured.

@@ -15,7 +15,8 @@ maps AI capabilities to current evidence. Read
 | Model training / feature pipelines | deferred | No training is planned; rubric scoring is deterministic | Scope adds training or feature serving |
 | Tool actions / external adapters | implemented-local | Read-only HTTPS GETs to exactly `vpic.nhtsa.dot.gov` (`GetModelsForMakeYear`) and `api.zippopotam.us` (`/us/{zip}`), owner-authorized 2026-10-25: host/path allowlist, 5 s timeout, one jittered retry on network/timeout/429/5xx, explicit `live`/`recorded`/`mock` evidence class, bounded raw body plus SHA-256. Email check is local only. No model, auth or outbound-message adapter | Any new host, endpoint, payload field, retry budget or evidence-class change |
 | Persistent state / replay | implemented-local | Versioned Firestore leads/runs/events/results, LangGraph checkpoints, bounded retry history, explicit compatible-state resume, ambiguous-write reconciliation, and process-restart reconstruction are exercised locally | State schema, checkpointer, retry, resume, or reconstruction change |
-| Multiple users / tenants | deferred | Firebase Auth moved to Phase 3. Phase 2 records the labelled unauthenticated `local-operator` principal and rejects foreign Host or state-changing Origin headers | Phase 3 deployment and access design |
+| Hosted operator identity | planned-phase-3 | The accepted design replaces Firebase Auth with direct Cloud Run IAP for one private owner, validates signed assertions plus a private stable-subject allowlist, and keeps the labelled `local-operator` boundary locally; no cloud identity path exists yet | IAP implementation, policy, audience, allowlist, or operator-count change |
+| Multiple users / tenants | deferred | Phase 3 is explicitly single-owner; no tenant or role model is planned | Scope adds another operator or tenant |
 | Generated code execution | deferred | Not part of the MVP | A code-execution tool is proposed |
 | MCP / external tool servers | deferred | Not part of the runtime design | An MCP/runtime tool server is proposed |
 | Messages sent to people | deferred | Consent-gated email drafts with content-bound human review; "approved" means approved for manual use. A governance check fails on any delivery package, send route, mail transport or unauthorized outbound host | Any outbound channel is proposed |
@@ -31,8 +32,8 @@ maps AI capabilities to current evidence. Read
 | Offline deterministic check command | Activate with `. .\scripts\activate-toolchain.ps1`, then run `pnpm check` |
 | Authorized provider-evaluation command and budget | Not authorized; paid API gate unresolved |
 | Run records / metrics / alerts | Local run/event/result records plus `lifecycle-report-v1` privacy-aware summaries are implemented; dashboard queries, alert thresholds, retention, and production telemetry remain deferred |
-| Release evidence and stop/recovery runbook | Phase 3; not created yet |
-| Operational owner and maintenance/recheck cadence | Peter; cadence TBD before deployment |
+| Release evidence and stop/recovery runbook | Planned by `phase-3-deployment-access-evidence`; not created or run yet |
+| Operational owner and maintenance/recheck cadence | Peter; accepted cadence is pre-deploy, pre-demo, post-demo, and monthly only while hosted |
 
 ## Current operational limits
 
@@ -40,6 +41,10 @@ maps AI capabilities to current evidence. Read
   verify, simulate, finalize) run by an in-process background executor; resume returns 202 after
   its durable commit. Tool authority is limited to the two read-only enrichment endpoints.
   Enrichment never changes `rubric-v1` points or priority. No autonomous sending.
+- Accepted hosted runtime (not implemented): the intake commit still precedes `202`, but cloud mode
+  starts work only through a separate authenticated, idempotent execution request held open within
+  an approximately 45-second workflow deadline while the browser polls stored state. Local mode may
+  retain its background executor. Deployed enrichment is recorded-only.
 - Verification: eight deterministic rules (`verification-rules-v1`, `decision-language-v1`). An
   unavailable source leaves the run `complete` with `evidenceCompleteness: partial`; a failing
   draft is `verification_blocked` and held out of the approval queue; an evidence-digest or event-
@@ -64,10 +69,24 @@ maps AI capabilities to current evidence. Read
   exclusions. Empty denominators are `null` with `insufficient_data`. Duration and usage coverage
   retain unavailable counts rather than filling values. This is a synthetic local prototype summary,
   not a service-level objective, production reliability measure, or conversion metric.
-- Retention, deletion, telemetry sampling, model fallback, and production incident limits remain TBD
-  for the phases that introduce them.
+- Hosted synthetic retention is planned as seven-day TTL metadata plus guarded recursive purge;
+  teardown is planned at day seven with final-image cleanup at day 30. These controls are not yet
+  implemented. Telemetry sampling, model fallback, and production incident limits remain deferred.
 
 ## Latest scoped evidence
+
+### Phase 3 planning (2026-10-26, branch `phase-3-deployment-access-evidence`)
+
+- Peter accepted a private, single-owner, pilot-grade Cloud Run proof with direct IAP, backend-only
+  Toronto Firestore, one scale-to-zero service, recorded-only deployed enrichment, request-bound
+  cloud execution, an immutable Cloud Build/Artifact Registry release, bounded cost controls,
+  verified rollback, evidence, walkthrough, and teardown.
+- `system-bundle-v3` and `phase-3.0` are planned, not measured. Hosted, IAP, Firestore, build,
+  revision, cost, log, rollback, accessibility, and walkthrough cases remain `not_run` until their
+  named local or separately authorized deployed probes execute.
+- Planning, validation, scans, the spec-only commit, push, and draft PR are authorized. No cloud API
+  enablement, resource creation, build, deployment, merge, model call, message send, or MP4
+  publication is authorized by this record.
 
 ### Phase 2 (2026-10-25/26, branch `phase-2-enrichment-outreach-dashboard`)
 
