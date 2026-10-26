@@ -113,10 +113,11 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 ## Limits
 
 - This is a local prototype. Nothing is deployed and there is no sign-in yet.
-- Every lead, contact and outcome is fictional. The only intake field verified against the public
-  Military.com page is ZIP Code
-  ([source record](docs/research/military-com-intake-2026-10-24.md)), and form parity is
-  unconfirmed.
+- Every lead, contact and outcome is fictional. Of the demo's fields, ZIP Code, vehicle year, make
+  and model, name and email match questions on the public Military.com form
+  ([source record](docs/research/military-com-intake-2026-10-26.md)). That form also asks about
+  driving record, insurance history and personal details that LeadFlow leaves out, so form parity
+  is not claimed.
 - AI models, authentication, cloud storage and any sending of messages stay behind the gates in
   [PROJECT.md](PROJECT.md).
 
