@@ -2,7 +2,29 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
-## Current checkpoint
+## Phase 2 checkpoint (mid-phase, 2026-10-25)
+
+Branch `phase-2-enrichment-outreach-dashboard`, OpenSpec change
+`phase-2-enrichment-outreach-dashboard`. Decisions are in PROJECT.md "Phase 2 decisions".
+
+- Done and committed: 1.1 contracts and UI dependencies, 2.1 live enrichment adapters plus the
+  authorized probe (18 of 18 answered; fixtures in `packages/runtime/fixtures/`), 3.1 composer,
+  verification rules, reviews and the no-send governance check.
+- In progress, uncommitted in the working tree: task 4.1. Done so far: the seven-node graph in
+  `packages/runtime/src/workflow.ts` (enrich, compose, verify nodes), `executor.ts`,
+  `QualificationResumeService.begin()`, a 202 resume route, `LEADFLOW_ENRICHMENT_MODE` and
+  `LEADFLOW_WEB_ORIGIN` config, API composition with transport, executor and drafts, and run detail
+  returning Phase 2 records. Not yet typechecked or tested.
+- Next step: run `tsc -p tsconfig.check.json`, then update callers that now need `enrichment`,
+  `events` and `emailContactConsent` (workflow.test.ts, resume.test.ts, run-detail.test.ts, API
+  tests and `scripts/verify-runtime-firestore.mjs`), set `LEADFLOW_ENRICHMENT_MODE` in
+  `scripts/run-local-api.mjs` and the smokes, add crash-during-enrichment reclaim coverage, then
+  commit 4.1 and continue with tasks 5.1–9.1.
+- Capture leaf-check output with `cmd /c "node node_modules\...> file 2>&1"` (docs/development.md).
+
+## Phase 1 record
+
+### Phase 1 closing checkpoint
 
 Phase 0 and Phase 1 are complete and merged into `main`. Every Phase 1 task (35 of 35) passed. The
 OpenSpec change is archived as `2026-10-25-phase-1-intake-qualification`, and its requirements now
