@@ -9,8 +9,8 @@ Branch `phase-2-enrichment-outreach-dashboard`, OpenSpec change
 
 - Done in task commits: 1.1 contracts and UI dependencies, 2.1 live enrichment adapters plus the
   authorized probe (18 of 18 answered; fixtures in `packages/runtime/fixtures/`), 3.1 composer,
-  verification rules, reviews and the no-send governance check, and 4.1's seven-node workflow and
-  asynchronous execution boundary.
+  verification rules, reviews and the no-send governance check, 4.1's seven-node workflow and
+  asynchronous execution boundary, and 5.1's Phase 2 API boundary.
 - Task 4.1 includes the seven-node `phase-2-graph-v1`, Phase 2 linked
   records and failure semantics, the deduplicating in-process executor, durable 202 resume,
   graceful executor drain, Phase 2 run detail, explicit enrichment mode/origin configuration, and
@@ -21,9 +21,18 @@ Branch `phase-2-enrichment-outreach-dashboard`, OpenSpec change
   Firestore verifier against the already-running project emulator (built API, workflow recovery,
   asynchronous resume and verified flush). The wrapper first retained a port-8080 collision, and
   the first direct probe exposed stale Phase 1 revision assertions before the corrected probe passed.
-- Next step: implement task 5.1 — Host/Origin allowlisting; leads, metrics, revision and review
-  routes; Phase 2 readiness/run detail; and the expanded built-API emulator smoke — then continue
-  tasks 6.1–9.1.
+- Task 5.1 adds exact local Host and state-changing Origin checks; bounded and privacy-safe run
+  listing; stored-run metrics with explicit denominators and evidence-class splits; revision and
+  content-bound review routes; cross-record draft-history integrity checks; and the expanded
+  built-API probe for access controls, approval queue, metrics, approval, stale conflicts,
+  operator revision and rejection. The probe remains local and flushes only synthetic emulator data.
+- Task 5.1 checks passed: strict TypeScript; ESLint on affected files; runtime 30 files/199 tests;
+  API 14 files/88 tests; affected formatting and `git diff --check`; production build; strict
+  OpenSpec validation; and the direct isolated Firestore verifier against the already-running
+  project emulator, including workflow recovery and verified flush.
+- Next step: implement task 6.1 — operator runs/approval queue, extended dossier, metrics dashboard,
+  3 s polling, and `pnpm seed:local` with 40 fixed fictional leads — then perform the required
+  running desktop/390 px accessibility review and design-eval before readiness.
 - Capture leaf-check output with `cmd /c "node node_modules\...> file 2>&1"` (docs/development.md).
 
 ## Phase 1 record
@@ -702,10 +711,9 @@ gates remain unresolved.
 
 ## Next action
 
-Start Phase 2 in a fresh session: clear the context and run `/next-phase`. It reads PROJECT.md's
-roadmap row for Phase 2, grills the open decisions with the informed answerer, and proposes a scoped
-change on a new branch with a spec-only `docs:` commit. Follow WORKFLOW.md § Efficient execution:
-nine or fewer tasks, leaf checks while editing, one full gate at the end. Render every diagram with
-`pnpm docs:diagrams` (diagram-design) and keep the README on the showcase method. Phase 2 work
-that touches recovery should first revisit the deferred review items above: the synchronous resume
-route and whole-subcollection checkpoint reads. With no remote, there is no draft PR or hosted CI.
+Continue task 6.1 on branch `phase-2-enrichment-outreach-dashboard` using the existing OpenSpec
+change. Read the frontend-product and design instructions before editing the operator UI. Build the
+runs/approval-queue view, extended dossier, stored metrics dashboard, 3 s polling, and deterministic
+40-lead local seed command. Finish with the running desktop/390 px accessibility inspection and
+design-eval required by the task. Keep leaf checks scoped; the complete offline gate remains task 9.1.
+No remote exists, so there is no draft PR or hosted CI.

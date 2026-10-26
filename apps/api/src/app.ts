@@ -25,6 +25,14 @@ import {
   registerResetRoute,
   type ResetRouteDependencies,
 } from './reset-route.js';
+import {
+  registerOperationsRoutes,
+  type OperationsRouteDependencies,
+} from './operations-route.js';
+import {
+  registerDraftRoutes,
+  type DraftRouteDependencies,
+} from './draft-route.js';
 
 export interface CreateAppOptions {
   phaseOne?: PhaseOneStartup;
@@ -32,6 +40,8 @@ export interface CreateAppOptions {
   runs?: RunRouteDependencies;
   resume?: ResumeRouteDependencies;
   reset?: ResetRouteDependencies;
+  operations?: OperationsRouteDependencies;
+  drafts?: DraftRouteDependencies;
   executor?: { idle(): Promise<void> };
   requestIdFactory?: RequestIdFactory;
 }
@@ -41,6 +51,33 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
   const phaseOne = options.phaseOne ?? PHASE_ONE_UNAVAILABLE;
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
+  if (phaseOne.status === 'ready') {
+    app.addHook('onRequest', async (request, reply) => {
+      const host = request.headers.host?.split(':', 1)[0]?.toLowerCase();
+      const origin = request.headers.origin;
+      const stateChanging = !['GET', 'HEAD', 'OPTIONS'].includes(
+        request.method,
+      );
+      if (
+        host !== phaseOne.configuration.apiHost ||
+        (stateChanging &&
+          origin !== undefined &&
+          origin !== phaseOne.configuration.webOrigin)
+      ) {
+        return reply.code(403).send(
+          createErrorResponse(
+            {
+              code: 'access_denied',
+              category: 'validation',
+              retryable: false,
+              message: 'Request host or origin is not allowed.',
+            },
+            options.requestIdFactory,
+          ),
+        );
+      }
+    });
+  }
   app.setErrorHandler((error, _request, reply) => {
     const validation =
       typeof error === 'object' &&
@@ -97,6 +134,18 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
 
   registerIntakeRoute(app, phaseOne, options.intake, options.requestIdFactory);
   registerRunRoute(app, phaseOne, options.runs, options.requestIdFactory);
+  registerOperationsRoutes(
+    app,
+    phaseOne,
+    options.operations,
+    options.requestIdFactory,
+  );
+  registerDraftRoutes(
+    app,
+    phaseOne,
+    options.drafts,
+    options.requestIdFactory ?? randomUUID,
+  );
   registerResumeRoute(
     app,
     phaseOne,

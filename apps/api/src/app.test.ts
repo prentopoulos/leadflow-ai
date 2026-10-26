@@ -41,6 +41,7 @@ describe('API skeleton', () => {
       configurationVersion: 'phase-2-local-v1',
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
+      apiHost: '127.0.0.1',
       localResetEnabled: false,
       enrichmentMode: 'recorded',
       webOrigin: 'http://127.0.0.1:5173',
@@ -107,13 +108,39 @@ describe('API skeleton', () => {
       GCLOUD_PROJECT: 'demo-leadflow-ai-local',
       FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080',
     });
-    const response = await app.inject({ method: 'GET', url: '/health' });
+    const response = await app.inject({
+      method: 'GET',
+      url: '/health',
+      headers: { host: '127.0.0.1' },
+    });
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({
       status: 'ok',
       service: 'leadflow-api',
       scope: 'process',
       evidence: 'local-process',
+    });
+    const rebinding = await app.inject({
+      method: 'GET',
+      url: '/health',
+      headers: { host: 'attacker.example' },
+    });
+    expect(rebinding.statusCode, rebinding.body).toBe(403);
+    expect(rebinding.json()).toMatchObject({
+      error: { code: 'access_denied', retryable: false },
+    });
+    const crossSite = await app.inject({
+      method: 'POST',
+      url: '/v1/intake',
+      headers: {
+        host: '127.0.0.1',
+        origin: 'https://attacker.example',
+      },
+      payload: {},
+    });
+    expect(crossSite.statusCode).toBe(403);
+    expect(crossSite.json()).toMatchObject({
+      error: { code: 'access_denied', retryable: false },
     });
     await app.close();
     apps.delete(app);

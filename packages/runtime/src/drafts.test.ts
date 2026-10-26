@@ -8,6 +8,7 @@ import {
 } from '@leadflow-ai/domain';
 import {
   DraftConflictError,
+  DraftIntegrityError,
   DraftService,
   reviewIdFor,
   sha256Hex,
@@ -177,6 +178,16 @@ describe('template drafts', () => {
     expect(history?.view.revisions.map((entry) => entry.state)).toEqual([
       'pending_review',
     ]);
+  });
+
+  it('rejects a history with a missing linked verification result', async () => {
+    const { store, service, revision } = await seededDraft();
+    store.documents.delete(
+      `verificationResults/${revision.verificationResultId}`,
+    );
+    await expect(service.history(revision.draftId)).rejects.toBeInstanceOf(
+      DraftIntegrityError,
+    );
   });
 });
 

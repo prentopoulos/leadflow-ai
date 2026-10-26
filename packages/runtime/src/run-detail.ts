@@ -228,7 +228,10 @@ export class RunDetailService {
             revision.leadId !== run.leadId ||
             draftVerification.runId !== run.runId ||
             draftVerification.leadId !== run.leadId ||
-            draftVerification.revisionId !== revision.revisionId,
+            draftVerification.verificationResultId !==
+              revision.verificationResultId ||
+            (draftVerification.scope === 'operator_revision' &&
+              draftVerification.revisionId !== revision.revisionId),
         ) ||
         history.view.reviews.some(
           (review) =>

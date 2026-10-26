@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { request as httpRequest } from 'node:http';
 import {
   createEmulatorFirestoreBoundary,
   createFirestoreRepositories,
@@ -461,6 +462,7 @@ try {
       configurationVersion: 'phase-2-local-v1',
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
+      apiHost: '127.0.0.1',
       localResetEnabled: false,
       enrichmentMode: 'recorded',
       webOrigin: 'http://127.0.0.1:5173',
@@ -498,6 +500,37 @@ try {
       'readiness' in health
     ) {
       throw new Error('Built API health exceeded its process-only contract.');
+    }
+    const rejectedHostStatus = await new Promise((resolve, reject) => {
+      const request = httpRequest(
+        `${apiUrl}/health`,
+        { headers: { host: 'attacker.example' } },
+        (response) => {
+          response.resume();
+          response.on('end', () => resolve(response.statusCode));
+        },
+      );
+      request.on('error', reject);
+      request.end();
+    });
+    const rejectedOrigin = await apiFetch('/v1/intake', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'built-api-origin-rejection-v1',
+        origin: 'https://attacker.example',
+      },
+      body: JSON.stringify(intake),
+    });
+    const rejectedOriginBody = await rejectedOrigin.json();
+    if (
+      rejectedHostStatus !== 403 ||
+      rejectedOrigin.status !== 403 ||
+      rejectedOriginBody.error?.code !== 'access_denied'
+    ) {
+      throw new Error(
+        `Built API Host/Origin allowlist did not fail closed (${rejectedHostStatus ?? 'none'}, ${rejectedOrigin.status}/${rejectedOriginBody.error?.code ?? 'none'}).`,
+      );
     }
 
     const failedDetailResponse = await apiFetch(
@@ -587,6 +620,172 @@ try {
       completedDetail.simulation?.notices?.[1] !== 'not_predictive'
     ) {
       throw new Error('Built API intake did not reach stored completion.');
+    }
+
+    const consentedIntake = {
+      ...intake,
+      givenName: 'Jordan',
+      email: 'jordan@example.org',
+      requestDetails: 'Synthetic consented draft and review probe.',
+      emailContactConsent: true,
+      consentRecord: {
+        wordingVersion: 'email-consent-v1',
+        wordingSha256:
+          'ff54a7e1c6739a1b326a32a50fd131632458f0cb62e62808ed77c1e4c400e052',
+      },
+    };
+    const consentedResponse = await apiFetch('/v1/intake', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'built-api-consented-intake-v1',
+        origin: 'http://127.0.0.1:5173',
+      },
+      body: JSON.stringify(consentedIntake),
+    });
+    const consentedAccepted = await consentedResponse.json();
+    if (consentedResponse.status !== 202) {
+      throw new Error('Built API did not accept consented synthetic intake.');
+    }
+    let consentedDetail;
+    let consentedDetailStatus = null;
+    let consentedDetailError = null;
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const response = await apiFetch(`/v1/runs/${consentedAccepted.runId}`);
+      consentedDetailStatus = response.status;
+      const body = await response.json();
+      if (response.ok) {
+        consentedDetail = body;
+        if (consentedDetail.run?.status === 'complete') break;
+      } else {
+        consentedDetailError = body.error?.code ?? null;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    const firstDraft = consentedDetail?.draft?.revisions?.[0];
+    if (
+      consentedDetail?.run?.status !== 'complete' ||
+      firstDraft?.state !== 'pending_review' ||
+      consentedDetail.verification?.draftPassed !== true
+    ) {
+      const storedConsentedRun = await repositories.runs.get(
+        consentedAccepted.runId,
+      );
+      const storedDraftHistory =
+        storedConsentedRun?.draftId === null ||
+        storedConsentedRun?.draftId === undefined
+          ? null
+          : await apiDependencies.drafts.history(storedConsentedRun.draftId);
+      throw new Error(
+        `Built API did not produce a verified pending draft (${consentedDetailStatus ?? 'no-status'}/${consentedDetailError ?? 'no-error'}, ${storedConsentedRun?.status ?? 'no-run'}, ${storedDraftHistory?.view.revisions.at(-1)?.state ?? 'no-draft'}, ${storedConsentedRun?.verificationResultId ?? 'no-verification'}).`,
+      );
+    }
+
+    const queueResponse = await apiFetch(
+      '/v1/runs?filter=approval_queue&limit=50',
+    );
+    const queue = await queueResponse.json();
+    const metricsResponse = await apiFetch('/v1/metrics');
+    const metrics = await metricsResponse.json();
+    if (
+      !queueResponse.ok ||
+      !queue.items?.some((item) => item.runId === consentedAccepted.runId) ||
+      !metricsResponse.ok ||
+      metrics.definitions?.version !== 'metrics-definitions-v1' ||
+      metrics.report?.approvalQueue < 1 ||
+      metrics.report?.window?.runsInWindow < 1
+    ) {
+      throw new Error(
+        'Built API operations list or metrics report is incomplete.',
+      );
+    }
+
+    const reviewPayload = {
+      revisionId: firstDraft.revision.revisionId,
+      contentSha256: firstDraft.revision.contentSha256,
+      decision: 'approved',
+    };
+    const approvedResponse = await apiFetch(
+      `/v1/drafts/${firstDraft.revision.draftId}/reviews`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'http://127.0.0.1:5173',
+        },
+        body: JSON.stringify(reviewPayload),
+      },
+    );
+    const approved = await approvedResponse.json();
+    const staleReviewResponse = await apiFetch(
+      `/v1/drafts/${firstDraft.revision.draftId}/reviews`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'http://127.0.0.1:5173',
+        },
+        body: JSON.stringify(reviewPayload),
+      },
+    );
+    if (
+      !approvedResponse.ok ||
+      approved.draft?.revisions?.[0]?.state !== 'approved' ||
+      staleReviewResponse.status !== 409
+    ) {
+      throw new Error('Built API draft approval or stale-review guard failed.');
+    }
+    const revisedResponse = await apiFetch(
+      `/v1/drafts/${firstDraft.revision.draftId}/revisions`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'http://127.0.0.1:5173',
+        },
+        body: JSON.stringify({
+          baseRevisionId: firstDraft.revision.revisionId,
+          baseContentSha256: firstDraft.revision.contentSha256,
+          subject: firstDraft.revision.subject,
+          body: firstDraft.revision.body.replace(
+            '[Not sendable as written.',
+            'Operator-reviewed synthetic note.\n\n[Not sendable as written.',
+          ),
+        }),
+      },
+    );
+    const revised = await revisedResponse.json();
+    const latestRevision = revised.draft?.revisions?.at(-1);
+    if (!revisedResponse.ok || latestRevision?.state !== 'pending_review') {
+      const failedRules = latestRevision?.verification?.rules
+        ?.filter((rule) => rule.outcome === 'fail')
+        .map((rule) => `${rule.ruleId}:${rule.detail}`)
+        .join(',');
+      throw new Error(
+        `Built API did not create a verified draft revision (${revisedResponse.status}/${revised.error?.code ?? 'none'}, ${latestRevision?.state ?? 'no-state'}, ${failedRules ?? 'no-rules'}).`,
+      );
+    }
+    const rejectedResponse = await apiFetch(
+      `/v1/drafts/${firstDraft.revision.draftId}/reviews`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'http://127.0.0.1:5173',
+        },
+        body: JSON.stringify({
+          revisionId: latestRevision.revision.revisionId,
+          contentSha256: latestRevision.revision.contentSha256,
+          decision: 'rejected',
+        }),
+      },
+    );
+    const rejected = await rejectedResponse.json();
+    if (
+      !rejectedResponse.ok ||
+      rejected.draft?.revisions?.at(-1)?.state !== 'rejected'
+    ) {
+      throw new Error('Built API draft rejection did not persist.');
     }
 
     const replayResponse = await apiFetch('/v1/intake', {

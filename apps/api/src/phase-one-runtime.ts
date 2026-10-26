@@ -1,10 +1,12 @@
 import {
   AdminDraftReader,
   AdminRunEventReader,
+  AdminRunReader,
   DeterministicQualificationInterpreter,
   DraftService,
   QualificationResumeService,
   WorkflowExecutor,
+  OperationsService,
   compileQualificationWorkflow,
   createEnrichmentTransport,
   createFirestoreCheckpointSaver,
@@ -23,6 +25,7 @@ import type { IntakeRouteDependencies } from './intake-route.js';
 import type { ResetRouteDependencies } from './reset-route.js';
 import type { ResumeRouteDependencies } from './resume-route.js';
 import type { RunRouteDependencies } from './run-route.js';
+import type { OperationsRouteDependencies } from './operations-route.js';
 import type { PhaseOneStartup } from './startup.js';
 
 const SystemBundleIdSchema = z.string().uuid();
@@ -33,6 +36,7 @@ export interface PhaseOneApiDependencies {
   resume: ResumeRouteDependencies;
   reset: ResetRouteDependencies;
   drafts: DraftService;
+  operations: OperationsRouteDependencies;
   executor: WorkflowExecutor;
 }
 
@@ -102,6 +106,13 @@ export async function createPhaseOneApiDependencies(
     ...clock,
   });
   const details = createRunDetailService(database, drafts);
+  const operationsService = new OperationsService({
+    repositories,
+    runs: new AdminRunReader(database),
+    events,
+    drafts,
+    ...clock,
+  });
   const resume = new QualificationResumeService({
     repositories,
     lifecycle,
@@ -168,6 +179,10 @@ export async function createPhaseOneApiDependencies(
       },
     },
     drafts,
+    operations: {
+      operations: operationsService,
+      systemBundleId: validatedBundleId,
+    },
     executor,
   };
 }

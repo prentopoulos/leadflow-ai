@@ -209,6 +209,7 @@ export class DraftService {
         revision.draftId !== draftId ||
         revision.revisionNumber !== index + 1 ||
         revision.runId !== revisions[0]?.runId ||
+        revision.leadId !== revisions[0]?.leadId ||
         (index > 0 &&
           revision.previousRevisionId !== revisions[index - 1]?.revisionId)
       ) {
@@ -223,6 +224,8 @@ export class DraftService {
       if (
         revision === undefined ||
         review.draftId !== draftId ||
+        review.runId !== revision.runId ||
+        review.leadId !== revision.leadId ||
         review.contentSha256 !== revision.contentSha256
       ) {
         throw new DraftIntegrityError('A review does not match its revision.');
@@ -234,8 +237,19 @@ export class DraftService {
         const result = await repositories.verificationResults.get(
           revision.verificationResultId,
         );
-        if (result !== null)
-          verifications.set(result.verificationResultId, result);
+        if (
+          result === null ||
+          result.runId !== revision.runId ||
+          result.leadId !== revision.leadId ||
+          result.verificationResultId !== revision.verificationResultId ||
+          (result.scope === 'operator_revision' &&
+            result.revisionId !== revision.revisionId)
+        ) {
+          throw new DraftIntegrityError(
+            'A verification does not match its revision.',
+          );
+        }
+        verifications.set(result.verificationResultId, result);
       }),
     );
     const states = deriveRevisionStates({ revisions, reviews, verifications });

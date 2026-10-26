@@ -17,6 +17,9 @@ const PhaseOneConfigSchema = z
     configurationVersion: z.literal('phase-2-local-v1'),
     projectId: z.literal(LEADFLOW_LOCAL_PROJECT_ID),
     firestoreHost: z.literal(LEADFLOW_FIRESTORE_EMULATOR_HOST),
+    // Hostname only: the listener port may be selected dynamically in local
+    // probes, while DNS-rebinding protection still requires an exact host.
+    apiHost: z.enum(['127.0.0.1', 'localhost']).default('127.0.0.1'),
     localResetEnabled: z
       .enum(['true', 'false'])
       .default('false')
@@ -50,6 +53,7 @@ export function loadPhaseOneConfig(
     configurationVersion: 'phase-2-local-v1',
     projectId: environment.GCLOUD_PROJECT,
     firestoreHost: environment.FIRESTORE_EMULATOR_HOST,
+    apiHost: environment.LEADFLOW_API_HOST,
     localResetEnabled: environment.LEADFLOW_LOCAL_RESET_ENABLED,
     enrichmentMode: environment.LEADFLOW_ENRICHMENT_MODE,
     webOrigin: environment.LEADFLOW_WEB_ORIGIN,

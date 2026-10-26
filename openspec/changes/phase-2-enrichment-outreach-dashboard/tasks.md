@@ -16,7 +16,7 @@
 
 ## 5. API boundaries
 
-- [ ] 5.1 Add the Host/Origin allowlist, `GET /v1/runs`, `GET /v1/metrics` computed under `metrics-definitions-v1`, `POST /v1/drafts/:draftId/revisions`, `POST /v1/drafts/:draftId/reviews`, the extended run detail, `ENRICHMENT_MODE` readiness, and the Phase 2 built-API emulator smoke.
+- [x] 5.1 Add the Host/Origin allowlist, `GET /v1/runs`, `GET /v1/metrics` computed under `metrics-definitions-v1`, `POST /v1/drafts/:draftId/revisions`, `POST /v1/drafts/:draftId/reviews`, the extended run detail, `ENRICHMENT_MODE` readiness, and the Phase 2 built-API emulator smoke.
 
 ## 6. Operator views and seed data
 
