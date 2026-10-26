@@ -81,6 +81,48 @@ function Get-VerifiedArtifact {
   return $destination
 }
 
+$nodeArchive = Get-VerifiedArtifact `
+  -Name $metadata.node.archiveName `
+  -Url $metadata.node.downloadUrl `
+  -Sha256 $metadata.node.sha256
+$toolsRoot = Join-Path $repoRoot ".tools"
+$nodeRoot = Join-Path $toolsRoot $metadata.node.installDirectory
+$nodeExecutable = Join-Path $nodeRoot "node.exe"
+if (-not (Test-Path -LiteralPath $nodeExecutable)) {
+  if (Test-Path -LiteralPath $nodeRoot) {
+    throw "Incomplete Node.js directory at $nodeRoot. Remove only that directory and rerun bootstrap."
+  }
+  Expand-Archive -LiteralPath $nodeArchive -DestinationPath $toolsRoot
+}
+if (-not (Test-Path -LiteralPath $nodeExecutable)) {
+  throw "Node.js extraction did not create $nodeExecutable."
+}
+$nodeVersion = & $nodeExecutable --version
+if ($nodeVersion -ne "v$($metadata.node.version)") {
+  throw "Node.js version mismatch. Expected v$($metadata.node.version); received $nodeVersion."
+}
+
+# pnpm ships its Windows binary as a platform-specific optional dependency,
+# so it is installed by the verified Node.js's own npm at the exact version;
+# npm checks the registry integrity, and a published version is immutable.
+$pnpmRoot = Join-Path $toolsRoot $metadata.pnpm.installDirectory
+$pnpmExecutable = Join-Path $pnpmRoot "node_modules\pnpm\pnpm.exe"
+if (-not (Test-Path -LiteralPath $pnpmExecutable)) {
+  if ($Offline) {
+    throw "Missing pnpm $($metadata.pnpm.version) in .tools. Run pnpm tools:bootstrap with network access first."
+  }
+  Write-Output "Installing pnpm $($metadata.pnpm.version)"
+  $env:PATH = "$nodeRoot;$env:PATH"
+  & (Join-Path $nodeRoot "npm.cmd") install --global --no-fund --no-audit --prefix $pnpmRoot "pnpm@$($metadata.pnpm.version)"
+  if ($LASTEXITCODE -ne 0) {
+    throw "pnpm installation failed with npm exit code $LASTEXITCODE."
+  }
+}
+$pnpmVersion = & $pnpmExecutable --version
+if ($pnpmVersion -ne $metadata.pnpm.version) {
+  throw "pnpm version mismatch. Expected $($metadata.pnpm.version); received $pnpmVersion."
+}
+
 $javaArchive = Get-VerifiedArtifact `
   -Name $metadata.java.archiveName `
   -Url $metadata.java.downloadUrl `
@@ -134,6 +176,8 @@ if ($javaVersion -notmatch [regex]::Escape($metadata.java.runtimeVersion)) {
 }
 
 Write-Output "Phase 1 tools verified."
+Write-Output "Node.js $($metadata.node.version)"
+Write-Output "pnpm $($metadata.pnpm.version)"
 Write-Output "Java $($metadata.java.version)"
 Write-Output "Firestore Emulator $($metadata.firebase.emulatorVersion)"
 Write-Output "Structurizr CLI $($metadata.structurizr.version)"

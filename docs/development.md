@@ -8,10 +8,12 @@ and SHA-256 values live in `toolchain.phase1.json`; the selection rationale is i
 
 ## Bootstrap the verified toolchain
 
-The official Node.js archive and pnpm are already installed under `.tools/` on the current
-workstation. The Phase 1 bootstrap downloads only the exact Java, Firestore Emulator, and
+The bootstrap downloads the exact official Node.js archive, Java, Firestore Emulator, and
 Structurizr artifacts when they are missing, verifies their committed SHA-256 values, and installs
-them under `.tools/`:
+them under `.tools/`. It then installs pnpm at the exact pinned version with that Node.js's own npm,
+because pnpm ships its Windows binary as a platform-specific optional dependency; npm checks the
+registry integrity, and a published npm version cannot be replaced. Run it once in a fresh clone,
+before activation:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap-phase1-tools.ps1
