@@ -439,8 +439,9 @@ export async function observePhaseTwo(check: string): Promise<unknown> {
     }
     case 'evidence-label-integrity': {
       const candidates = [
+        // A ZIP record claiming the vehicle endpoint: authorized host, wrong source.
         evidence('zippopotam_us', {
-          endpointTemplate: 'https://api.example-crm.test/{zipCode}',
+          endpointTemplate: ENRICHMENT_ENDPOINTS.nhtsa_vpic.template,
         }),
         evidence('zippopotam_us', { evidenceClass: 'recorded' }),
         evidence('zippopotam_us', {
