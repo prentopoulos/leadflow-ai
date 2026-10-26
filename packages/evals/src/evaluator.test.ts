@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateAll, evaluateCase } from './evaluator.js';
+import { PHASE_TWO_CASES } from './phase2.js';
 import {
   COMBINED_CASES,
   PHASE_ONE_CASES,
@@ -27,13 +28,14 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
       true,
     );
     expect(PHASE_ONE_CASES).toHaveLength(14);
+    expect(PHASE_TWO_CASES).toHaveLength(13);
     expect(COMBINED_CASES).toHaveLength(
-      PHASE_ZERO_CASES.length + PHASE_ONE_CASES.length,
+      PHASE_ZERO_CASES.length + PHASE_ONE_CASES.length + PHASE_TWO_CASES.length,
     );
   });
 
-  it('passes every runnable deterministic contract and keeps future work not_run', () => {
-    const results = evaluateAll(COMBINED_CASES);
+  it('passes every runnable deterministic contract and keeps future work not_run', async () => {
+    const results = await evaluateAll(COMBINED_CASES);
     expect(results.filter((result) => result.status === 'fail')).toEqual([]);
     expect(results.some((result) => result.status === 'not_run')).toBe(true);
     expect(
@@ -57,8 +59,8 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
     );
   });
 
-  it('never reports declared emulator or rendered observations as measured passes', () => {
-    const results = evaluateAll(COMBINED_CASES);
+  it('never reports declared emulator or rendered observations as measured passes', async () => {
+    const results = await evaluateAll(COMBINED_CASES);
     const declared = results.filter(
       (result) =>
         result.evidenceScope === 'local-emulator' ||
@@ -187,5 +189,21 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
       results: [],
     });
     expect(parsed.success).toBe(true);
+  });
+
+  it('fails a Phase 2 case whose frozen expectation no longer matches', async () => {
+    const baseline = PHASE_TWO_CASES.find(
+      (item) => item.id === 'p2-enrichment-failure-shapes',
+    );
+    if (!baseline) throw new Error('Phase 2 canary baseline missing.');
+    const mutated = structuredClone(baseline);
+    (mutated.expected.outcomes as Record<string, unknown>)['11111'] = [
+      'found',
+      null,
+      1,
+    ];
+    const [result] = await evaluateAll([mutated]);
+    expect(result?.status).toBe('fail');
+    expect(result?.reason).toMatch(/outcomes matches the frozen expectation/u);
   });
 });

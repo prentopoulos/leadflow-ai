@@ -24,7 +24,7 @@
 
 ## 7. Evaluation and AI operations
 
-- [ ] 7.1 Freeze and implement the `phase-2.0` cases while retaining every earlier case ID, then update `AI_OPS.md` with the enrichment, outreach, verification and metrics capability evidence, recheck triggers and remaining `not_run` boundaries.
+- [x] 7.1 Freeze and implement the `phase-2.0` cases while retaining every earlier case ID, then update `AI_OPS.md` with the enrichment, outreach, verification and metrics capability evidence, recheck triggers and remaining `not_run` boundaries.
 
 ## 8. Architecture and README
 

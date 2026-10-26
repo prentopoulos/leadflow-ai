@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@leadflow-ai/domain": "workspace:*",
+    "@leadflow-ai/runtime": "workspace:*",
     "zod": "4.6.7"
   }
 }
