@@ -5,6 +5,13 @@ import {
   simulateOutcome,
   type LifecycleEvent,
 } from '@leadflow-ai/domain';
+import {
+  FixtureEnrichmentTransport,
+  RECORDED_ENRICHMENT_FIXTURE_PATH,
+  checkEmail,
+  loadEnrichmentFixtureFile,
+  lookupZip,
+} from './enrichment.js';
 import type { FirestoreDocumentStore } from './firestore.js';
 import { createFirestoreRepositories } from './repositories.js';
 
@@ -275,6 +282,40 @@ describe('schema-validating Firestore repositories', () => {
     await expect(
       repositories.simulationRecords.get(simulation.simulationRecordId),
     ).resolves.toEqual(simulation);
+  });
+
+  it('round-trips Phase 2 enrichment evidence and email checks at their own paths', async () => {
+    const store = new MemoryDocumentStore();
+    const repositories = createFirestoreRepositories(store);
+    const transport = new FixtureEnrichmentTransport(
+      await loadEnrichmentFixtureFile(RECORDED_ENRICHMENT_FIXTURE_PATH),
+    );
+    const { evidence } = await lookupZip('22150', {
+      transport,
+      runId: ids.run,
+      leadId: ids.lead,
+      evidenceId: ids.result,
+      now: () => timestamp,
+    });
+    const emailCheck = checkEmail({
+      email: 'avery@example.com',
+      emailCheckId: ids.event,
+      runId: ids.run,
+      leadId: ids.lead,
+      checkedAt: timestamp,
+    });
+    await repositories.enrichmentEvidence.create(evidence);
+    await repositories.emailChecks.create(emailCheck);
+    expect(store.creates).toEqual([
+      `enrichmentEvidence/${ids.result}`,
+      `emailChecks/${ids.event}`,
+    ]);
+    await expect(
+      repositories.enrichmentEvidence.get(ids.result),
+    ).resolves.toMatchObject({ outcome: 'found', evidenceClass: 'recorded' });
+    await expect(repositories.emailChecks.get(ids.event)).resolves.toEqual(
+      emailCheck,
+    );
   });
 
   it('rejects invalid writes before touching Firestore', async () => {

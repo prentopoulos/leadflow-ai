@@ -1,13 +1,23 @@
 import { isDeepStrictEqual } from 'node:util';
 import {
+  DraftReviewSchema,
+  EmailCheckSchema,
+  EnrichmentEvidenceSchema,
   IdempotencyRecordSchema,
+  OutreachDraftRevisionSchema,
+  VerificationResultSchema,
   LeadDocumentSchema,
   LifecycleEventSchema,
   QualificationResultSchema,
   RunDocumentSchema,
   SimulationRecordSchema,
   SystemBundleDocumentSchema,
+  type DraftReview,
+  type EmailCheck,
+  type EnrichmentEvidence,
   type IdempotencyRecord,
+  type OutreachDraftRevision,
+  type VerificationResult,
   type LeadDocument,
   type LifecycleEvent,
   type QualificationResult,
@@ -119,6 +129,25 @@ export interface FirestoreRepositories {
     SimulationRecord,
     readonly [string]
   >;
+  enrichmentEvidence: ValidatedDocumentRepository<
+    EnrichmentEvidence,
+    readonly [string]
+  >;
+  emailChecks: ValidatedDocumentRepository<EmailCheck, readonly [string]>;
+  // Revisions and reviews live under their draft so one listing returns a
+  // draft's whole history.
+  draftRevisions: ValidatedDocumentRepository<
+    OutreachDraftRevision,
+    readonly [string, string]
+  >;
+  draftReviews: ValidatedDocumentRepository<
+    DraftReview,
+    readonly [string, string]
+  >;
+  verificationResults: ValidatedDocumentRepository<
+    VerificationResult,
+    readonly [string]
+  >;
 }
 
 export function createFirestoreRepositories(
@@ -174,6 +203,43 @@ export function createFirestoreRepositories(
         `simulationRecords/${assertDocumentSegment(value.simulationRecordId)}`,
       (simulationRecordId) =>
         `simulationRecords/${assertDocumentSegment(simulationRecordId)}`,
+    ),
+    enrichmentEvidence: new ValidatedDocumentRepository(
+      store,
+      EnrichmentEvidenceSchema,
+      (value) =>
+        `enrichmentEvidence/${assertDocumentSegment(value.evidenceId)}`,
+      (evidenceId) => `enrichmentEvidence/${assertDocumentSegment(evidenceId)}`,
+    ),
+    emailChecks: new ValidatedDocumentRepository(
+      store,
+      EmailCheckSchema,
+      (value) => `emailChecks/${assertDocumentSegment(value.emailCheckId)}`,
+      (emailCheckId) => `emailChecks/${assertDocumentSegment(emailCheckId)}`,
+    ),
+    draftRevisions: new ValidatedDocumentRepository(
+      store,
+      OutreachDraftRevisionSchema,
+      (value) =>
+        `outreachDrafts/${assertDocumentSegment(value.draftId)}/revisions/${assertDocumentSegment(value.revisionId)}`,
+      (draftId, revisionId) =>
+        `outreachDrafts/${assertDocumentSegment(draftId)}/revisions/${assertDocumentSegment(revisionId)}`,
+    ),
+    draftReviews: new ValidatedDocumentRepository(
+      store,
+      DraftReviewSchema,
+      (value) =>
+        `outreachDrafts/${assertDocumentSegment(value.draftId)}/reviews/${assertDocumentSegment(value.reviewId)}`,
+      (draftId, reviewId) =>
+        `outreachDrafts/${assertDocumentSegment(draftId)}/reviews/${assertDocumentSegment(reviewId)}`,
+    ),
+    verificationResults: new ValidatedDocumentRepository(
+      store,
+      VerificationResultSchema,
+      (value) =>
+        `verificationResults/${assertDocumentSegment(value.verificationResultId)}`,
+      (verificationResultId) =>
+        `verificationResults/${assertDocumentSegment(verificationResultId)}`,
     ),
   };
 }

@@ -58,6 +58,7 @@ export const EnrichmentFailureKindSchema = z.enum([
   'server_error',
   'client_error',
   'malformed',
+  'not_recorded',
 ]);
 export type EnrichmentFailureKind = z.infer<typeof EnrichmentFailureKindSchema>;
 
@@ -158,11 +159,17 @@ export const EnrichmentEvidenceSchema = z
     if (value.subject.kind !== subjectKind) {
       issue('subject kind must match the source', ['subject']);
     }
+    // A recording carries the time its live response was captured; a
+    // recorded-mode lookup with no recording (not_recorded) has none.
+    if (value.evidenceClass !== 'recorded' && value.recordedCapturedAt !== null) {
+      issue('only recorded evidence has a capture time', ['recordedCapturedAt']);
+    }
     if (
-      (value.evidenceClass === 'recorded') !==
-      (value.recordedCapturedAt !== null)
+      value.evidenceClass === 'recorded' &&
+      value.httpStatus !== null &&
+      value.recordedCapturedAt === null
     ) {
-      issue('recorded evidence requires its capture time, and only it', [
+      issue('recorded responses require their capture time', [
         'recordedCapturedAt',
       ]);
     }

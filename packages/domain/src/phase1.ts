@@ -321,6 +321,7 @@ export const ExternalCallTelemetrySchema = z
         'server_error',
         'client_error',
         'malformed',
+        'not_recorded',
       ])
       .nullable(),
     durationMs: z.number().int().nonnegative(),

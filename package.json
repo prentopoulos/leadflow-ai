@@ -27,6 +27,7 @@
     "smoke": "node scripts/run-smokes.mjs",
     "governance": "node scripts/run-governance.mjs",
     "api:local": "node scripts/run-local-api.mjs",
+    "enrichment:probe": "node scripts/run-enrichment-probe.mjs",
     "docs:diagrams": "node scripts/generate-diagrams.mjs",
     "docs:check": "node scripts/check-docs.mjs",
     "check:openspec": "openspec validate --all --strict",

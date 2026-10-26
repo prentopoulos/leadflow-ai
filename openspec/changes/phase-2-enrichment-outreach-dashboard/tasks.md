@@ -4,7 +4,7 @@
 
 ## 2. Live enrichment
 
-- [ ] 2.1 Implement the vPIC and Zippopotam.us adapters with the host allowlist, 5 s timeout, single evented retry, outcome and failure-kind mapping, bounded raw body and digest, explicit `live | recorded | mock` mode, the local email check, the evidence repository, and the separately named `pnpm enrichment:probe`; run the authorized probe once to capture the recorded fixtures and confirm the Zippopotam.us HTTPS and not-found behavior.
+- [x] 2.1 Implement the vPIC and Zippopotam.us adapters with the host allowlist, 5 s timeout, single evented retry, outcome and failure-kind mapping, bounded raw body and digest, explicit `live | recorded | mock` mode, the local email check, the evidence repository, and the separately named `pnpm enrichment:probe`; run the authorized probe once to capture the recorded fixtures and confirm the Zippopotam.us HTTPS and not-found behavior.
 
 ## 3. Outreach drafts and review
 
