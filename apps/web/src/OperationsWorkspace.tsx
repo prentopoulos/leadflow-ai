@@ -10,6 +10,7 @@ import {
   Clock3,
   FilePlus2,
   Inbox,
+  Keyboard,
   RefreshCw,
 } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
@@ -28,6 +29,7 @@ import {
 } from './operations-client.js';
 import { RunDossier } from './RunDossier.js';
 import type { RunClient } from './run-client.js';
+import { useSession } from './session-context.js';
 import { useVisiblePolling } from './use-visible-polling.js';
 
 export type OperatorView = 'runs' | 'metrics';
@@ -61,9 +63,26 @@ function RunItem({
     item.leaseState === 'expired' ||
     item.status.startsWith('failed') ||
     item.draftState === 'verification_blocked';
+  // A concise accessible name; the visible grid repeats the details and
+  // the dossier holds the full record.
+  const name = [
+    `Lead ${item.shortLeadId}`,
+    readable(item.status),
+    `${readable(item.priority)} priority`,
+    `draft ${readable(item.draftState).toLowerCase()}`,
+    attention ? 'needs attention' : null,
+    item.resumable ? 'resume available' : null,
+  ]
+    .filter(Boolean)
+    .join(', ');
   return (
     <li className={selected ? 'run-item is-selected' : 'run-item'}>
-      <button type="button" onClick={onSelect} aria-pressed={selected}>
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-pressed={selected}
+        aria-label={name}
+      >
         <span className="run-item-heading">
           <strong>Lead {item.shortLeadId}</strong>
           <span className={`status-marker status-${item.status}`}>
@@ -156,6 +175,21 @@ function RunsView({
   );
   useVisiblePolling(refresh);
 
+  // After a review, the operator is offered the next draft still waiting.
+  const nextPending =
+    snapshot?.items.find(
+      (item) =>
+        item.draftState === 'pending_review' && item.runId !== selected?.runId,
+    ) ?? null;
+  const dossierHeading = useRef<HTMLHeadingElement>(null);
+  const openNextPending =
+    nextPending === null
+      ? null
+      : () => {
+          setSelected(nextPending);
+          dossierHeading.current?.focus();
+        };
+
   const changeFilter = (next: RunListFilter) => {
     pageCount.current = 1;
     setSnapshot(null);
@@ -196,10 +230,11 @@ function RunsView({
             </span>
           </div>
 
-          <div className="run-filters" aria-label="Run filters">
+          <div className="run-filters" role="group" aria-label="Run filters">
             <Button
               variant={filter === 'all' ? 'primary' : 'secondary'}
               size="compact"
+              aria-pressed={filter === 'all'}
               onClick={() => changeFilter('all')}
             >
               All runs
@@ -207,6 +242,7 @@ function RunsView({
             <Button
               variant={filter === 'approval_queue' ? 'primary' : 'secondary'}
               size="compact"
+              aria-pressed={filter === 'approval_queue'}
               onClick={() => changeFilter('approval_queue')}
             >
               <Inbox size={15} aria-hidden="true" /> Approval queue
@@ -214,6 +250,7 @@ function RunsView({
             <Button
               variant={filter === 'attention' ? 'primary' : 'secondary'}
               size="compact"
+              aria-pressed={filter === 'attention'}
               onClick={() => changeFilter('attention')}
             >
               <AlertTriangle size={15} aria-hidden="true" /> Attention
@@ -274,7 +311,9 @@ function RunsView({
           aria-labelledby="monitor-dossier-title"
         >
           <div className="section-heading operations-section-heading">
-            <h2 id="monitor-dossier-title">Dossier</h2>
+            <h2 id="monitor-dossier-title" ref={dossierHeading} tabIndex={-1}>
+              Dossier
+            </h2>
             <span className="state-tag">
               {selected === null
                 ? 'Nothing selected'
@@ -294,12 +333,67 @@ function RunsView({
               pollIntervalMs={3_000}
               maxPollAttempts={Number.POSITIVE_INFINITY}
               operationsClient={client}
+              nextPending={
+                nextPending === null || openNextPending === null
+                  ? null
+                  : {
+                      label: `Lead ${nextPending.shortLeadId}`,
+                      open: openNextPending,
+                    }
+              }
               {...(runClient === undefined ? {} : { client: runClient })}
             />
           )}
         </aside>
       </div>
     </div>
+  );
+}
+
+// The workspace adds no single-key shortcuts that could collide with screen
+// reader commands; it documents the standard keys each control supports.
+function KeyboardGuide() {
+  return (
+    <section className="page-shell keyboard-guide" aria-labelledby="keys-title">
+      <details>
+        <summary>
+          <Keyboard size={15} aria-hidden="true" />
+          <span id="keys-title">Keyboard shortcuts</span>
+        </summary>
+        <dl>
+          <div>
+            <dt>
+              <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd>
+            </dt>
+            <dd>Move between controls in reading order.</dd>
+          </div>
+          <div>
+            <dt>
+              <kbd>←</kbd> <kbd>→</kbd>
+            </dt>
+            <dd>Switch between Runs and Metrics when the tabs have focus.</dd>
+          </div>
+          <div>
+            <dt>
+              <kbd>Enter</kbd> or <kbd>Space</kbd>
+            </dt>
+            <dd>
+              Choose a filter or lead, open or close a disclosure, or press a
+              button.
+            </dd>
+          </div>
+          <div>
+            <dt>
+              <kbd>←</kbd> <kbd>→</kbd> in a chart
+            </dt>
+            <dd>
+              Step through the bars; the table under each chart lists the same
+              values.
+            </dd>
+          </div>
+        </dl>
+      </details>
+    </section>
   );
 }
 
@@ -312,6 +406,7 @@ export function OperationsWorkspace({
   operationsClient?: OperationsClient;
   runClient?: RunClient;
 }) {
+  const session = useSession();
   const navigate = (next: string) => {
     window.location.hash = next;
   };
@@ -341,8 +436,14 @@ export function OperationsWorkspace({
           </TabsContent>
         </Tabs>
       </main>
+      <KeyboardGuide />
       <footer className="page-footer">
-        <span>LeadFlow AI · local prototype</span>
+        <span>
+          LeadFlow AI ·{' '}
+          {session.mode === 'cloud'
+            ? 'private hosted proof'
+            : 'local prototype'}
+        </span>
         <span>No outreach is sent. Approval permits manual use only.</span>
       </footer>
     </>

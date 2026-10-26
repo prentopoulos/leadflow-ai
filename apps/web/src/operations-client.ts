@@ -9,6 +9,7 @@ import {
   type RunListResponse,
   type SafeError,
 } from '@leadflow-ai/domain';
+import { apiFetch } from './session-context.js';
 import type { RunResult } from './run-client.js';
 
 type Fetcher = typeof fetch;
@@ -99,7 +100,7 @@ async function request<T>(
 }
 
 export function createOperationsClient(
-  fetcher: Fetcher = fetch,
+  fetcher: Fetcher = apiFetch,
 ): OperationsClient {
   return {
     list(filter, cursor, limit = 12) {

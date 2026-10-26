@@ -5,6 +5,7 @@ import {
   type IntakeSubmission,
   type SafeError,
 } from '@leadflow-ai/domain';
+import { apiFetch } from './session-context.js';
 
 export type IntakeClientResult =
   | { status: 'accepted'; value: IntakeAcceptedResponse }
@@ -29,7 +30,7 @@ function fixedError(
 export async function submitIntake(
   intake: IntakeSubmission,
   idempotencyKey: string,
-  fetcher: Fetcher = fetch,
+  fetcher: Fetcher = apiFetch,
 ): Promise<IntakeClientResult> {
   let response: Response;
   try {

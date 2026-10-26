@@ -141,9 +141,24 @@ export function MetricsDashboard({
       <div className="metrics-grid">
         <section className="chart-section" aria-labelledby="priority-title">
           <h2 id="priority-title">Priority</h2>
-          <div className="chart-frame" aria-hidden="true">
+          {/* Keyboard focus lands inside this frame: Recharts' accessibility
+              layer steps through bars with the arrow keys, and the caption
+              names the table that carries the same values. */}
+          <figure
+            className="chart-frame"
+            aria-labelledby="priority-chart-caption"
+          >
+            <figcaption id="priority-chart-caption" className="chart-caption">
+              Stored runs by priority. Focus the chart and use the arrow keys to
+              step through bars; the table below lists the same counts.
+            </figcaption>
             <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={priorityData} margin={{ left: -18, right: 8 }}>
+              <BarChart
+                data={priorityData}
+                margin={{ left: -18, right: 8 }}
+                accessibilityLayer
+                title="Stored runs by priority"
+              >
                 <CartesianGrid stroke="#c8c6bd" vertical={false} />
                 <XAxis
                   dataKey="label"
@@ -162,7 +177,7 @@ export function MetricsDashboard({
                 />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </figure>
           <table className="data-table compact-table">
             <caption className="sr-only">Priority distribution</caption>
             <thead>

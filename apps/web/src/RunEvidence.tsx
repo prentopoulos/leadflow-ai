@@ -6,7 +6,7 @@ import type {
   VerificationResult,
 } from '@leadflow-ai/domain';
 import { Check, Copy, Download, PencilLine, X } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button } from './components/ui/button.js';
 import type { OperationsClient } from './operations-client.js';
 
@@ -165,16 +165,25 @@ export function DraftSection({
   skipReason,
   client,
   onChanged,
+  nextPending = null,
 }: {
   draft: DraftView | null;
   skipReason: string | null;
   client: OperationsClient;
   onChanged(): Promise<unknown>;
+  nextPending?: { label: string; open(): void } | null;
 }) {
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<SafeError | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [reviewed, setReviewed] = useState(false);
+  const noticeRef = useRef<HTMLParagraphElement>(null);
+  // A completed action moves focus to its confirmation, which then offers
+  // the next pending draft.
+  useEffect(() => {
+    if (notice !== null) noticeRef.current?.focus();
+  }, [notice]);
 
   if (draft === null) {
     if (skipReason === null) return null;
@@ -197,10 +206,12 @@ export function DraftSection({
   async function act(
     run: () => ReturnType<OperationsClient['review']>,
     success: string,
+    review = false,
   ) {
     setBusy(true);
     setActionError(null);
     setNotice(null);
+    setReviewed(false);
     const result = await run();
     setBusy(false);
     if (result.status === 'error') {
@@ -209,6 +220,7 @@ export function DraftSection({
       return;
     }
     setEditing(false);
+    setReviewed(review);
     setNotice(success);
     await onChanged();
   }
@@ -301,6 +313,7 @@ export function DraftSection({
                         decision: 'approved',
                       }),
                     'Approved for manual use. Nothing was sent.',
+                    true,
                   )
                 }
               >
@@ -318,6 +331,7 @@ export function DraftSection({
                         decision: 'rejected',
                       }),
                     'Rejected. The draft stays stored.',
+                    true,
                   )
                 }
               >
@@ -363,9 +377,24 @@ export function DraftSection({
         </div>
       )}
       {notice === null ? null : (
-        <p className="action-notice" role="status">
-          {notice}
-        </p>
+        <div className="action-notice" role="status">
+          <p ref={noticeRef} tabIndex={-1}>
+            {notice}
+          </p>
+          {reviewed ? (
+            nextPending === null ? (
+              <p className="next-pending">No other drafts are waiting.</p>
+            ) : (
+              <Button
+                variant="secondary"
+                size="compact"
+                onClick={nextPending.open}
+              >
+                Next pending: {nextPending.label}
+              </Button>
+            )
+          ) : null}
+        </div>
       )}
       <p className="operator-label">
         Revision {revision.revisionNumber} ·{' '}

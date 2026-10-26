@@ -20,6 +20,7 @@ import {
 import { createApp } from '../apps/api/dist/app.js';
 import { createPhaseOneApiDependencies } from '../apps/api/dist/phase-one-runtime.js';
 import { verifyHostedBoundaries } from './verify-hosted-boundaries.mjs';
+import { verifyHostedExecution } from './verify-hosted-execution.mjs';
 
 const timestamp = '2026-10-24T20:00:00.000Z';
 const digest = 'a'.repeat(64);
@@ -950,6 +951,7 @@ try {
     throw new Error('Checkpoint deletion crossed the thread-state boundary.');
   }
   await verifyHostedBoundaries({ systemBundleId });
+  await verifyHostedExecution({ localBundle: bundle });
   await resetLocalEmulatorData({
     enabled: true,
     remoteAddress: '127.0.0.1',
@@ -969,7 +971,7 @@ try {
   }
 
   console.log(
-    'Runtime Firestore, built loopback API, workflow recovery, hosted retention/rules/purge-guard, and verified-flush probes passed against the isolated emulator.',
+    'Runtime Firestore, built loopback API, workflow recovery, hosted retention/rules/purge-guard, hosted request-bound execution/deadline/reclaim, and verified-flush probes passed against the isolated emulator.',
   );
 } finally {
   await boundary.close();

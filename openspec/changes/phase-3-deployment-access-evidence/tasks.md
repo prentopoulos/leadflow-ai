@@ -8,7 +8,7 @@
 
 ## 3. Make hosted execution request-bound and operable
 
-- [ ] 3.1 Add the idempotent, revision-checked cloud execution request with an approximately 45-second workflow deadline, durable interruption/recovery behavior, concurrent stored-state polling, and the accepted authentication/session plus deferred accessibility states, while retaining the local background executor and existing scoring, consent, evidence, metrics, and no-send contracts.
+- [x] 3.1 Add the idempotent, revision-checked cloud execution request with an approximately 45-second workflow deadline, durable interruption/recovery behavior, concurrent stored-state polling, and the accepted authentication/session plus deferred accessibility states, while retaining the local background executor and existing scoring, consent, evidence, metrics, and no-send contracts.
 
 ## 4. Define the reproducible release and evidence system
 

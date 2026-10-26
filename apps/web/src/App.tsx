@@ -16,7 +16,8 @@ import {
 } from './intake-client.js';
 import { Masthead, SimulationStrip } from './Masthead.js';
 import { RunDossier } from './RunDossier.js';
-import type { RunClient } from './run-client.js';
+import { runClient as defaultRunClient, type RunClient } from './run-client.js';
+import { useSession } from './session-context.js';
 
 const coverageOptions = [
   ['balanced', 'Balanced coverage'],
@@ -130,6 +131,9 @@ export function App({
     null,
   );
   const [accepted, setAccepted] = useState<IntakeAcceptedResponse | null>(null);
+  const [executionNotice, setExecutionNotice] = useState<string | null>(null);
+  const session = useSession();
+  const hosted = session.mode === 'cloud';
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const submissionErrorRef = useRef<HTMLDivElement>(null);
   const runHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -155,6 +159,34 @@ export function App({
       runHeadingRef.current?.focus();
     }
   }, [accepted]);
+
+  // Hosted intake starts no work after its 202. The browser holds one
+  // authenticated execution request while the dossier polls stored state; a
+  // duplicate or stale request is a harmless conflict.
+  useEffect(() => {
+    if (!hosted || accepted === null) return;
+    const client = runClient ?? defaultRunClient;
+    if (client.execute === undefined) return;
+    let active = true;
+    setExecutionNotice(null);
+    void client.execute(accepted.runId, accepted.runRevision).then((result) => {
+      if (!active || result.status === 'ok') return;
+      if (
+        result.error.code === 'revision_conflict' ||
+        result.error.code === 'run_ineligible'
+      ) {
+        return;
+      }
+      setExecutionNotice(
+        result.error.code === 'execution_deadline'
+          ? 'Execution stopped at its time limit. Resume the run from the dossier once its lease expires.'
+          : result.error.message,
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [accepted, hosted, runClient]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -248,6 +280,7 @@ export function App({
     setSubmissionError(null);
     setSubmissionStatus('idle');
     setAccepted(null);
+    setExecutionNotice(null);
     requestIdentityRef.current = null;
   }
 
@@ -401,7 +434,7 @@ export function App({
                       min="1981"
                       max="2027"
                       inputMode="numeric"
-                      defaultValue="2021"
+                      defaultValue="2020"
                       {...fieldA11y('vehicleYear', errors)}
                     />
                     <FieldError field="vehicleYear" errors={errors} />
@@ -581,10 +614,19 @@ export function App({
                     </div>
                     <div>
                       <dt>Evidence</dt>
-                      <dd>{accepted.evidenceClass}</dd>
+                      <dd>
+                        {hosted
+                          ? 'Synthetic · private hosted'
+                          : accepted.evidenceClass}
+                      </dd>
                     </div>
                   </dl>
                 </div>
+                {executionNotice === null ? null : (
+                  <p className="safe-error" role="status">
+                    {executionNotice}
+                  </p>
+                )}
                 <RunDossier
                   runId={accepted.runId}
                   initialRevision={accepted.runRevision}
@@ -597,7 +639,9 @@ export function App({
       </main>
 
       <footer className="page-footer">
-        <span>LeadFlow AI · local prototype</span>
+        <span>
+          LeadFlow AI · {hosted ? 'private hosted proof' : 'local prototype'}
+        </span>
       </footer>
     </>
   );

@@ -107,6 +107,8 @@ export interface RunDossierProps {
   pollIntervalMs?: number;
   maxPollAttempts?: number;
   operationsClient?: OperationsClient;
+  // Offered after a review so the operator can continue through the queue.
+  nextPending?: { label: string; open(): void } | null;
 }
 
 export function RunDossier({
@@ -115,6 +117,7 @@ export function RunDossier({
   pollIntervalMs = 2_000,
   maxPollAttempts = 30,
   operationsClient = defaultOperationsClient,
+  nextPending = null,
 }: RunDossierProps) {
   const [detail, setDetail] = useState<RunDetailResponse | null>(null);
   const [refreshError, setRefreshError] = useState<SafeError | null>(null);
@@ -122,6 +125,10 @@ export function RunDossier({
   const [resuming, setResuming] = useState(false);
   const [pollCycle, setPollCycle] = useState(0);
   const attempts = useRef(0);
+  // Polling re-renders every few seconds; the live region speaks only when
+  // the stored status or step materially changes.
+  const [announcement, setAnnouncement] = useState('');
+  const announced = useRef<string | null>(null);
 
   const refresh = useCallback(async () => {
     attempts.current += 1;
@@ -132,6 +139,20 @@ export function RunDossier({
     }
     setDetail(result.value);
     setRefreshError(null);
+    const material = `${result.value.run.status}:${result.value.run.currentStep ?? ''}`;
+    if (announced.current !== material) {
+      const first = announced.current === null;
+      announced.current = material;
+      if (!first) {
+        setAnnouncement(
+          `Run ${readable(result.value.run.status).toLowerCase()}${
+            result.value.run.currentStep === null
+              ? ''
+              : `, ${readable(result.value.run.currentStep).toLowerCase()}`
+          }.`,
+        );
+      }
+    }
     return terminalStatuses.has(result.value.run.status);
   }, [client, runId]);
 
@@ -182,6 +203,9 @@ export function RunDossier({
       Date.parse(detail.run.lease.expiresAt) <= Date.now());
   return (
     <div className="run-detail">
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </p>
       {refreshError !== null ? (
         <div className="stale-state" role="status">
           <strong>Refresh failed</strong>
@@ -249,6 +273,7 @@ export function RunDossier({
         skipReason={detail.run.draftSkipReason}
         client={operationsClient}
         onChanged={refresh}
+        nextPending={nextPending}
       />
       <VerificationSection
         verification={detail.verification}
