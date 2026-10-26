@@ -184,23 +184,13 @@ function RunsView({
   return (
     <div className="runs-workspace">
       <div className="operations-heading">
-        <div>
-          <p className="eyebrow">Stored run monitoring</p>
-          <h1>Find the next run that needs a human decision.</h1>
-        </div>
-        <p>
-          Privacy-safe summaries contain no names, email addresses, ZIP Codes,
-          or vehicle details. Open a dossier to inspect its stored evidence.
-        </p>
+        <h1>Runs</h1>
       </div>
 
       <div className="run-monitor-layout">
         <section className="run-list-pane" aria-labelledby="run-list-title">
           <div className="section-heading operations-section-heading">
-            <div>
-              <p className="section-index">01 / Queue</p>
-              <h2 id="run-list-title">Leads and runs</h2>
-            </div>
+            <h2 id="run-list-title">Leads</h2>
             <span className="state-tag">
               {snapshot?.totalMatching ?? '—'} matching
             </span>
@@ -232,7 +222,7 @@ function RunsView({
 
           {error === null ? null : (
             <div className="stale-state" role="status">
-              <strong>Run-list refresh is unavailable.</strong>
+              <strong>Refresh failed</strong>
               <span>
                 {snapshot === null
                   ? error.message
@@ -244,25 +234,17 @@ function RunsView({
           {snapshot === null ? (
             <div className="operations-loading" aria-live="polite">
               <Clock3 size={22} aria-hidden="true" />
-              <p>Loading stored run summaries…</p>
+              <p>Loading…</p>
             </div>
           ) : snapshot.items.length === 0 ? (
             <div className="empty-run compact-empty">
               <span className="empty-glyph" aria-hidden="true">
                 00
               </span>
-              <h3>No runs match this filter.</h3>
-              <p>
-                The empty queue is a stored result, not an illustrative value.
-              </p>
+              <h3>No runs</h3>
             </div>
           ) : (
             <>
-              <p className="poll-status" aria-live="polite">
-                Snapshot retrieved{' '}
-                {new Date(snapshot.retrievedAt).toLocaleTimeString()}; refreshes
-                every 3 seconds while this tab is visible.
-              </p>
               <ol className="run-list">
                 {snapshot.items.map((item) => (
                   <RunItem
@@ -292,10 +274,7 @@ function RunsView({
           aria-labelledby="monitor-dossier-title"
         >
           <div className="section-heading operations-section-heading">
-            <div>
-              <p className="section-index">02 / Evidence</p>
-              <h2 id="monitor-dossier-title">Run dossier</h2>
-            </div>
+            <h2 id="monitor-dossier-title">Dossier</h2>
             <span className="state-tag">
               {selected === null
                 ? 'Nothing selected'
@@ -305,8 +284,7 @@ function RunsView({
           {selected === null ? (
             <div className="empty-run compact-empty">
               <FilePlus2 size={28} aria-hidden="true" />
-              <h3>Select a stored run.</h3>
-              <p>Evidence and operator actions stay attached to one run.</p>
+              <h3>Nothing selected</h3>
             </div>
           ) : (
             <RunDossier
@@ -346,7 +324,7 @@ export function OperationsWorkspace({
         <Tabs value={view} onValueChange={navigate}>
           <TabsList aria-label="Operations workspace">
             <TabsTrigger value="runs">
-              <Inbox size={16} aria-hidden="true" /> Runs and approvals
+              <Inbox size={16} aria-hidden="true" /> Runs
             </TabsTrigger>
             <TabsTrigger value="metrics">
               <BarChart3 size={16} aria-hidden="true" /> Metrics

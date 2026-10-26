@@ -54,21 +54,13 @@ export function Cover() {
           className="cover-boundaries"
           aria-labelledby="cover-boundary-title"
         >
-          <p className="cover-kicker">Current boundary</p>
-          <h2 id="cover-boundary-title">
-            A demonstration, not live operations
-          </h2>
+          <h2 id="cover-boundary-title">Boundaries</h2>
           <ul>
             {boundaries.map((boundary) => (
               <li key={boundary}>{boundary}</li>
             ))}
           </ul>
         </section>
-
-        <footer className="cover-footer">
-          Leads, contacts and outcomes are fictional. No Military.com
-          intake-parity claim is made.
-        </footer>
       </main>
     </div>
   );

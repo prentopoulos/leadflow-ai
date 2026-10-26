@@ -41,10 +41,8 @@ function Qualification({ result }: { result: QualificationResult }) {
         className="result-section integrity-hold"
         aria-labelledby="qualification-title"
       >
-        <p className="section-index">Qualification held</p>
-        <h3 id="qualification-title">No priority was assigned.</h3>
+        <h3 id="qualification-title">Held</h3>
         <p>{result.integrityHold.message}</p>
-        <small>{result.meaning}</small>
       </section>
     );
   }
@@ -57,11 +55,7 @@ function Qualification({ result }: { result: QualificationResult }) {
   return (
     <section className="result-section" aria-labelledby="qualification-title">
       <div className="score-heading">
-        <div>
-          <p className="section-index">Marketing readiness</p>
-          <h3 id="qualification-title">{readable(result.priority)} priority</h3>
-          <p>{result.meaning}</p>
-        </div>
+        <h3 id="qualification-title">{readable(result.priority)} priority</h3>
         <strong className="score-value">
           {result.total}
           <span>/100</span>
@@ -95,16 +89,13 @@ function Qualification({ result }: { result: QualificationResult }) {
         ))}
       </div>
       <div className="missing-information">
-        <strong>Missing information</strong>
+        <strong>Missing</strong>
         <p>
           {result.missingInformation.length === 0
             ? 'None.'
             : result.missingInformation.map(readable).join(', ')}
         </p>
       </div>
-      <p className="version-line">
-        {result.rubricVersion} · {result.interpreterVersion}
-      </p>
     </section>
   );
 }
@@ -120,7 +111,6 @@ export interface RunDossierProps {
 
 export function RunDossier({
   runId,
-  initialRevision,
   client = defaultRunClient,
   pollIntervalMs = 2_000,
   maxPollAttempts = 30,
@@ -178,8 +168,7 @@ export function RunDossier({
   if (detail === null) {
     return (
       <div className="run-loading" aria-live="polite">
-        <p className="summary-label">Stored · rev {initialRevision}</p>
-        <h3>Loading the first stored snapshot…</h3>
+        <h3>Loading…</h3>
         {refreshError !== null ? <p>{refreshError.message}</p> : null}
       </div>
     );
@@ -195,17 +184,10 @@ export function RunDossier({
     <div className="run-detail">
       {refreshError !== null ? (
         <div className="stale-state" role="status">
-          <strong>Newer state is unavailable.</strong>
-          <span>
-            Showing revision {detail.run.revision}, confirmed{' '}
-            {new Date(detail.retrievedAt).toLocaleTimeString()}.
-          </span>
+          <strong>Refresh failed</strong>
         </div>
       ) : null}
       <section className="run-summary" aria-labelledby="stored-run-title">
-        <p className="section-index">
-          Stored run · revision {detail.run.revision}
-        </p>
         <h3 id="stored-run-title">{readable(detail.run.status)}</h3>
         <dl>
           <div>
@@ -233,16 +215,9 @@ export function RunDossier({
                 : ` · ${detail.run.enrichmentMode}`}
             </dd>
           </div>
-          <div>
-            <dt>Bundle</dt>
-            <dd>{detail.run.systemBundleId}</dd>
-          </div>
         </dl>
         {detail.run.holds.length > 0 ? (
-          <p className="safe-error">
-            Hold: the draft failed verification and is not in the approval
-            queue.
-          </p>
+          <p className="safe-error">Draft blocked by verification</p>
         ) : null}
         {detail.run.safeError !== null ? (
           <p className="safe-error">{detail.run.safeError.message}</p>
@@ -260,7 +235,6 @@ export function RunDossier({
                   ? 'Start stored run'
                   : 'Resume retryable run'}
             </button>
-            <span>Expected revision {detail.run.revision}</span>
           </div>
         ) : null}
         {resumeError !== null ? (
@@ -291,8 +265,7 @@ export function RunDossier({
       ) : null}
 
       <section className="event-history" aria-labelledby="event-history-title">
-        <p className="section-index">Append-only history</p>
-        <h3 id="event-history-title">Lifecycle events</h3>
+        <h3 id="event-history-title">Events</h3>
         <details>
           <summary>
             {detail.events.length} events
@@ -325,8 +298,7 @@ export function RunDossier({
           className="result-section simulation-result"
           aria-labelledby="simulation-title"
         >
-          <p className="section-index">Synthetic outcome · not predictive</p>
-          <h3 id="simulation-title">Lifecycle contract exercise</h3>
+          <h3 id="simulation-title">Simulation</h3>
           <dl>
             <div>
               <dt>Contacted</dt>
@@ -353,15 +325,6 @@ export function RunDossier({
               </dd>
             </div>
           </dl>
-          <p>
-            This is neither a live outcome nor evidence that the readiness score
-            predicts conversion.
-          </p>
-          <small>
-            Evidence {detail.simulation.evidenceClass} · source run {runId} ·{' '}
-            {detail.simulation.simulatorVersion} ·{' '}
-            {detail.simulation.seedVersion} · seed {detail.simulation.seed}
-          </small>
         </section>
       ) : null}
     </div>

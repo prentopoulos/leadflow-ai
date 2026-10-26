@@ -41,12 +41,12 @@ describe('Phase 1 intake workspace', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'Prepare a lead for qualification.',
+        name: 'New lead',
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(/No stored run/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/No Military\.com intake-parity claim/i),
+      screen.getByText('LeadFlow AI · local prototype'),
     ).toBeInTheDocument();
   });
 
@@ -54,23 +54,18 @@ describe('Phase 1 intake workspace', () => {
     render(<App />);
 
     expect(
-      screen.getByRole('group', { name: /verified source field/i }),
+      screen.getByRole('group', { name: /Location/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('group', { name: /LeadFlow demo fields/i }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/ZIP Code/i)).toHaveValue('22150');
-    expect(screen.getByText(/only exact field verified/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/not verified Military\.com questions/i),
-    ).toBeInTheDocument();
     expect(screen.getByLabelText(/Test email/i)).toHaveValue(
       'avery.jordan@example.com',
     );
     expect(
       screen.getByLabelText(/operator may prepare an email/i),
     ).not.toBeChecked();
-    expect(screen.getByText(/Consent adds no score/i)).toBeInTheDocument();
   });
 
   it('validates through the shared intake contract and focuses the linked summary', () => {
@@ -106,7 +101,7 @@ describe('Phase 1 intake workspace', () => {
       screen.getByRole('button', { name: 'Store synthetic lead' }),
     );
 
-    const runHeading = screen.getByRole('heading', { name: 'Run dossier' });
+    const runHeading = screen.getByRole('heading', { name: 'Dossier' });
     await waitFor(() => expect(runHeading).toHaveFocus());
     expect(intakeClient).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -117,7 +112,7 @@ describe('Phase 1 intake workspace', () => {
       'intake-key-001',
     );
     expect(
-      screen.getByText('The lead is stored before processing.'),
+      screen.getByRole('heading', { level: 3, name: 'Stored' }),
     ).toBeInTheDocument();
     expect(screen.getByText(accepted.value.runId)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Lead stored' })).toBeDisabled();

@@ -34,22 +34,17 @@ function time(value: string | null) {
 function Claim({ record }: { record: EnrichmentEvidence }) {
   const claim = record.claim;
   if (record.outcome === 'not_attempted') {
-    return <p>Not attempted: the vehicle year, make or model is missing.</p>;
+    return <p>Skipped: vehicle details missing</p>;
   }
   if (record.outcome === 'unavailable') {
-    return (
-      <p>
-        Unavailable ({readable(record.failureKind ?? 'unknown')}). This is not
-        evidence that the value is wrong.
-      </p>
-    );
+    return <p>No answer ({readable(record.failureKind ?? 'unknown')})</p>;
   }
   if (claim?.kind === 'vehicle_listing') {
     return (
       <p>
         {claim.listed
-          ? `${claim.modelYear} ${claim.makeName ?? ''} ${claim.modelName ?? ''}: ${claim.statement}.`
-          : `Not listed by NHTSA vPIC for model year ${claim.modelYear}. The intake value is shown unchanged.`}
+          ? `${claim.modelYear} ${claim.makeName ?? ''} ${claim.modelName ?? ''}`
+          : `Not listed for ${claim.modelYear}`}
       </p>
     );
   }
@@ -59,17 +54,16 @@ function Claim({ record }: { record: EnrichmentEvidence }) {
         {claim.places
           .map((place) => `${place.placeName}, ${place.stateAbbreviation}`)
           .join('; ')}
-        {claim.places.length > 1 ? ' (several places; none is chosen)' : ''}
+        {claim.places.length > 1 ? ' (several)' : ''}
       </p>
     );
   }
-  return <p>The source answered that this ZIP Code is not listed.</p>;
+  return <p>ZIP not listed</p>;
 }
 
 export function EnrichmentEvidenceSection({
   evidence,
   emailCheck,
-  completeness,
 }: {
   evidence: readonly EnrichmentEvidence[];
   emailCheck: EmailCheck | null;
@@ -78,9 +72,6 @@ export function EnrichmentEvidenceSection({
   if (evidence.length === 0 && emailCheck === null) return null;
   return (
     <section className="result-section" aria-labelledby="evidence-title">
-      <p className="section-index">
-        Source evidence · {readable(completeness)}
-      </p>
       <h3 id="evidence-title">Enrichment</h3>
       <ul className="evidence-list">
         {evidence.map((record) => (
@@ -107,21 +98,6 @@ export function EnrichmentEvidenceSection({
                   <dd>{time(record.recordedCapturedAt)}</dd>
                 </div>
               )}
-              <div>
-                <dt>HTTP</dt>
-                <dd>{record.httpStatus ?? '—'}</dd>
-              </div>
-              <div>
-                <dt>Attempts</dt>
-                <dd>{record.attempts}</dd>
-              </div>
-              <div>
-                <dt>Body SHA-256</dt>
-                <dd className="mono">
-                  {record.rawBodySha256?.slice(0, 12) ?? '—'}
-                  {record.rawBodyTruncated ? ' (truncated copy)' : ''}
-                </dd>
-              </div>
             </dl>
             <small>{record.attribution}</small>
           </li>
@@ -129,8 +105,7 @@ export function EnrichmentEvidenceSection({
       </ul>
       {emailCheck === null ? null : (
         <p className="email-check">
-          <strong>Email check:</strong> valid syntax on the reserved test domain{' '}
-          {emailCheck.domain}. Local check; {emailCheck.limitation}.
+          <strong>Email:</strong> test domain {emailCheck.domain}
         </p>
       )}
     </section>
@@ -147,14 +122,10 @@ export function VerificationSection({
   if (verification === null) return null;
   return (
     <section className="result-section" aria-labelledby="verification-title">
-      <p className="section-index">
-        {verification.rulesVersion} · {verification.decisionLanguageVersion}
-      </p>
       <h3 id="verification-title">
-        Verification{' '}
         {verification.draftPassed === false || holds.length > 0
-          ? 'blocked the draft'
-          : 'passed'}
+          ? 'Blocked'
+          : 'Verified'}
       </h3>
       <ul className="rule-list">
         {verification.rules.map((rule) => (
@@ -209,13 +180,8 @@ export function DraftSection({
     if (skipReason === null) return null;
     return (
       <section className="result-section" aria-labelledby="draft-title">
-        <p className="section-index">Outreach</p>
         <h3 id="draft-title">No draft</h3>
-        <p>
-          {skipReason === 'no_consent'
-            ? 'No email-contact consent was recorded, so no outreach draft exists.'
-            : 'Qualification was held, so no outreach draft was composed.'}
-        </p>
+        <p>{skipReason === 'no_consent' ? 'No consent' : 'Lead held'}</p>
       </section>
     );
   }
@@ -268,25 +234,16 @@ export function DraftSection({
       aria-labelledby="draft-title"
     >
       <div className="draft-heading">
-        <div>
-          <p className="section-index">
-            Email draft · revision {revision.revisionNumber} ·{' '}
-            {revision.origin === 'template'
-              ? revision.composerVersion
-              : 'operator edited'}
-          </p>
-          <h3 id="draft-title">{readable(state)}</h3>
-        </div>
+        <h3 id="draft-title">{readable(state)}</h3>
         <span className="state-tag">{revision.followUpAction}</span>
       </div>
       <p
         className={`draft-verdict ${passed === checked.length ? 'is-passed' : 'is-blocked'}`}
       >
-        Verification: {passed} of {checked.length} rules passed
-        {passed === checked.length ? '' : ' · see Verification below'}
+        {passed} of {checked.length} rules passed
       </p>
       <p className="draft-boundary">
-        Approval means approved for manual use. LeadFlow never sends email.
+        Approval is for manual use. Nothing is sent.
       </p>
       {editing ? (
         <form className="draft-edit" onSubmit={submitEdit}>
@@ -329,18 +286,6 @@ export function DraftSection({
           <pre>{revision.body}</pre>
         </article>
       )}
-      {revision.slots.some(
-        (slot) => slot.provenance === 'verified_evidence',
-      ) ? (
-        <p className="slot-legend">
-          Grounded sentences:{' '}
-          {revision.slots
-            .filter((slot) => slot.provenance === 'verified_evidence')
-            .map((slot) => slot.key)
-            .join(', ')}{' '}
-          come from found source evidence.
-        </p>
-      ) : null}
       {editing ? null : (
         <div className="draft-actions">
           {state === 'pending_review' ? (
@@ -423,9 +368,8 @@ export function DraftSection({
         </p>
       )}
       <p className="operator-label">
-        A decision binds revision {revision.revisionNumber}, digest{' '}
-        {revision.contentSha256.slice(0, 12)}. Recorded as: Local operator
-        (unauthenticated).
+        Revision {revision.revisionNumber} ·{' '}
+        {revision.contentSha256.slice(0, 12)}
       </p>
       {actionError === null ? null : (
         <p className="safe-error" role="alert">
