@@ -8,7 +8,7 @@
 
 ## 3. Outreach drafts and review
 
-- [ ] 3.1 Implement the provider-neutral composer port and `deterministic-template-v1` with slot provenance, the follow-up action map and fixed CAN-SPAM notice, immutable revisions with digests, operator edits, append-only content-bound reviews with the labelled local principal, and the no-send governance check.
+- [x] 3.1 Implement the provider-neutral composer port and `deterministic-template-v1` with slot provenance, the follow-up action map and fixed CAN-SPAM notice, immutable revisions with digests, operator edits, append-only content-bound reviews with the labelled local principal, and the no-send governance check.
 
 ## 4. Verification, graph and execution
 

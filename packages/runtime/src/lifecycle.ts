@@ -15,6 +15,7 @@ import {
 import {
   createFirestoreRepositories,
   type FirestoreRepositories,
+  type PreparedDocumentCreate,
 } from './repositories.js';
 import type { Firestore } from 'firebase-admin/firestore';
 
@@ -89,6 +90,9 @@ export interface CommitRunEventRequest extends EventContext {
   step: LifecycleEvent['step'];
   durationMs: number | null;
   externalCall?: LifecycleEvent['externalCall'];
+  // Records created in the same transaction as the event, so a review or
+  // revision exists exactly when its event does. A create collision aborts all.
+  creates?: readonly PreparedDocumentCreate<object>[];
 }
 
 export interface ClaimRunRequest extends EventContext {
@@ -355,6 +359,9 @@ export class LifecyclePersistenceService {
     });
     transaction.update(nextRun.path, nextRun.data);
     transaction.create(event.path, event.data);
+    for (const prepared of request.creates ?? []) {
+      transaction.create(prepared.path, prepared.data);
+    }
     return { run: nextRun.data, event: event.data };
   }
 
