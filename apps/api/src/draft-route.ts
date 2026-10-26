@@ -182,6 +182,9 @@ export function registerDraftRoutes(
           ...body,
           traceId: requestIdFactory(),
           requestId,
+          ...(request.operator === undefined
+            ? {}
+            : { principal: request.operator }),
         });
         const runId = draft.revisions.at(-1)?.revision.runId;
         if (runId === undefined) throw new DraftIntegrityError();

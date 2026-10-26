@@ -3,7 +3,6 @@ import { SystemBundleDocumentSchema } from '@leadflow-ai/domain';
 
 export const DATASET_VERSION = 'phase-2.0' as const;
 export const EVALUATOR_VERSION = 'phase-2.0' as const;
-export const CONFIGURATION_VERSION = 'phase-2-local-v1' as const;
 
 export const EvidenceScopeSchema = z.enum([
   'pure-synthetic',

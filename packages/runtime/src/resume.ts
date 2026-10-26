@@ -65,7 +65,10 @@ export interface QualificationResumeResult {
 export interface QualificationResumeStart {
   resumedFrom: QualificationResumeResult['resumedFrom'];
   run: RunDocument;
-  continuation: () => Promise<QualificationGraphState>;
+  // Hosted execution passes a deadline signal; the local executor does not.
+  continuation: (options?: {
+    signal?: AbortSignal;
+  }) => Promise<QualificationGraphState>;
 }
 
 function graphConfig(run: RunDocument): RunnableConfig {
@@ -138,8 +141,11 @@ export class QualificationResumeService {
           ? 'persisted'
           : 'checkpoint',
       run: resumed.run,
-      continuation: () =>
-        this.dependencies.workflow.invoke(state, graphConfig(run)),
+      continuation: (options = {}) =>
+        this.dependencies.workflow.invoke(state, {
+          ...graphConfig(run),
+          ...(options.signal === undefined ? {} : { signal: options.signal }),
+        }),
     };
   }
 

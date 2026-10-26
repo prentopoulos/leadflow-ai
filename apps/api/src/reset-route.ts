@@ -35,10 +35,12 @@ export function registerResetRoute(
 ): void {
   if (
     phaseOne.status !== 'ready' ||
+    phaseOne.configuration.mode !== 'local' ||
     !phaseOne.configuration.localResetEnabled
   ) {
     return;
   }
+  const configuration = phaseOne.configuration;
 
   app.delete(
     '/v1/local-data',
@@ -57,10 +59,10 @@ export function registerResetRoute(
       const body = LocalResetRequestSchema.parse(request.body);
       try {
         const result = await (dependencies?.reset ?? resetLocalEmulatorData)({
-          enabled: phaseOne.configuration.localResetEnabled,
+          enabled: configuration.localResetEnabled,
           remoteAddress: request.ip,
           projectId: body.projectId,
-          firestoreHost: phaseOne.configuration.firestoreHost,
+          firestoreHost: configuration.firestoreHost,
           confirmation: body.confirmation,
         });
         return LocalResetResponseSchema.parse({

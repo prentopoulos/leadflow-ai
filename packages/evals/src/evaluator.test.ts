@@ -122,7 +122,7 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
       label: 'synthetic-local',
       generatedAt: new Date().toISOString(),
       bundle: {
-        schemaVersion: 'system-bundle-v2',
+        schemaVersion: 'system-bundle-v3',
         systemBundleId: '11111111-1111-4111-8111-111111111111',
         createdAt: '2026-10-24T20:00:00.000Z',
         code: {
@@ -161,7 +161,11 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
           structurizrCli: '2025.11.09',
           platform: 'test',
           architecture: 'test',
+        },
+        deployment: {
+          mode: 'local',
           projectId: 'demo-leadflow-ai-local',
+          reason: 'local emulator; no hosted deployment',
         },
         model: { value: null, reason: 'gate unresolved' },
         provider: { value: null, reason: 'gate unresolved' },

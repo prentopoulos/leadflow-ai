@@ -1,0 +1,29 @@
+# Mirrors .gitignore with root-anchored Docker patterns, plus Git metadata, so
+# the build context is exactly the tracked tree. scripts/check-container.mjs
+# keeps the two files in step.
+.git
+# Secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Private notes, scratch and logs
+**/.local
+**/tmp
+**/*.log
+
+# Local toolchain and JavaScript outputs
+**/.tools
+**/node_modules
+**/.pnpm-store
+**/dist
+**/dist-types
+**/coverage
+**/*.tsbuildinfo
+
+# Tool caches
+**/.eslintcache
+**/.vite
+
+# Local design-hook cache
+**/.impeccable

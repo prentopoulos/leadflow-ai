@@ -38,6 +38,7 @@ describe('API skeleton', () => {
         LEADFLOW_WEB_ORIGIN: 'http://127.0.0.1:5173',
       }),
     ).toEqual({
+      mode: 'local',
       configurationVersion: 'phase-2-local-v1',
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',

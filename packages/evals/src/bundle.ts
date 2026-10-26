@@ -3,10 +3,18 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { EnrichmentMode } from '@leadflow-ai/domain';
+import {
+  CLOUD_CONFIGURATION_VERSION,
+  LOCAL_CONFIGURATION_VERSION,
+  type EnrichmentMode,
+} from '@leadflow-ai/domain';
+import {
+  LOCAL_DEPLOYMENT,
+  bindSystemBundle,
+  type SystemBundleBase,
+} from '@leadflow-ai/runtime';
 import { COMBINED_CASES } from './fixtures.js';
 import {
-  CONFIGURATION_VERSION,
   DATASET_VERSION,
   EVALUATOR_VERSION,
   type SystemBundle,
@@ -69,65 +77,59 @@ async function dirtyPatchDigest() {
   return hash.digest('hex');
 }
 
-function uuidFromDigest(digest: string) {
-  const characters = digest.slice(0, 32).split('');
-  characters[12] = '4';
-  characters[16] = (
-    (Number.parseInt(characters[16] ?? '0', 16) & 0x3) |
-    0x8
-  ).toString(16);
-  const value = characters.join('');
-  return `${value.slice(0, 8)}-${value.slice(8, 12)}-${value.slice(12, 16)}-${value.slice(16, 20)}-${value.slice(20)}`;
+export interface SourceIdentity {
+  revision: string;
+  dirty: boolean;
+  sourceDigest: string;
+  patchDigest: string | null;
 }
 
 export interface SystemBundleOptions {
   // The bundle identifies which enrichment evidence class its runs produce.
   enrichmentMode?: EnrichmentMode;
+  // A hosted release build supplies its verified commit and tree digest; a
+  // local bundle reads them from Git.
+  source?: SourceIdentity;
+  runtime?: 'local' | 'cloud';
 }
 
-export async function createSystemBundle(
-  options: SystemBundleOptions = {},
-): Promise<SystemBundle> {
-  const enrichmentMode = options.enrichmentMode ?? 'recorded';
+async function gitSourceIdentity(): Promise<SourceIdentity> {
   const revision = git(['rev-parse', 'HEAD']);
   const status = git(['status', '--porcelain']);
+  const dirty = status.status !== 0 || status.stdout.trim().length > 0;
+  return {
+    revision: revision.status === 0 ? revision.stdout.trim() : 'unavailable',
+    dirty,
+    sourceDigest: await sourceDigest(),
+    patchDigest: dirty ? await dirtyPatchDigest() : null,
+  };
+}
+
+// Everything except the run-time deployment binding; a release build writes
+// this into its image manifest.
+export async function createSystemBundleBase(
+  options: SystemBundleOptions = {},
+): Promise<SystemBundleBase> {
+  const enrichmentMode = options.enrichmentMode ?? 'recorded';
+  const source = options.source ?? (await gitSourceIdentity());
   const lockfileDigest = sha256(
     await readFile(path.join(repoRoot, 'pnpm-lock.yaml')),
   );
-  const currentSourceDigest = await sourceDigest();
-  const dirty = status.status !== 0 || status.stdout.trim().length > 0;
-  const currentPatchDigest = dirty ? await dirtyPatchDigest() : null;
   const pnpmVersion =
     /pnpm\/([^\s]+)/u.exec(process.env.npm_config_user_agent ?? '')?.[1] ??
     'unavailable';
   const toolchain = JSON.parse(
     await readFile(path.join(repoRoot, 'toolchain.phase1.json'), 'utf8'),
   );
-  const codeRevision =
-    revision.status === 0 ? revision.stdout.trim() : 'unavailable';
   const fixtureDigest = sha256(JSON.stringify(COMBINED_CASES));
-  const identityDigest = sha256(
-    JSON.stringify({
-      codeRevision,
-      dirty,
-      currentSourceDigest,
-      currentPatchDigest,
-      lockfileDigest,
-      fixtureDigest,
-      evaluator: EVALUATOR_VERSION,
-      enrichmentMode,
-    }),
-  );
 
   return {
-    schemaVersion: 'system-bundle-v2',
-    systemBundleId: uuidFromDigest(identityDigest),
-    createdAt: new Date().toISOString(),
+    schemaVersion: 'system-bundle-v3',
     code: {
-      revision: codeRevision,
-      dirty,
-      sourceDigest: currentSourceDigest,
-      patchDigest: currentPatchDigest,
+      revision: source.revision,
+      dirty: source.dirty,
+      sourceDigest: source.sourceDigest,
+      patchDigest: source.patchDigest,
     },
     lockfileDigest,
     fixtures: {
@@ -151,7 +153,10 @@ export async function createSystemBundle(
       decisionLanguage: 'decision-language-v1',
       metricsDefinitions: 'metrics-definitions-v1',
       evaluator: EVALUATOR_VERSION,
-      configuration: CONFIGURATION_VERSION,
+      configuration:
+        options.runtime === 'cloud'
+          ? CLOUD_CONFIGURATION_VERSION
+          : LOCAL_CONFIGURATION_VERSION,
     },
     environment: {
       node: process.version.replace(/^v/u, ''),
@@ -162,7 +167,6 @@ export async function createSystemBundle(
       structurizrCli: toolchain.structurizr.version,
       platform: process.platform,
       architecture: process.arch,
-      projectId: toolchain.firebase.projectId,
     },
     provider: { value: null, reason: 'provider gate unresolved' },
     model: { value: null, reason: 'model gate unresolved' },
@@ -174,4 +178,13 @@ export async function createSystemBundle(
         'owner-authorized read-only GET, 2026-10-25 (PROJECT.md Phase 2 decisions)',
     },
   };
+}
+
+export async function createSystemBundle(
+  options: SystemBundleOptions = {},
+): Promise<SystemBundle> {
+  return bindSystemBundle(
+    await createSystemBundleBase(options),
+    LOCAL_DEPLOYMENT,
+  );
 }

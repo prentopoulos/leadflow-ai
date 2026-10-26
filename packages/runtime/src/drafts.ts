@@ -8,6 +8,7 @@ import {
   deriveRevisionStates,
   DraftViewSchema,
   LOCAL_OPERATOR_PRINCIPAL,
+  type OperatorPrincipal,
   MAX_DRAFT_REVISIONS,
   OutreachDraftRevisionSchema,
   verifyOutputs,
@@ -27,6 +28,7 @@ import {
   type LifecyclePersistenceService,
 } from './lifecycle.js';
 import type { FirestoreRepositories } from './repositories.js';
+import { withoutRetention } from './retention.js';
 
 export function sha256Hex(value: string): string {
   return createHash('sha256').update(value, 'utf8').digest('hex');
@@ -115,7 +117,7 @@ export class AdminDraftReader implements DraftReader {
       .orderBy('revisionNumber', 'asc')
       .limit(DRAFT_REVISION_LIMIT + 1)
       .get();
-    return snapshot.docs.map((document) => document.data());
+    return snapshot.docs.map((document) => withoutRetention(document.data()));
   }
 
   async reviews(draftId: string): Promise<unknown[]> {
@@ -124,7 +126,7 @@ export class AdminDraftReader implements DraftReader {
       .orderBy('decidedAt', 'asc')
       .limit(DRAFT_REVISION_LIMIT + 1)
       .get();
-    return snapshot.docs.map((document) => document.data());
+    return snapshot.docs.map((document) => withoutRetention(document.data()));
   }
 }
 
@@ -175,6 +177,8 @@ export interface DraftActionRequest {
   draftId: string;
   traceId: string;
   requestId: string;
+  // The trusted principal the API resolved; never a browser-supplied value.
+  principal?: OperatorPrincipal;
 }
 
 const MAX_EVENT_RETRIES = 3;
@@ -376,7 +380,7 @@ export class DraftService {
       leadId: run.leadId,
       contentSha256: request.contentSha256,
       decision: request.decision,
-      principal: LOCAL_OPERATOR_PRINCIPAL,
+      principal: request.principal ?? LOCAL_OPERATOR_PRINCIPAL,
       decidedAt: this.now(),
       meaning: 'approved for manual use only; nothing is sent',
     });

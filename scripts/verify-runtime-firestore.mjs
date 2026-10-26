@@ -19,6 +19,7 @@ import {
 } from '../packages/runtime/dist/index.js';
 import { createApp } from '../apps/api/dist/app.js';
 import { createPhaseOneApiDependencies } from '../apps/api/dist/phase-one-runtime.js';
+import { verifyHostedBoundaries } from './verify-hosted-boundaries.mjs';
 
 const timestamp = '2026-10-24T20:00:00.000Z';
 const digest = 'a'.repeat(64);
@@ -26,7 +27,7 @@ const systemBundleId = randomUUID();
 const boundary = createEmulatorFirestoreBoundary();
 
 const bundle = {
-  schemaVersion: 'system-bundle-v2',
+  schemaVersion: 'system-bundle-v3',
   systemBundleId,
   createdAt: timestamp,
   code: {
@@ -65,7 +66,11 @@ const bundle = {
     structurizrCli: '2025.11.09',
     platform: process.platform,
     architecture: process.arch,
+  },
+  deployment: {
+    mode: 'local',
     projectId: 'demo-leadflow-ai-local',
+    reason: 'local emulator; no hosted deployment',
   },
   provider: { value: null, reason: 'provider gate unresolved' },
   model: { value: null, reason: 'model gate unresolved' },
@@ -459,6 +464,7 @@ try {
   const apiStartup = {
     status: 'ready',
     configuration: {
+      mode: 'local',
       configurationVersion: 'phase-2-local-v1',
       projectId: 'demo-leadflow-ai-local',
       firestoreHost: '127.0.0.1:8080',
@@ -943,6 +949,7 @@ try {
   ) {
     throw new Error('Checkpoint deletion crossed the thread-state boundary.');
   }
+  await verifyHostedBoundaries({ systemBundleId });
   await resetLocalEmulatorData({
     enabled: true,
     remoteAddress: '127.0.0.1',
@@ -962,7 +969,7 @@ try {
   }
 
   console.log(
-    'Runtime Firestore, built loopback API, workflow recovery, and verified-flush probes passed against the isolated emulator.',
+    'Runtime Firestore, built loopback API, workflow recovery, hosted retention/rules/purge-guard, and verified-flush probes passed against the isolated emulator.',
   );
 } finally {
   await boundary.close();

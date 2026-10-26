@@ -29,8 +29,12 @@ const RequestIdSchema = z.string().uuid();
 export interface ResumeRouteDependencies {
   resume: Pick<QualificationResumeService, 'begin'>;
   details: Pick<RunDetailService, 'get'>;
-  // Runs the committed continuation in the background executor.
-  schedule: (runId: string, continuation: () => Promise<unknown>) => void;
+  // Local mode runs the committed continuation in the background executor;
+  // hosted mode resolves only after the bounded continuation stops.
+  schedule: (
+    runId: string,
+    continuation: (options?: { signal?: AbortSignal }) => Promise<unknown>,
+  ) => void | Promise<void>;
 }
 
 function error(
@@ -119,8 +123,13 @@ export function registerResumeRoute(
           authorization: 'allowed',
         });
         // The resume request is durable; the workflow continues in the
-        // background and its progress is read from stored run state.
-        dependencies.schedule(runId, started.continuation);
+        // background (local) or inside this request (hosted), and its
+        // progress is read from stored run state either way.
+        try {
+          await dependencies.schedule(runId, started.continuation);
+        } catch {
+          // The stored run records the failure; the committed resume stands.
+        }
         return reply.code(202).send(
           ResumeResponseSchema.parse({
             schemaVersion: 'resume-response-v1',

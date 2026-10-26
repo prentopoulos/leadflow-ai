@@ -1,10 +1,10 @@
 ## 1. Package the bounded local and cloud runtime
 
-- [ ] 1.1 Add one production container and strict local/cloud configuration that serves the built web app and API from Fastify, preserves the emulator path, requires recorded enrichment in cloud mode, defaults the intake form to a recorded vehicle and ZIP, listens on the platform port only in cloud mode, and passes deterministic container/configuration checks without credentials or network access.
+- [x] 1.1 Add one production container and strict local/cloud configuration that serves the built web app and API from Fastify, preserves the emulator path, requires recorded enrichment in cloud mode, defaults the intake form to a recorded vehicle and ZIP, listens on the platform port only in cloud mode, and passes deterministic container/configuration checks without credentials or network access.
 
 ## 2. Enforce private identity and durable hosted state
 
-- [ ] 2.1 Implement direct-IAP assertion verification (exact-pinned `google-auth-library`) and stable-subject allowlisting on every hosted application/API route, backend-only Toronto Firestore access through ADC, deny-all client rules, seven-day timestamp-typed TTL fields with per-collection-group policies, and a project/database-guarded recursive purge; prove all fail-closed identity, state-access, and retention cases locally.
+- [x] 2.1 Implement direct-IAP assertion verification (exact-pinned `google-auth-library`) and stable-subject allowlisting on every hosted application/API route, backend-only Toronto Firestore access through ADC, deny-all client rules, seven-day timestamp-typed TTL fields with per-collection-group policies, and a project/database-guarded recursive purge; prove all fail-closed identity, state-access, and retention cases locally.
 
 ## 3. Make hosted execution request-bound and operable
 

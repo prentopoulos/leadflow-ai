@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto';
 import {
   createHealthResponse,
   HealthResponseSchema,
+  IAP_ASSERTION_HEADER,
+  type OperatorPrincipal,
 } from '@leadflow-ai/domain';
 import Fastify, { type FastifyInstance } from 'fastify';
 import {
@@ -33,6 +35,20 @@ import {
   registerDraftRoutes,
   type DraftRouteDependencies,
 } from './draft-route.js';
+import type { IapAssertionVerifier } from './iap.js';
+import { registerSessionRoute } from './session-route.js';
+import { registerStaticWeb, type StaticAsset } from './static-web.js';
+import {
+  registerExecuteRoute,
+  type ExecuteRouteDependencies,
+} from './execute-route.js';
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    // Set only by the hosted IAP hook from a verified assertion.
+    operator?: OperatorPrincipal;
+  }
+}
 
 export interface CreateAppOptions {
   phaseOne?: PhaseOneStartup;
@@ -42,7 +58,11 @@ export interface CreateAppOptions {
   reset?: ResetRouteDependencies;
   operations?: OperationsRouteDependencies;
   drafts?: DraftRouteDependencies;
+  execute?: ExecuteRouteDependencies;
   executor?: { idle(): Promise<void> };
+  iapVerifier?: Pick<IapAssertionVerifier, 'verify'>;
+  // Built web assets served from the same origin in hosted mode.
+  staticAssets?: ReadonlyMap<string, StaticAsset>;
   requestIdFactory?: RequestIdFactory;
 }
 
@@ -51,7 +71,67 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
   const phaseOne = options.phaseOne ?? PHASE_ONE_UNAVAILABLE;
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
-  if (phaseOne.status === 'ready') {
+  if (
+    phaseOne.status === 'unavailable' &&
+    phaseOne.reason === 'invalid_cloud_configuration'
+  ) {
+    // A hosted process with incomplete configuration serves nothing but its
+    // process health; it never falls back to unauthenticated behavior.
+    app.addHook('onRequest', async (request, reply) => {
+      if (request.url === '/health') return;
+      return reply.code(503).send(
+        createErrorResponse(
+          {
+            code: 'storage_unavailable',
+            category: 'storage',
+            retryable: false,
+            message: 'The hosted service is not configured.',
+          },
+          options.requestIdFactory,
+        ),
+      );
+    });
+  }
+  if (phaseOne.status === 'ready' && phaseOne.configuration.mode === 'cloud') {
+    const verifier = options.iapVerifier;
+    if (verifier === undefined) {
+      throw new Error('Hosted mode requires the IAP assertion verifier.');
+    }
+    // Every application, API and asset request needs a verified assertion
+    // for an allowlisted subject before any state is read. Only the
+    // stateless process health check is exempt.
+    app.addHook('onRequest', async (request, reply) => {
+      if (request.url === '/health') return;
+      const verification = await verifier.verify(
+        request.headers[IAP_ASSERTION_HEADER],
+      );
+      if (verification.status === 'allowed') {
+        request.operator = verification.principal;
+        return;
+      }
+      const forbidden = verification.status === 'forbidden';
+      return reply.code(forbidden ? 403 : 401).send(
+        createErrorResponse(
+          forbidden
+            ? {
+                code: 'access_denied',
+                category: 'access',
+                retryable: false,
+                message: 'This account is not allowed to use the service.',
+              }
+            : {
+                code: 'authentication_required',
+                category: 'access',
+                retryable: true,
+                message: 'Sign in again to continue.',
+              },
+          options.requestIdFactory,
+        ),
+      );
+    });
+  }
+  if (phaseOne.status === 'ready' && phaseOne.configuration.mode !== 'cloud') {
+    const configuration = phaseOne.configuration;
     app.addHook('onRequest', async (request, reply) => {
       const host = request.headers.host?.split(':', 1)[0]?.toLowerCase();
       const origin = request.headers.origin;
@@ -59,10 +139,10 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
         request.method,
       );
       if (
-        host !== phaseOne.configuration.apiHost ||
+        host !== configuration.apiHost ||
         (stateChanging &&
           origin !== undefined &&
-          origin !== phaseOne.configuration.webOrigin)
+          origin !== configuration.webOrigin)
       ) {
         return reply.code(403).send(
           createErrorResponse(
@@ -129,9 +209,17 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
         response: { 200: HealthResponseSchema },
       },
     },
-    async () => createHealthResponse(),
+    async () =>
+      createHealthResponse(
+        phaseOne.status === 'ready'
+          ? phaseOne.configuration.mode
+          : phaseOne.reason === 'invalid_cloud_configuration'
+            ? 'cloud'
+            : 'local',
+      ),
   );
 
+  registerSessionRoute(app, phaseOne, options.requestIdFactory ?? randomUUID);
   registerIntakeRoute(app, phaseOne, options.intake, options.requestIdFactory);
   registerRunRoute(app, phaseOne, options.runs, options.requestIdFactory);
   registerOperationsRoutes(
@@ -152,12 +240,21 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
     options.resume,
     options.requestIdFactory ?? randomUUID,
   );
+  registerExecuteRoute(
+    app,
+    phaseOne,
+    options.execute,
+    options.requestIdFactory ?? randomUUID,
+  );
   registerResetRoute(
     app,
     phaseOne,
     options.requestIdFactory ?? randomUUID,
     options.reset,
   );
+  if (options.staticAssets !== undefined) {
+    registerStaticWeb(app, options.staticAssets);
+  }
 
   return app;
 }

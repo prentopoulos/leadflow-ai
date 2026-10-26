@@ -1,4 +1,5 @@
-export { createSystemBundle } from './bundle.js';
+export { createSystemBundle, createSystemBundleBase } from './bundle.js';
+export type { SourceIdentity, SystemBundleOptions } from './bundle.js';
 export { evaluateAll, evaluateCase } from './evaluator.js';
 export {
   COMBINED_CASES,

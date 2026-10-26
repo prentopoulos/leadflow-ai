@@ -1,5 +1,11 @@
 import {
+  HOSTED_TARGET,
+  type ExecuteResponse,
+  type QualificationGraphState,
+} from '@leadflow-ai/domain';
+import {
   AdminDraftReader,
+  projectDigest,
   AdminRunEventReader,
   AdminRunReader,
   DeterministicQualificationInterpreter,
@@ -17,16 +23,18 @@ import {
   initialQualificationGraphState,
   qualificationProjectionFromLead,
   resetLocalEmulatorData,
+  RunNotFoundError,
   type EnrichmentTransport,
   type QualificationInterpreter,
 } from '@leadflow-ai/runtime';
 import { z } from 'zod';
+import type { ExecuteRouteDependencies } from './execute-route.js';
 import type { IntakeRouteDependencies } from './intake-route.js';
 import type { ResetRouteDependencies } from './reset-route.js';
 import type { ResumeRouteDependencies } from './resume-route.js';
 import type { RunRouteDependencies } from './run-route.js';
 import type { OperationsRouteDependencies } from './operations-route.js';
-import type { PhaseOneStartup } from './startup.js';
+import type { ReadyStartup } from './startup.js';
 
 const SystemBundleIdSchema = z.string().uuid();
 
@@ -38,6 +46,8 @@ export interface PhaseOneApiDependencies {
   drafts: DraftService;
   operations: OperationsRouteDependencies;
   executor: WorkflowExecutor;
+  // Present only in hosted mode, where intake starts no post-response work.
+  execute?: ExecuteRouteDependencies;
 }
 
 export interface PhaseOneApiRuntimeOptions {
@@ -47,10 +57,26 @@ export interface PhaseOneApiRuntimeOptions {
   enrichmentTransport?: EnrichmentTransport;
   enrichmentSleep?: (milliseconds: number) => Promise<void>;
   executor?: WorkflowExecutor;
+  executionDeadlineMs?: number;
+}
+
+// Holds hosted work inside the request: new graph steps stop at the deadline
+// so the stored run, not the response, explains where execution ended.
+async function withinDeadline<T = QualificationGraphState>(
+  deadlineMs: number,
+  work: (signal: AbortSignal) => Promise<T>,
+): Promise<T | 'deadline'> {
+  const signal = AbortSignal.timeout(deadlineMs);
+  try {
+    return await work(signal);
+  } catch (cause) {
+    if (signal.aborted) return 'deadline';
+    throw cause;
+  }
 }
 
 export async function createPhaseOneApiDependencies(
-  startup: Extract<PhaseOneStartup, { status: 'ready' }>,
+  startup: ReadyStartup,
   systemBundleId: string,
   options: PhaseOneApiRuntimeOptions = {},
 ): Promise<PhaseOneApiDependencies> {
@@ -59,9 +85,21 @@ export async function createPhaseOneApiDependencies(
   const enrichmentMode = startup.configuration.enrichmentMode;
   const repositories = createFirestoreRepositories(database);
   const systemBundle = await repositories.systemBundles.get(validatedBundleId);
+  const hosted = startup.configuration.mode === 'cloud';
+  const deploymentMatches =
+    systemBundle !== null &&
+    (startup.configuration.mode === 'cloud'
+      ? systemBundle.deployment.mode === 'cloud' &&
+        systemBundle.deployment.projectDigest ===
+          projectDigest(startup.configuration.projectId) &&
+        systemBundle.deployment.revision === startup.configuration.revision &&
+        systemBundle.deployment.imageDigest ===
+          startup.configuration.imageDigest
+      : systemBundle.deployment.mode === 'local' &&
+        systemBundle.deployment.projectId === startup.configuration.projectId);
   if (
     systemBundle === null ||
-    systemBundle.environment.projectId !== startup.configuration.projectId ||
+    !deploymentMatches ||
     systemBundle.enrichmentMode !== enrichmentMode
   ) {
     throw new Error('Compatible persisted system bundle is unavailable.');
@@ -121,52 +159,117 @@ export async function createPhaseOneApiDependencies(
     ...clock,
   });
   const executor = options.executor ?? new WorkflowExecutor();
+  const deadlineMs =
+    options.executionDeadlineMs ?? HOSTED_TARGET.executionDeadlineMs;
+  const leaseDurationMs = hosted ? HOSTED_TARGET.executionLeaseMs : 300_000;
+
+  const execute: ExecuteRouteDependencies = {
+    execute: async ({ runId, expectedRevision, traceId, requestId }) => {
+      const run = await repositories.runs.get(runId);
+      if (run === null) throw new RunNotFoundError();
+      const lead = await repositories.leads.get(run.leadId);
+      if (lead === null) throw new Error('Persisted lead is unavailable.');
+      const claimed = await lifecycle.claim({
+        runId,
+        expectedRevision,
+        ownerId: `api:${requestId}`,
+        leaseDurationMs,
+        traceId,
+        requestId,
+        authorization: 'allowed',
+      });
+      const result = await withinDeadline(deadlineMs, (signal) =>
+        workflow.invoke(
+          initialQualificationGraphState({
+            runId,
+            leadId: run.leadId,
+            traceId,
+            requestId,
+            systemBundleId: validatedBundleId,
+            runRevision: claimed.run.revision,
+            projection: qualificationProjectionFromLead(lead),
+            emailContactConsent: lead.intake.emailContactConsent,
+          }),
+          {
+            configurable: {
+              thread_id: runId,
+              system_bundle_id: validatedBundleId,
+            },
+            signal,
+          },
+        ),
+      );
+      const stored = await repositories.runs.get(runId);
+      if (stored === null) throw new RunNotFoundError();
+      const response: ExecuteResponse = {
+        schemaVersion: 'execute-response-v1',
+        runId,
+        revision: stored.revision,
+        status: stored.status,
+        outcome: result === 'deadline' ? 'deadline' : 'finished',
+      };
+      return response;
+    },
+  };
+
+  const localProcessPersisted: IntakeRouteDependencies['processPersisted'] =
+    async ({ accepted, traceId, requestId }) => {
+      const lead = await repositories.leads.get(accepted.leadId);
+      if (lead === null) throw new Error('Persisted lead is unavailable.');
+      const claimed = await lifecycle.claim({
+        runId: accepted.runId,
+        expectedRevision: accepted.runRevision,
+        ownerId: `api:${requestId}`,
+        leaseDurationMs,
+        traceId,
+        requestId,
+        authorization: 'not_applicable',
+      });
+      executor.schedule(accepted.runId, () =>
+        workflow.invoke(
+          initialQualificationGraphState({
+            runId: accepted.runId,
+            leadId: accepted.leadId,
+            traceId,
+            requestId,
+            systemBundleId: validatedBundleId,
+            runRevision: claimed.run.revision,
+            projection: qualificationProjectionFromLead(lead),
+            emailContactConsent: lead.intake.emailContactConsent,
+          }),
+          {
+            configurable: {
+              thread_id: accepted.runId,
+              system_bundle_id: validatedBundleId,
+            },
+          },
+        ),
+      );
+    };
 
   return {
     intake: {
       persistence: createIntakePersistenceService(database),
       systemBundleId: validatedBundleId,
-      processPersisted: async ({ accepted, traceId, requestId }) => {
-        const lead = await repositories.leads.get(accepted.leadId);
-        if (lead === null) throw new Error('Persisted lead is unavailable.');
-        const claimed = await lifecycle.claim({
-          runId: accepted.runId,
-          expectedRevision: accepted.runRevision,
-          ownerId: `api:${requestId}`,
-          leaseDurationMs: 300_000,
-          traceId,
-          requestId,
-          authorization: 'not_applicable',
-        });
-        executor.schedule(accepted.runId, () =>
-          workflow.invoke(
-            initialQualificationGraphState({
-              runId: accepted.runId,
-              leadId: accepted.leadId,
-              traceId,
-              requestId,
-              systemBundleId: validatedBundleId,
-              runRevision: claimed.run.revision,
-              projection: qualificationProjectionFromLead(lead),
-              emailContactConsent: lead.intake.emailContactConsent,
-            }),
-            {
-              configurable: {
-                thread_id: accepted.runId,
-                system_bundle_id: validatedBundleId,
-              },
-            },
-          ),
-        );
-      },
+      // Hosted mode never continues after the 202: the browser holds the
+      // separately authenticated execution request instead.
+      ...(hosted ? {} : { processPersisted: localProcessPersisted }),
     },
     runs: { details },
     resume: {
       resume,
       details,
-      schedule: (runId, continuation) => {
-        executor.schedule(runId, continuation);
-      },
+      schedule: hosted
+        ? // Hosted resume is request-bound too: the route answers after the
+          // bounded continuation stops, and polling shows stored progress.
+          async (_runId, continuation) => {
+            await withinDeadline(deadlineMs, (signal) =>
+              continuation({ signal }),
+            );
+          }
+        : (runId, continuation) => {
+            executor.schedule(runId, () => continuation());
+          },
     },
     reset: {
       // A guarded reset erases every emulator document, including the bundle
@@ -184,5 +287,6 @@ export async function createPhaseOneApiDependencies(
       systemBundleId: validatedBundleId,
     },
     executor,
+    ...(hosted ? { execute } : {}),
   };
 }
