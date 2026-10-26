@@ -60,6 +60,17 @@ you enter. Stopping the emulator discards all state.
    consent is recorded, there is no pricing or eligibility language, and none of the lead's own
    free text is copied in.
 
+## Agent orchestration
+
+<img src="docs/diagrams/agent-architecture.svg" alt="Agent architecture: after the intake API commits a lead, a LangGraph orchestrator dispatches in order to a qualification agent, an enrichment agent that reads NHTSA vPIC and Zippopotam.us, an outreach agent and a verifier guard; a passing draft goes to human review, and a stopped run resumes from its checkpoint" width="100%">
+
+A LangGraph orchestrator runs three specialist agents and a verifier in a fixed order. The
+qualification agent scores the inquiry, the enrichment agent looks up public vehicle and ZIP data,
+and the outreach agent writes a draft only when consent is recorded. Agents never call each other;
+the orchestrator saves a checkpoint after every step, so a stopped run resumes where it left off.
+The agents are deterministic today. A language model would sit behind the same interface once its
+gate in [PROJECT.md](PROJECT.md) is opened.
+
 ## Human review
 
 <img src="docs/diagrams/review-flow.svg" alt="Flow from qualify, enrich, compose and verify to pending review, with branches for no draft, blocked draft, human review and manual use only" width="100%">
