@@ -825,6 +825,128 @@ function phaseTwoRecords() {
 }
 
 /** README brand asset (not a technical diagram): the three product principles. */
+function agentArchitecture() {
+  const d = new Diagram({
+    slug: 'agent-architecture',
+    width: 960,
+    height: 448,
+  });
+  const top = { y: 40, h: 64 };
+  const agent = { y: 208, w: 184, h: 64 };
+  const col = [40, 264, 488, 712];
+  const centre = (index) => col[index] + agent.w / 2;
+  const bus = 156;
+
+  d.path([
+    [208, 72],
+    [352, 72],
+  ]);
+  d.label('AFTER COMMIT', 280, 58);
+  d.path(
+    [
+      [608, 64],
+      [752, 64],
+    ],
+    { role: 'accent' },
+  );
+  d.label('PASSING DRAFT', 680, 50, { role: 'accent' });
+  d.path(
+    [
+      [752, 88],
+      [608, 88],
+    ],
+    { dashed: true },
+  );
+  d.label('RESUME', 680, 102);
+
+  d.path(
+    [
+      [480, top.y + top.h],
+      [480, bus],
+    ],
+    { marker: false },
+  );
+  d.label('IN ORDER 1–4', 532, 130);
+  d.path(
+    [
+      [centre(0), bus],
+      [centre(3), bus],
+    ],
+    { marker: false },
+  );
+  col.forEach((_, index) =>
+    d.path([
+      [centre(index), bus],
+      [centre(index), agent.y],
+    ]),
+  );
+  d.path(
+    [
+      [centre(1), agent.y + agent.h],
+      [centre(1), 352],
+    ],
+    { role: 'link' },
+  );
+  d.label('READ-ONLY GET', centre(1) + 44, 312);
+
+  d.node({
+    x: 40,
+    y: top.y,
+    w: 168,
+    h: top.h,
+    kind: 'backend',
+    tag: 'API',
+    name: 'Intake API',
+    sub: 'persist · claim lease',
+  });
+  d.node({
+    x: 352,
+    y: top.y,
+    w: 256,
+    h: top.h,
+    kind: 'focal',
+    tag: 'ORCHESTRATOR',
+    name: 'LangGraph orchestrator',
+    sub: 'StateGraph · Firestore checkpoints',
+  });
+  d.node({
+    x: 752,
+    y: top.y,
+    w: 168,
+    h: top.h,
+    kind: 'input',
+    tag: 'PERSON',
+    name: 'Human review',
+    sub: 'approve · reject · edit',
+  });
+  [
+    ['1 · AGENT', 'Qualification agent', 'interpret · rubric-v1 score'],
+    ['2 · AGENT', 'Enrichment agent', 'vehicle · ZIP · email tools'],
+    ['3 · AGENT', 'Outreach agent', 'consent-gated draft'],
+    ['4 · GUARD', 'Verifier', '8 rules · block or pass'],
+  ].forEach(([tag, name, sub], index) =>
+    d.node({ x: col[index], ...agent, kind: 'backend', tag, name, sub }),
+  );
+  d.node({
+    x: 264,
+    y: 352,
+    w: 184,
+    h: 56,
+    kind: 'external',
+    tag: 'EXTERNAL',
+    name: 'Public sources',
+    sub: 'NHTSA vPIC · Zippopotam.us',
+  });
+
+  return page({
+    diagram: d,
+    eyebrow: 'Agent architecture · Phase 2',
+    title: 'Orchestrator and specialist agents',
+    desc: 'After the intake API commits a lead, a LangGraph orchestrator dispatches in order to a qualification agent, an enrichment agent that calls NHTSA vPIC and Zippopotam.us read-only, an outreach agent that writes a consent-gated draft, and a verifier guard; it checkpoints each step in Firestore, sends a passing draft to human review, and resumes a stopped run from its checkpoint.',
+    intro: '',
+  });
+}
+
 function principles() {
   const d = new Diagram({ slug: 'principles', width: 960, height: 168 });
   const columns = [
@@ -909,6 +1031,7 @@ export const diagrams = {
   'data-model': dataModel,
   'review-flow': reviewFlow,
   'data-model-outreach': phaseTwoRecords,
+  'agent-architecture': agentArchitecture,
 };
 
 export const readmeAssets = { principles };
