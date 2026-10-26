@@ -53,8 +53,10 @@ Branch `phase-2-enrichment-outreach-dashboard`, OpenSpec change
   no-send boundary. It also replaced three Phase 2 one-sided accent borders flagged by the design
   hook. Checks passed: diagram render, `check-docs` (links, freshness, model/schema drift,
   Structurizr) and the web tests (5 files/26 tests).
-- Open for 9.1's design-eval: the Phase 1 one-sided callout borders (`.safe-error`,
-  `.missing-information`, `.integrity-hold` in `apps/web/src/styles.css`).
+- Open for 9.1's design-eval: the five Phase 1 one-sided callout borders in
+  `apps/web/src/styles.css` that the design hook flags (`.error-summary`/`.submission-error`/
+  `.validation-status`, `.stale-state`, `.safe-error`, `.missing-information`, `.integrity-hold`).
+  They shipped on `main` in Phase 1 and are neither changed nor suppressed yet.
 - Next step: task 9.1 — full `pnpm check`, `pnpm emulator:runtime`, a live local run, one
   consolidated branch review including design-eval, fixes, PROJECT/AI_OPS/HANDOFF updates, and
   archiving the change. Merge to `main` only on the owner's go-ahead.
