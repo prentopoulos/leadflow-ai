@@ -16,9 +16,14 @@
   --paper-strong: #fbf9f4;
   --paper-muted: #e9e6de;
   --ink: #1a211f;
-  --muted: #626a66;
+  --muted: #5c6460;
   --line: #c8c6bd;
   --line-strong: #969b96;
+  /* Form controls need 3:1 against their fill (WCAG 1.4.11). */
+  --control-border: #7d827d;
+  --caution: #a56f1d;
+  --caution-soft: #f7ecd5;
+  --caution-ink: #624211;
   --accent: #087f73;
   --accent-dark: #075e57;
   --accent-soft: #dcece7;
@@ -54,7 +59,7 @@ body {
   color: #fff9df;
   background: #6d5510;
   font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.06em;
   text-align: center;
@@ -103,7 +108,7 @@ a {
   padding: 0.55rem max(1rem, calc((100vw - 90rem) / 2));
   color: #f3fbf8;
   background: var(--accent-dark);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -166,14 +171,14 @@ a {
 .brand small {
   margin-top: 0.1rem;
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .phase-stamp {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  font-size: 0.73rem;
+  font-size: 0.75rem;
 }
 
 .phase-stamp span,
@@ -184,7 +189,7 @@ a {
   padding: 0.28rem 0.55rem;
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -209,7 +214,7 @@ a {
   margin: 0 0 0.65rem;
   color: var(--accent-dark);
   font-family: var(--mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -283,12 +288,12 @@ form {
   margin-top: 1.5rem;
 }
 
+/* Callouts carry their meaning in a text label; colour only reinforces it. */
 .error-summary,
 .submission-error,
 .validation-status {
   margin-bottom: 1.5rem;
   border: 1px solid var(--error);
-  border-left-width: 5px;
   border-radius: var(--radius);
   padding: 1rem 1.1rem;
   background: var(--error-soft);
@@ -365,7 +370,7 @@ form {
   border-radius: 50%;
   color: var(--accent-dark);
   font-family: var(--mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .fieldset-note {
@@ -414,7 +419,7 @@ select,
 textarea {
   width: 100%;
   min-height: 46px;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   padding: 0.72rem 0.8rem;
   color: var(--ink);
@@ -549,7 +554,7 @@ button:disabled {
 .form-actions p {
   margin: 0 0 0 auto;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .empty-run {
@@ -615,7 +620,7 @@ button:disabled {
 
 .stored-run dt {
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -657,12 +662,11 @@ button:disabled {
   display: grid;
   gap: 0.25rem;
   margin-top: 1.5rem;
-  border: 1px solid #a56f1d;
-  border-left-width: 5px;
+  border: 1px solid var(--caution);
   border-radius: var(--radius);
   padding: 0.85rem 1rem;
-  color: #624211;
-  background: #f7ecd5;
+  color: var(--caution-ink);
+  background: var(--caution-soft);
   font-size: 0.78rem;
 }
 
@@ -684,7 +688,7 @@ button:disabled {
 .run-summary dt,
 .simulation-result dt {
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 750;
   text-transform: uppercase;
 }
@@ -693,14 +697,18 @@ button:disabled {
 .simulation-result dd {
   margin: 0;
   font-family: var(--mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   overflow-wrap: anywhere;
 }
 
-.safe-error {
-  border-left: 4px solid var(--error);
-  padding: 0.7rem;
-  color: var(--error) !important;
+.safe-error,
+.run-summary .safe-error,
+.result-section .safe-error {
+  margin: 0.75rem 0 0;
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.8rem;
+  color: var(--error);
   background: var(--error-soft);
 }
 
@@ -721,7 +729,7 @@ button:disabled {
 .version-line {
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .event-history ol {
@@ -741,7 +749,7 @@ button:disabled {
 .event-history li > span {
   color: var(--accent-dark);
   font-family: var(--mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .event-history li strong,
@@ -756,7 +764,7 @@ button:disabled {
 .event-history li small {
   margin-top: 0.2rem;
   color: var(--muted);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .score-heading {
@@ -823,20 +831,44 @@ button:disabled {
   color: var(--muted);
 }
 
+/* A ledger row like the run summary: a neutral fact, not an alert. */
 .missing-information {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 0.75rem;
   margin-top: 1rem;
-  border-left: 3px solid var(--accent);
-  padding-left: 0.8rem;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 0.65rem 0;
   font-size: 0.78rem;
 }
 
+.missing-information strong {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .missing-information p {
-  margin: 0.25rem 0 0;
+  margin: 0;
+  color: var(--ink);
 }
 
 .integrity-hold {
-  border-left: 4px solid var(--error);
-  padding-left: 1rem;
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  background: var(--error-soft);
+}
+
+.integrity-hold .section-index {
+  color: var(--error);
+}
+
+.integrity-hold p {
+  color: var(--ink);
 }
 
 .simulation-result {
@@ -869,7 +901,7 @@ button:disabled {
 .dossier-index li span {
   color: var(--accent-dark);
   font-family: var(--mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .page-footer {
@@ -880,7 +912,7 @@ button:disabled {
   margin-inline: auto;
   padding: 1.2rem 0 2.5rem;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 @media (max-width: 850px) {
@@ -932,7 +964,7 @@ button:disabled {
   .simulation-strip {
     gap: 0.35rem;
     padding-inline: 0.75rem;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     letter-spacing: 0.045em;
   }
 
@@ -1157,7 +1189,7 @@ button:disabled {
 .operator-label,
 .slot-legend {
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .run-list {
@@ -1196,7 +1228,7 @@ button:disabled {
 
 .status-marker {
   font-family: var(--mono);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -1224,7 +1256,7 @@ button:disabled {
 .run-item-grid small {
   display: block;
   color: var(--muted);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -1234,7 +1266,7 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -1271,7 +1303,7 @@ button:disabled {
 
 .metric-strip dt {
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .metric-strip dd {
@@ -1293,7 +1325,7 @@ button:disabled {
   display: block;
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .metrics-grid {
@@ -1349,7 +1381,7 @@ button:disabled {
 .data-table caption {
   margin-bottom: 0.5rem;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   text-align: left;
 }
 
@@ -1364,7 +1396,7 @@ button:disabled {
 
 .data-table thead th {
   color: var(--muted);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -1387,7 +1419,7 @@ button:disabled {
 
 .definition-list small {
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .failure-ledger,
@@ -1417,9 +1449,11 @@ button:disabled {
   padding-top: 0.75rem;
 }
 
+/* Unavailable means no answer, never a negative: neutral, not the error hue. */
 .evidence-list > li.evidence-unavailable .state-tag {
-  border-color: var(--error);
-  color: var(--error);
+  border-style: dashed;
+  border-color: var(--control-border);
+  color: var(--muted);
 }
 
 .evidence-heading {
@@ -1435,13 +1469,44 @@ button:disabled {
   color: #f8fffd;
   background: var(--ink);
   font-family: var(--mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
+/* Live gets its own outlined mark so it never reads as the SIMULATION strip. */
 .class-tag.class-live {
-  background: var(--accent-dark);
+  border: 1px solid var(--accent-dark);
+  color: var(--accent-dark);
+  background: transparent;
+}
+
+.class-tag.class-live::before {
+  content: '\25CF\00A0' / '';
+}
+
+.draft-verdict {
+  margin: 0.75rem 0 0;
+  font-weight: 750;
+}
+
+.draft-verdict.is-passed {
+  color: var(--accent-dark);
+}
+
+.draft-verdict.is-blocked {
+  color: var(--error);
+}
+
+.event-history summary {
+  min-height: 24px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+small {
+  font-size: max(0.75rem, 0.83em);
 }
 
 .class-tag.class-mock {
@@ -1459,7 +1524,7 @@ button:disabled {
 
 .evidence-facts dt {
   color: var(--muted);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
 }
 
@@ -1525,6 +1590,10 @@ button:disabled {
   background: var(--paper-strong);
 }
 
+.result-section .draft-preview p {
+  color: var(--ink);
+}
+
 .draft-preview pre {
   margin: 0.75rem 0 0;
   font-family: inherit;
@@ -1542,7 +1611,7 @@ button:disabled {
 
 .draft-edit input,
 .draft-edit textarea {
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   padding: 0.65rem;
   background: var(--paper-strong);

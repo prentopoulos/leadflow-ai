@@ -168,11 +168,11 @@ export function MetricsDashboard({
                 <CartesianGrid stroke="#c8c6bd" vertical={false} />
                 <XAxis
                   dataKey="label"
-                  tick={{ fill: '#4e5753', fontSize: 11 }}
+                  tick={{ fill: '#4e5753', fontSize: 12 }}
                 />
                 <YAxis
                   allowDecimals={false}
-                  tick={{ fill: '#4e5753', fontSize: 11 }}
+                  tick={{ fill: '#4e5753', fontSize: 12 }}
                 />
                 <Tooltip animationDuration={0} />
                 <Bar
@@ -331,7 +331,8 @@ export function MetricsDashboard({
 
       <p className="metrics-footnote">
         Retrieved {new Date(snapshot.retrievedAt).toLocaleString()} · bundle{' '}
-        {report.systemBundleId} · {report.evidenceClass}
+        {report.systemBundleId} · synthetic leads stored locally; each lookup
+        row names its own evidence class
       </p>
     </div>
   );

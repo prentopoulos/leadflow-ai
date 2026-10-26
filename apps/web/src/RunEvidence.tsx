@@ -221,8 +221,12 @@ export function DraftSection({
   }
   const latest = draft.revisions.at(-1);
   if (latest === undefined) return null;
-  const { revision, state } = latest;
+  const { revision, state, verification } = latest;
   const draftId = revision.draftId;
+  const checked = verification.rules.filter(
+    (rule) => rule.outcome !== 'not_applicable',
+  );
+  const passed = checked.filter((rule) => rule.outcome === 'pass').length;
 
   async function act(
     run: () => ReturnType<OperationsClient['review']>,
@@ -275,6 +279,12 @@ export function DraftSection({
         </div>
         <span className="state-tag">{revision.followUpAction}</span>
       </div>
+      <p
+        className={`draft-verdict ${passed === checked.length ? 'is-passed' : 'is-blocked'}`}
+      >
+        Verification: {passed} of {checked.length} rules passed
+        {passed === checked.length ? '' : ' · see Verification below'}
+      </p>
       <p className="draft-boundary">
         Approval means approved for manual use. LeadFlow never sends email.
       </p>
@@ -407,14 +417,16 @@ export function DraftSection({
           ) : null}
         </div>
       )}
-      <p className="operator-label">
-        Decisions are recorded as: Local operator (unauthenticated)
-      </p>
       {notice === null ? null : (
         <p className="action-notice" role="status">
           {notice}
         </p>
       )}
+      <p className="operator-label">
+        A decision binds revision {revision.revisionNumber}, digest{' '}
+        {revision.contentSha256.slice(0, 12)}. Recorded as: Local operator
+        (unauthenticated).
+      </p>
       {actionError === null ? null : (
         <p className="safe-error" role="alert">
           {actionError.message}

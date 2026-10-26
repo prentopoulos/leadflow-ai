@@ -591,7 +591,11 @@ export function App({
                     ? 'Start another intake'
                     : 'Restore example'}
                 </button>
-                <p>Required fields are marked with an asterisk.</p>
+                <p>
+                  Required fields are marked with an asterisk. Storing the lead
+                  looks up its vehicle make and year and its ZIP Code in public
+                  sources, unless the API runs with saved responses.
+                </p>
               </div>
             </form>
           </section>
@@ -664,18 +668,26 @@ export function App({
               <ol>
                 <li>
                   <span>01</span>
-                  Stored identity and revision
+                  Stored run, status and revision
                 </li>
                 <li>
                   <span>02</span>
-                  Lifecycle events and retries
+                  Draft decision and its verification
                 </li>
                 <li>
                   <span>03</span>
-                  Marketing-readiness evidence
+                  Enrichment evidence by source
                 </li>
                 <li>
                   <span>04</span>
+                  Marketing-readiness evidence
+                </li>
+                <li>
+                  <span>05</span>
+                  Lifecycle events and retries
+                </li>
+                <li>
+                  <span>06</span>
                   Separately labeled synthetic outcome
                 </li>
               </ol>
@@ -684,8 +696,10 @@ export function App({
             <div className="boundary-note">
               <p className="summary-label">Operating boundary</p>
               <p>
-                Local Firestore Emulator only. No model, enrichment, quote,
-                insurer decision, outreach, or external submission is active.
+                Leads are stored only in the local Firestore Emulator. Vehicle
+                and ZIP lookups read NHTSA vPIC and Zippopotam.us, and each
+                result is labelled live, recorded or mock. No model, quote,
+                insurer decision or outreach is active, and nothing is sent.
               </p>
             </div>
           </aside>

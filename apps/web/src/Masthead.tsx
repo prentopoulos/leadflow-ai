@@ -7,7 +7,9 @@ export function SimulationStrip() {
       <strong>SIMULATION</strong>
       <span aria-hidden="true">·</span>
       <span>Synthetic leads and outcomes</span>
-      <span className="simulation-scope">Local only</span>
+      <span className="simulation-scope">
+        This machine · public lookups read-only
+      </span>
     </div>
   );
 }

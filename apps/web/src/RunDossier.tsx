@@ -270,34 +270,6 @@ export function RunDossier({
         ) : null}
       </section>
 
-      <section className="event-history" aria-labelledby="event-history-title">
-        <p className="section-index">Append-only history</p>
-        <h3 id="event-history-title">Lifecycle events</h3>
-        <ol>
-          {detail.events.map((event) => (
-            <li key={event.eventId}>
-              <span>{String(event.sequence).padStart(2, '0')}</span>
-              <div>
-                <strong>{readable(event.name)}</strong>
-                <small>
-                  {new Date(event.occurredAt).toLocaleTimeString()} · attempt{' '}
-                  {event.attempt}
-                </small>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {detail.qualification !== null ? (
-        <Qualification result={detail.qualification} />
-      ) : null}
-
-      <EnrichmentEvidenceSection
-        evidence={detail.enrichment}
-        emailCheck={detail.emailCheck}
-        completeness={detail.run.evidenceCompleteness}
-      />
       <DraftSection
         draft={detail.draft}
         skipReason={detail.run.draftSkipReason}
@@ -308,6 +280,45 @@ export function RunDossier({
         verification={detail.verification}
         holds={detail.run.holds}
       />
+      <EnrichmentEvidenceSection
+        evidence={detail.enrichment}
+        emailCheck={detail.emailCheck}
+        completeness={detail.run.evidenceCompleteness}
+      />
+
+      {detail.qualification !== null ? (
+        <Qualification result={detail.qualification} />
+      ) : null}
+
+      <section className="event-history" aria-labelledby="event-history-title">
+        <p className="section-index">Append-only history</p>
+        <h3 id="event-history-title">Lifecycle events</h3>
+        <details>
+          <summary>
+            {detail.events.length} events
+            {detail.events.length > 0
+              ? ` · last: ${readable(detail.events.at(-1)?.name ?? '')}`
+              : ''}
+          </summary>
+          <ol>
+            {detail.events.map((event) => (
+              <li key={event.eventId}>
+                <span>{String(event.sequence).padStart(2, '0')}</span>
+                <div>
+                  <strong>
+                    {readable(event.name)}
+                    {event.step === null ? '' : ` · ${readable(event.step)}`}
+                  </strong>
+                  <small>
+                    {new Date(event.occurredAt).toLocaleTimeString()} · attempt{' '}
+                    {event.attempt}
+                  </small>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </details>
+      </section>
 
       {detail.simulation !== null ? (
         <section
