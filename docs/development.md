@@ -106,8 +106,10 @@ cloud Firestore, external communication, or other credentialed service.
 1. `pnpm emulator:start` (ephemeral), then `pnpm build`.
 2. `pnpm api:local` runs live enrichment (owner-authorized reads). Pass `-- --enrichment=recorded`
    for recorded fixtures; set `LEADFLOW_WEB_ORIGIN` when the web app is not on 127.0.0.1:5173.
-3. `pnpm seed:local` adds 40 fixed fictional leads. It refuses unless the running API is in recorded
-   mode. Leads are keyed per system bundle, so after a code change it fills the new metrics window.
+3. `pnpm simulate:traffic` feeds the 60 fixed fictional `traffic-plan-v1` leads, one every 10 s
+   (`-- --interval=0` for an instant fill, `-- --count=N` for fewer). It refuses unless the running API
+   is in recorded mode. Leads are keyed per system bundle, so after a code change it fills the new
+   metrics window. Channels, campaigns, click IDs and spend are simulated.
 4. Start Vite (`node node_modules/vite/bin/vite.js --config apps/web/vite.config.ts --port 5174
    --strictPort` if 5173 is taken) and open `#runs` or `#metrics`.
 

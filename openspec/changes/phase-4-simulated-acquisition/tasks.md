@@ -8,11 +8,11 @@
 
 ## 3. Traffic plan and simulator
 
-- [ ] 3.1 Add the pure seeded `traffic-plan-v1`, replace `pnpm seed:local` with `pnpm simulate:traffic` (recorded-only guard, paced interval, count cap, per-bundle idempotency keys, created/replayed counts), and add the hosted-only "Run simulated traffic" browser control with Stop and hidden-tab pause; prove determinism, idempotent rerun and content-independent attribution.
+- [x] 3.1 Add the pure seeded `traffic-plan-v1`, replace `pnpm seed:local` with `pnpm simulate:traffic` (recorded-only guard, paced interval, count cap, per-bundle idempotency keys, created/replayed counts), and add the hosted-only "Run simulated traffic" browser control with Stop and hidden-tab pause; prove determinism, idempotent rerun and content-independent attribution.
 
 ## 4. Spend fixture and acquisition metrics
 
-- [ ] 4.1 Add `synthetic-spend-v1` with its integrity check and `metrics-definitions-v2`/`metrics-report-v2` with blended, per-channel and per-campaign CPL and CPQL, `no_spend`, `insufficient_data`, planned/stored counts and the synthetic evidence class; prove the known-answer arithmetic cases.
+- [x] 4.1 Add `synthetic-spend-v1` with its integrity check and `metrics-definitions-v2`/`metrics-report-v2` with blended, per-channel and per-campaign CPL and CPQL, `no_spend`, `insufficient_data`, planned/stored counts and the synthetic evidence class; prove the known-answer arithmetic cases.
 
 ## 5. Acquisition section and dossier block
 

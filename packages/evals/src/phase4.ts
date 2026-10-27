@@ -6,7 +6,19 @@
 // the owner-authorized probe runs.
 import {
   AttributionSchema,
+  IdempotencyKeySchema,
   IntakeSubmissionSchema,
+  PLANNED_TRAFFIC_LEADS,
+  RECORDED_VEHICLE_SUBJECTS,
+  RECORDED_ZIP_SUBJECTS,
+  SYNTHETIC_SPEND,
+  acquisitionReport,
+  spendFixtureIssues,
+  runTrafficPlan,
+  trafficAttributionFor,
+  trafficIdempotencyKey,
+  trafficPlan,
+  trafficRefusal,
   LeadDocumentSchema,
   channelFor,
   composeDraft,
@@ -101,6 +113,120 @@ export const PHASE_FOUR_CASES = [
     { sameInterpretation: true, sameScore: true, sameDraft: true },
     'adversarial',
   ),
+  // Task 3.1: traffic-plan-v1 and the paced runner.
+  runnable(
+    'p4-traffic-plan-determinism',
+    'traffic-plan-v1 yields the same 60 valid fictional intakes with the fixed channel mix and unique synthetic click IDs only on paid leads',
+    'traffic-plan-determinism',
+    {
+      identical: true,
+      count: 60,
+      allValid: true,
+      mix: {
+        affiliates: 9,
+        direct: 6,
+        email: 6,
+        organic_search: 9,
+        paid_search: 18,
+        paid_social: 12,
+      },
+      clickIdsOnlyOnPaid: true,
+      uniqueClickIds: 30,
+    },
+  ),
+  runnable(
+    'p4-traffic-plan-content-independent',
+    'Each planned attribution is a function of the plan index alone, never of lead content',
+    'traffic-plan-content-independent',
+    { attributionMatchesIndexOnly: true, indexOnlyArity: 1 },
+    'adversarial',
+  ),
+  runnable(
+    'p4-traffic-plan-recorded-subjects',
+    'Planned leads use only recorded enrichment subjects, fictional identities and example.org addresses',
+    'traffic-plan-recorded-subjects',
+    { recordedVehicles: true, recordedZips: true, fictional: true },
+  ),
+  runnable(
+    'p4-traffic-idempotency-keys',
+    'Idempotency keys are per system bundle and plan index, unique and valid',
+    'traffic-idempotency-keys',
+    { first: 'traffic-v1-abcdef12-01', unique: 60, valid: true },
+  ),
+  runnable(
+    'p4-traffic-runner-pacing',
+    'The runner submits in order, waits the interval between leads only, stops on request and counts created and replayed leads',
+    'traffic-runner-pacing',
+    {
+      paced: { submitted: [0, 1, 2], sleeps: [10000, 10000], created: 3 },
+      stopped: { submitted: [0], created: 1, stopped: true },
+      replayed: { created: 0, replayed: 3 },
+    },
+  ),
+  runnable(
+    'p4-traffic-recorded-guard',
+    'Simulated traffic is refused unless the running system bundle uses recorded enrichment',
+    'traffic-recorded-guard',
+    { recorded: false, live: true, mock: true, unknown: true },
+    'adversarial',
+  ),
+  // Task 4.1: synthetic-spend-v1 and the acquisition block.
+  runnable(
+    'p4-spend-fixture-integrity',
+    'synthetic-spend-v1 is valid; negative, fractional, duplicate and channel-mismatched entries are refused',
+    'spend-fixture-integrity',
+    {
+      fixtureIssues: 0,
+      totalCents: 255000,
+      refused: [true, true, true, true],
+    },
+    'adversarial',
+  ),
+  runnable(
+    'p4-cost-known-answer',
+    'Blended, per-channel and per-campaign CPL and CPQL match a hand-calculated answer in cents, with no_spend and insufficient_data where defined',
+    'cost-known-answer',
+    {
+      blended: { leads: 8, qualified: 4, cpl: 5000, cpql: 10000 },
+      paidSearch: { leads: 3, qualified: 2, cpl: 10000, cpql: 15000 },
+      paidSocial: {
+        leads: 2,
+        qualified: 0,
+        cpl: 5000,
+        cpql: 'insufficient_data',
+      },
+      organic: { leads: 1, cpl: 'no_spend' },
+      email: { leads: 0, cpl: 'no_spend' },
+      unattributed: { leads: 2, cpl: 'no_spend' },
+      searchCampaign: { leads: 3, cpl: 10000, cpql: 15000 },
+      counts: { stored: 8, planned: 60, unattributed: 2, failedRuns: 1 },
+    },
+  ),
+  runnable(
+    'p4-acquisition-extensions',
+    'Qualified-lead rate, cost per contactable (consented) lead, and spend share against lead share match a hand-calculated answer',
+    'acquisition-extensions',
+    {
+      blended: { contactable: 5, qualifiedRate: 0.5, cpcl: 8000 },
+      paidSearch: {
+        contactable: 2,
+        qualifiedRate: 2 / 3,
+        cpcl: 15000,
+        spendShare: 0.75,
+        leadShare: 0.375,
+      },
+      paidSocial: { qualifiedRate: 0, spendShare: 0.25, leadShare: 0.25 },
+      email: { qualifiedRate: 'insufficient_data', leadShare: 0 },
+      unattributed: { spendShare: 0, leadShare: 0.25 },
+    },
+  ),
+  runnable(
+    'p4-cost-empty-window',
+    'An empty window reports insufficient_data for blended CPL and CPQL, never zero',
+    'cost-empty-window',
+    { stored: 0, cpl: 'insufficient_data', cpql: 'insufficient_data' },
+    'edge',
+  ),
 ] satisfies EvalCase[];
 
 const NOW = '2026-10-27T12:00:00.000Z';
@@ -169,6 +295,99 @@ async function qualify(intake: IntakeSubmission) {
     composerInputFrom({ intake, priority: result.priority, evidence: [] }),
   );
   return { interpretation, result, draft };
+}
+
+function knownAnswerReport() {
+  const search = {
+    source: 'google',
+    medium: 'cpc',
+    campaign: 'sim-search',
+    clickId: null,
+    clickIdClass: null,
+  };
+  const social = {
+    ...search,
+    source: 'facebook',
+    medium: 'paid_social',
+    campaign: 'sim-social',
+  };
+  const organic = { ...search, medium: 'organic', campaign: '(organic)' };
+  const fixture = {
+    version: 'synthetic-spend-v1' as const,
+    currency: 'USD' as const,
+    label: SYNTHETIC_SPEND.label,
+    entries: [
+      {
+        source: 'google',
+        medium: 'cpc',
+        campaign: 'sim-search',
+        channel: 'paid_search' as const,
+        spendCents: 30000,
+      },
+      {
+        source: 'facebook',
+        medium: 'paid_social',
+        campaign: 'sim-social',
+        channel: 'paid_social' as const,
+        spendCents: 10000,
+      },
+      {
+        source: 'google',
+        medium: 'organic',
+        campaign: '(organic)',
+        channel: 'organic_search' as const,
+        spendCents: 0,
+      },
+    ],
+  };
+  return acquisitionReport(
+    [
+      { attribution: search, priority: 'high', failed: false, consented: true },
+      {
+        attribution: search,
+        priority: 'standard',
+        failed: false,
+        consented: true,
+      },
+      {
+        attribution: search,
+        priority: 'nurture',
+        failed: false,
+        consented: false,
+      },
+      {
+        attribution: social,
+        priority: 'nurture',
+        failed: false,
+        consented: true,
+      },
+      {
+        attribution: social,
+        priority: 'held',
+        failed: false,
+        consented: false,
+      },
+      {
+        attribution: organic,
+        priority: 'high',
+        failed: false,
+        consented: true,
+      },
+      {
+        attribution: null,
+        priority: 'not_scored',
+        failed: true,
+        consented: false,
+      },
+      {
+        attribution: null,
+        priority: 'standard',
+        failed: false,
+        consented: true,
+      },
+    ],
+    fixture,
+  );
 }
 
 export async function observePhaseFour(check: string): Promise<unknown> {
@@ -273,6 +492,243 @@ export async function observePhaseFour(check: string): Promise<unknown> {
           without.result.priority === withPaid.result.priority &&
           same(without.result.criteria, withPaid.result.criteria),
         sameDraft: same(without.draft, withPaid.draft),
+      };
+    }
+    case 'traffic-plan-determinism': {
+      const plan = trafficPlan();
+      const clickIds = plan
+        .map((entry) => entry.intake.attribution?.clickId ?? null)
+        .filter((value) => value !== null);
+      const mix: Record<string, number> = {};
+      for (const entry of plan) {
+        const channel = channelFor(entry.intake.attribution);
+        mix[channel] = (mix[channel] ?? 0) + 1;
+      }
+      return {
+        identical: JSON.stringify(plan) === JSON.stringify(trafficPlan()),
+        count: plan.length,
+        allValid: plan.every(
+          (entry) => IntakeSubmissionSchema.safeParse(entry.intake).success,
+        ),
+        mix: Object.fromEntries(
+          Object.entries(mix).sort(([left], [right]) =>
+            left.localeCompare(right),
+          ),
+        ),
+        clickIdsOnlyOnPaid: plan.every((entry) => {
+          const channel = channelFor(entry.intake.attribution);
+          const paid = channel === 'paid_search' || channel === 'paid_social';
+          return paid === (entry.intake.attribution?.clickId != null);
+        }),
+        uniqueClickIds: new Set(clickIds).size,
+      };
+    }
+    case 'traffic-plan-content-independent':
+      return {
+        attributionMatchesIndexOnly: trafficPlan().every(
+          (entry, index) =>
+            JSON.stringify(entry.intake.attribution) ===
+            JSON.stringify(trafficAttributionFor(index)),
+        ),
+        indexOnlyArity: trafficAttributionFor.length,
+      };
+    case 'traffic-plan-recorded-subjects': {
+      const plan = trafficPlan();
+      const vehicles = new Set(
+        RECORDED_VEHICLE_SUBJECTS.map((subject) => JSON.stringify(subject)),
+      );
+      return {
+        recordedVehicles: plan.every(
+          ({ intake }) =>
+            intake.vehicleYear === null ||
+            vehicles.has(
+              JSON.stringify({
+                vehicleYear: intake.vehicleYear,
+                vehicleMake: intake.vehicleMake,
+                vehicleModel: intake.vehicleModel,
+              }),
+            ),
+        ),
+        recordedZips: plan.every(({ intake }) =>
+          RECORDED_ZIP_SUBJECTS.includes(intake.zipCode),
+        ),
+        fictional: plan.every(
+          ({ intake }) =>
+            intake.identityClass === 'fictional' &&
+            intake.email.endsWith('@example.org'),
+        ),
+      };
+    }
+    case 'traffic-idempotency-keys': {
+      const bundleId = 'abcdef12-0000-4000-8000-000000000000';
+      const keys = Array.from({ length: PLANNED_TRAFFIC_LEADS }, (_, index) =>
+        trafficIdempotencyKey(bundleId, index),
+      );
+      return {
+        first: keys[0],
+        unique: new Set(keys).size,
+        valid: keys.every((key) => IdempotencyKeySchema.safeParse(key).success),
+      };
+    }
+    case 'traffic-runner-pacing': {
+      const run = async (
+        count: number,
+        outcome: 'created' | 'replayed',
+        stopAfter: number | null,
+      ) => {
+        const submitted: number[] = [];
+        const sleeps: number[] = [];
+        const result = await runTrafficPlan({
+          count,
+          intervalMs: 10_000,
+          submit: async (entry) => {
+            submitted.push(entry.index);
+            return outcome;
+          },
+          sleep: async (milliseconds) => {
+            sleeps.push(milliseconds);
+          },
+          shouldStop: () => stopAfter !== null && submitted.length >= stopAfter,
+        });
+        return { submitted, sleeps, ...result };
+      };
+      const paced = await run(3, 'created', null);
+      const stopped = await run(3, 'created', 1);
+      const replayed = await run(3, 'replayed', null);
+      return {
+        paced: {
+          submitted: paced.submitted,
+          sleeps: paced.sleeps,
+          created: paced.created,
+        },
+        stopped: {
+          submitted: stopped.submitted,
+          created: stopped.created,
+          stopped: stopped.stopped,
+        },
+        replayed: { created: replayed.created, replayed: replayed.replayed },
+      };
+    }
+    case 'traffic-recorded-guard':
+      return {
+        recorded: trafficRefusal('recorded') !== null,
+        live: trafficRefusal('live') !== null,
+        mock: trafficRefusal('mock') !== null,
+        unknown: trafficRefusal(null) !== null,
+      };
+    case 'spend-fixture-integrity': {
+      const [first, ...rest] = SYNTHETIC_SPEND.entries;
+      const variant = (entries: unknown[]) =>
+        spendFixtureIssues({ ...SYNTHETIC_SPEND, entries } as never).length > 0;
+      return {
+        fixtureIssues: spendFixtureIssues(SYNTHETIC_SPEND).length,
+        totalCents: SYNTHETIC_SPEND.entries.reduce(
+          (total, entry) => total + entry.spendCents,
+          0,
+        ),
+        refused: [
+          variant([{ ...first, spendCents: -1 }, ...rest]),
+          variant([{ ...first, spendCents: 10.5 }, ...rest]),
+          variant([first, first, ...rest]),
+          variant([{ ...first, channel: 'email' }, ...rest]),
+        ],
+      };
+    }
+    case 'cost-known-answer': {
+      const report = knownAnswerReport();
+      const cost = (value: {
+        valueCents: number | null;
+        reason: string | null;
+      }) => value.valueCents ?? value.reason;
+      const channel = (name: string) =>
+        report.channels.find((row) => row.channel === name)!;
+      const campaign = report.campaigns.find(
+        (row) => row.campaign === 'sim-search',
+      )!;
+      return {
+        blended: {
+          leads: report.blended.leads,
+          qualified: report.blended.qualified,
+          cpl: cost(report.blended.cpl),
+          cpql: cost(report.blended.cpql),
+        },
+        paidSearch: {
+          leads: channel('paid_search').leads,
+          qualified: channel('paid_search').qualified,
+          cpl: cost(channel('paid_search').cpl),
+          cpql: cost(channel('paid_search').cpql),
+        },
+        paidSocial: {
+          leads: channel('paid_social').leads,
+          qualified: channel('paid_social').qualified,
+          cpl: cost(channel('paid_social').cpl),
+          cpql: cost(channel('paid_social').cpql),
+        },
+        organic: {
+          leads: channel('organic_search').leads,
+          cpl: cost(channel('organic_search').cpl),
+        },
+        email: {
+          leads: channel('email').leads,
+          cpl: cost(channel('email').cpl),
+        },
+        unattributed: {
+          leads: channel('unattributed').leads,
+          cpl: cost(channel('unattributed').cpl),
+        },
+        searchCampaign: {
+          leads: campaign.leads,
+          cpl: cost(campaign.cpl),
+          cpql: cost(campaign.cpql),
+        },
+        counts: {
+          stored: report.storedLeads,
+          planned: report.plannedLeads,
+          unattributed: report.unattributedLeads,
+          failedRuns: report.failedRunLeads,
+        },
+      };
+    }
+    case 'acquisition-extensions': {
+      const report = knownAnswerReport();
+      const ratio = (value: { value: number | null; reason: string | null }) =>
+        value.value ?? value.reason;
+      const channel = (name: string) =>
+        report.channels.find((row) => row.channel === name)!;
+      return {
+        blended: {
+          contactable: report.blended.contactable,
+          qualifiedRate: ratio(report.blended.qualifiedRate),
+          cpcl: report.blended.cpcl.valueCents ?? report.blended.cpcl.reason,
+        },
+        paidSearch: {
+          contactable: channel('paid_search').contactable,
+          qualifiedRate: ratio(channel('paid_search').qualifiedRate),
+          cpcl: channel('paid_search').cpcl.valueCents,
+          spendShare: ratio(channel('paid_search').spendShare),
+          leadShare: ratio(channel('paid_search').leadShare),
+        },
+        paidSocial: {
+          qualifiedRate: ratio(channel('paid_social').qualifiedRate),
+          spendShare: ratio(channel('paid_social').spendShare),
+          leadShare: ratio(channel('paid_social').leadShare),
+        },
+        email: {
+          qualifiedRate: ratio(channel('email').qualifiedRate),
+          leadShare: ratio(channel('email').leadShare),
+        },
+        unattributed: {
+          spendShare: ratio(channel('unattributed').spendShare),
+          leadShare: ratio(channel('unattributed').leadShare),
+        },
+      };
+    }
+    case 'cost-empty-window': {
+      const report = acquisitionReport([]);
+      return {
+        stored: report.storedLeads,
+        cpl: report.blended.cpl.reason,
+        cpql: report.blended.cpql.reason,
       };
     }
     default:

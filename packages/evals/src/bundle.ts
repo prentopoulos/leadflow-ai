@@ -151,8 +151,10 @@ export async function createSystemBundleBase(
       composer: 'deterministic-template-v1',
       verificationRules: 'verification-rules-v1',
       decisionLanguage: 'decision-language-v1',
-      metricsDefinitions: 'metrics-definitions-v1',
+      metricsDefinitions: 'metrics-definitions-v2',
       channelRules: 'channel-rules-v1',
+      spendFixture: 'synthetic-spend-v1',
+      trafficPlan: 'traffic-plan-v1',
       evaluator: EVALUATOR_VERSION,
       configuration:
         options.runtime === 'cloud'

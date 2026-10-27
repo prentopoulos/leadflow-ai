@@ -1,11 +1,11 @@
-<div align="center">
+﻿<div align="center">
 
 # LeadFlow AI
 
 **Turns a fictional auto-insurance inquiry into a stored, scored and enriched lead with an email
 draft a person can approve, on your own machine or as a private one-person cloud demo.**
 
-Fictional leads · Firestore Emulator · Public vehicle and ZIP data · No AI model or paid API
+Fictional leads Â· Firestore Emulator Â· Public vehicle and ZIP data Â· No AI model or paid API
 
 <img src="docs/readme/principles.svg" alt="Three principles: persist before processing, verified sources, human approval" width="100%">
 
@@ -122,7 +122,7 @@ outcomes appear only in their own labelled panel. Every chart also has a table o
 ## Evidence
 
 <!-- bottom-line:start -->
-- 74 fixed synthetic evaluation cases
+- 84 fixed synthetic evaluation cases
 - rubric-v1 weights: need timeline 40, request clarity 30, completeness 30
 <!-- bottom-line:end -->
 

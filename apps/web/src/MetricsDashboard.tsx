@@ -11,6 +11,8 @@ import {
 } from 'recharts';
 import type { OperationsClient, SafeError } from './operations-client.js';
 import { operationsClient as defaultClient } from './operations-client.js';
+import { useSession } from './session-context.js';
+import { SimulatedTrafficControl } from './SimulatedTrafficControl.js';
 import { useVisiblePolling } from './use-visible-polling.js';
 
 function milliseconds(value: number | null) {
@@ -58,6 +60,7 @@ export function MetricsDashboard({
 }) {
   const [snapshot, setSnapshot] = useState<MetricsResponse | null>(null);
   const [error, setError] = useState<SafeError | null>(null);
+  const hosted = useSession().mode === 'cloud';
   const reducedMotion = useReducedMotion();
   const refresh = useCallback(async () => {
     const result = await client.metrics();
@@ -93,6 +96,10 @@ export function MetricsDashboard({
       <div className="operations-heading">
         <h1>Metrics</h1>
       </div>
+
+      {hosted ? (
+        <SimulatedTrafficControl systemBundleId={report.systemBundleId} />
+      ) : null}
 
       {error === null ? null : (
         <div className="stale-state" role="status">

@@ -29,7 +29,7 @@
     "governance": "node scripts/run-governance.mjs",
     "api:local": "node scripts/run-local-api.mjs",
     "enrichment:probe": "node scripts/run-enrichment-probe.mjs",
-    "seed:local": "node scripts/seed-local.mjs",
+    "simulate:traffic": "node scripts/simulate-traffic.mjs",
     "docs:diagrams": "node scripts/generate-diagrams.mjs",
     "docs:check": "node scripts/check-docs.mjs",
     "container:inspect": "node scripts/inspect-container-image.mjs",

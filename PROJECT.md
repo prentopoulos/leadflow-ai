@@ -294,6 +294,11 @@ Owner calls:
   progress.
 - A qualified lead's latest priority is high or standard ("marketing-qualified (high or standard
   readiness)"); cost per qualified lead uses that denominator.
+- Added during implementation (owner, 2026-10-27): qualified-lead rate per channel and campaign,
+  cost per contactable lead (spend over leads with recorded email consent), and each channel's
+  spend share against its lead share. Click-, revenue- and appointment-based measures (CTR, CPC,
+  conversion rate, ROAS, CPA, LTV, cost per appointment) stay out: the demo stores no clicks or
+  revenue and `simulator-v1` outcomes are score-independent.
 - Hosted traffic runs from an owner-triggered "Run simulated traffic" control in the signed-in
   browser (Stop, pauses when hidden); no OAuth-client allowlisting, service account or unattended
   run. Locally `pnpm simulate:traffic` is the script.

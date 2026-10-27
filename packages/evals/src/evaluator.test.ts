@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { evaluateAll, evaluateCase } from './evaluator.js';
 import { PHASE_TWO_CASES } from './phase2.js';
 import { PHASE_THREE_CASES } from './phase3.js';
@@ -32,7 +32,7 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
     expect(PHASE_ONE_CASES).toHaveLength(14);
     expect(PHASE_TWO_CASES).toHaveLength(13);
     expect(PHASE_THREE_CASES).toHaveLength(17);
-    expect(PHASE_FOUR_CASES).toHaveLength(6);
+    expect(PHASE_FOUR_CASES).toHaveLength(16);
     expect(COMBINED_CASES).toHaveLength(
       PHASE_ZERO_CASES.length +
         PHASE_ONE_CASES.length +
@@ -163,8 +163,10 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
           composer: 'deterministic-template-v1',
           verificationRules: 'verification-rules-v1',
           decisionLanguage: 'decision-language-v1',
-          metricsDefinitions: 'metrics-definitions-v1',
+          metricsDefinitions: 'metrics-definitions-v2',
           channelRules: 'channel-rules-v1',
+          spendFixture: 'synthetic-spend-v1',
+          trafficPlan: 'traffic-plan-v1',
           evaluator: EVALUATOR_VERSION,
           configuration: 'phase-2-local-v1',
         },

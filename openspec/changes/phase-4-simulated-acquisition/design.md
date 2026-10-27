@@ -109,6 +109,12 @@ existing window) and the fixture, and each names numerator, denominator, exclusi
 - The report includes `plannedLeads` (60) and `storedLeads` so the view shows "k of 60 planned
   leads stored"; CPL falls as a flight fills, and the view says so.
 - The block carries `evidenceClass: "synthetic"` and the fixture and rules versions.
+- Added by the owner during implementation (2026-10-27): qualified-lead rate (qualified ÷
+  leads), cost per contactable lead (spend ÷ leads with recorded email consent) and, per channel,
+  spend share (channel spend ÷ total spend) against lead share (channel leads ÷ all leads). Shares
+  and rates are `insufficient_data` on an empty denominator. Click-, revenue- and
+  appointment-based measures are excluded because no clicks or revenue exist and `simulator-v1`
+  outcomes are score-independent.
 
 The existing v1 metrics keep their definitions under the new version name; only the acquisition
 block is new. Arithmetic rounds half up to whole cents at display only.

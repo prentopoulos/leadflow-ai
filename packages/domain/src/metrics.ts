@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import {
+  AcquisitionReportSchema,
+  CHANNEL_RULES_NOTICE,
+} from './acquisition.js';
 import { CONTRACT_VERSIONS, WorkflowStepSchema } from './phase1.js';
 
 const UtcTimestampSchema = z.iso.datetime();
@@ -66,6 +70,43 @@ export const METRICS_DEFINITIONS = {
     denominator: 'Runs with a simulation record.',
     exclusions:
       'SYNTHETIC: fixed-seed, score-independent, not live and not predictive. Never part of an operational metric.',
+  },
+  // Phase 4 (PROJECT.md "Phase 4 decisions", 2026-10-27). SIMULATED: spend is
+  // the checked-in synthetic-spend-v1 fixture and leads are fictional.
+  blendedCostPerLead: {
+    numerator: 'Total synthetic-spend-v1 flight spend (simulated USD).',
+    denominator:
+      'Every persisted lead in the window, including unattributed leads and failed runs.',
+    exclusions:
+      'None; unattributed and failed-run leads are counted and reported.',
+  },
+  channelCostPerLead: {
+    numerator: "Fixture spend of the channel's or campaign's entries.",
+    denominator: 'Leads attributed to that channel or campaign.',
+    exclusions: `Zero-spend groups report no_spend, never 0.00. ${CHANNEL_RULES_NOTICE}`,
+  },
+  costPerQualifiedLead: {
+    numerator: 'The same spend as the matching cost per lead.',
+    denominator:
+      'Marketing-qualified leads: latest priority high or standard (marketing readiness only).',
+    exclusions: 'Nurture, held and not-scored leads.',
+  },
+  costPerContactableLead: {
+    numerator: 'The same spend as the matching cost per lead.',
+    denominator:
+      'Contactable leads: those with recorded email-contact consent, the only leads that can be followed up.',
+    exclusions: 'Leads without consent.',
+  },
+  qualifiedLeadRate: {
+    numerator: 'Marketing-qualified leads (high or standard readiness).',
+    denominator: 'Leads in the channel, campaign or window.',
+    exclusions:
+      'None. Channels are assigned at random, so differences are chance, not channel quality.',
+  },
+  spendAndLeadShare: {
+    numerator: "The channel's fixture spend, or its lead count.",
+    denominator: 'Total fixture spend, or every lead in the window.',
+    exclusions: 'None; unattributed leads have a lead share and no spend.',
   },
 } as const;
 
@@ -186,10 +227,18 @@ export const MetricsReportSchema = z
         appointment: CountSchema,
       })
       .strict(),
+    acquisition: AcquisitionReportSchema,
     evidenceClass: z.literal('synthetic-local'),
   })
   .strict()
   .superRefine((report, context) => {
+    if (report.acquisition.storedLeads !== report.leadVolume) {
+      context.addIssue({
+        code: 'custom',
+        path: ['acquisition', 'storedLeads'],
+        message: 'acquisition must cover every lead in the window',
+      });
+    }
     const distribution = Object.values(report.priorityDistribution).reduce(
       (total, count) => total + count,
       0,

@@ -4,6 +4,7 @@ import {
   METRICS_WINDOW_LIMIT,
   MetricsReportSchema,
   RunListResponseSchema,
+  acquisitionReport,
   isResumeEligible,
   type EnrichmentEvidence,
   type EnrichmentMetric,
@@ -269,8 +270,9 @@ export class OperationsService {
     const current = runs.filter((run) => run.systemBundleId === systemBundleId);
     const contexts = await Promise.all(
       current.map(async (run) => {
-        const [qualification, evidence, events, history, simulation] =
+        const [lead, qualification, evidence, events, history, simulation] =
           await Promise.all([
+            this.dependencies.repositories.leads.get(run.leadId),
             run.qualificationResultId === null
               ? Promise.resolve(null)
               : this.dependencies.repositories.qualificationResults.get(
@@ -293,6 +295,8 @@ export class OperationsService {
           this.dependencies.repositories.events.parseStored(value),
         );
         if (
+          lead === null ||
+          lead.leadId !== run.leadId ||
           evidence.some(
             (record, index) =>
               record === null ||
@@ -319,6 +323,7 @@ export class OperationsService {
         }
         return {
           run,
+          lead,
           qualification,
           evidence: evidence.filter(
             (record): record is EnrichmentEvidence => record !== null,
@@ -482,6 +487,19 @@ export class OperationsService {
         responded,
         appointment,
       },
+      acquisition: acquisitionReport(
+        contexts.map(({ run, lead, qualification }) => ({
+          attribution: lead.intake.attribution,
+          consented: lead.intake.emailContactConsent,
+          priority:
+            qualification === null
+              ? 'not_scored'
+              : (qualification.priority ?? 'held'),
+          failed:
+            run.status === 'failed_retryable' ||
+            run.status === 'failed_terminal',
+        })),
+      ),
       evidenceClass: 'synthetic-local',
     });
   }

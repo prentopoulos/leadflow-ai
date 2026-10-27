@@ -79,6 +79,24 @@ qualification priority is `high` or `standard`.
 - **WHEN** fewer than the planned 60 leads are stored
 - **THEN** the report gives planned and stored lead counts and the view shows "k of 60 planned leads stored"
 
+### Requirement: Lead quality and budget-mix figures
+The acquisition block SHALL report, from stored leads and the spend fixture, the qualified-lead
+rate per channel, campaign and window, the cost per contactable lead (spend over leads with
+recorded email-contact consent), and each channel's spend share against its lead share, and SHALL
+contain no click-, session-, revenue- or appointment-based measure.
+
+#### Scenario: Contactable leads are counted
+- **WHEN** some leads in a channel lack email-contact consent
+- **THEN** cost per contactable lead divides that channel's spend by its consented leads only
+
+#### Scenario: Channel has no leads
+- **WHEN** a channel has no leads
+- **THEN** its qualified-lead rate is `insufficient_data` and its lead share is zero
+
+#### Scenario: Spend and lead mix are compared
+- **WHEN** the channel table renders
+- **THEN** each channel shows its share of total spend beside its share of all leads, and unattributed leads have a lead share with no spend
+
 ### Requirement: Seeded traffic plan independent of lead content
 `traffic-plan-v1` SHALL be a pure deterministic plan of 60 fictional leads using only recorded
 enrichment subjects, with attribution assigned by a seeded permutation that does not depend on lead

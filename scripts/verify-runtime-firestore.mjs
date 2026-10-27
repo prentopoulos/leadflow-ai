@@ -54,8 +54,10 @@ const bundle = {
     composer: 'deterministic-template-v1',
     verificationRules: 'verification-rules-v1',
     decisionLanguage: 'decision-language-v1',
-    metricsDefinitions: 'metrics-definitions-v1',
+    metricsDefinitions: 'metrics-definitions-v2',
     channelRules: 'channel-rules-v1',
+    spendFixture: 'synthetic-spend-v1',
+    trafficPlan: 'traffic-plan-v1',
     evaluator: 'emulator-contract-probe-v1',
     configuration: 'phase-2-local-v1',
   },
@@ -715,7 +717,7 @@ try {
       !queueResponse.ok ||
       !queue.items?.some((item) => item.runId === consentedAccepted.runId) ||
       !metricsResponse.ok ||
-      metrics.definitions?.version !== 'metrics-definitions-v1' ||
+      metrics.definitions?.version !== 'metrics-definitions-v2' ||
       metrics.report?.approvalQueue < 1 ||
       metrics.report?.window?.runsInWindow < 1
     ) {

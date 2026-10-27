@@ -31,9 +31,11 @@ export const CONTRACT_VERSIONS = {
   verificationResult: 'verification-result-v1',
   verificationRules: 'verification-rules-v1',
   decisionLanguage: 'decision-language-v1',
-  metricsDefinitions: 'metrics-definitions-v1',
-  metricsReport: 'metrics-report-v1',
+  metricsDefinitions: 'metrics-definitions-v2',
+  metricsReport: 'metrics-report-v2',
   channelRules: ACQUISITION_VERSIONS.channelRules,
+  spendFixture: ACQUISITION_VERSIONS.spendFixture,
+  trafficPlan: ACQUISITION_VERSIONS.trafficPlan,
 } as const;
 
 export const LEADFLOW_LOCAL_PROJECT_ID = 'demo-leadflow-ai-local' as const;
@@ -854,6 +856,8 @@ export const SystemBundleDocumentSchema = z
         decisionLanguage: z.literal(CONTRACT_VERSIONS.decisionLanguage),
         metricsDefinitions: z.literal(CONTRACT_VERSIONS.metricsDefinitions),
         channelRules: z.literal(CONTRACT_VERSIONS.channelRules),
+        spendFixture: z.literal(CONTRACT_VERSIONS.spendFixture),
+        trafficPlan: z.literal(CONTRACT_VERSIONS.trafficPlan),
         evaluator: z.string().min(1),
         configuration: z.enum([
           LOCAL_CONFIGURATION_VERSION,
