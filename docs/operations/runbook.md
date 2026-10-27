@@ -28,7 +28,7 @@ files. Placeholders in this file: `PROJECT_ID`, `PROJECT_NUMBER`, `OWNER_EMAIL`,
 | Identity | Holds | Never holds |
 |---|---|---|
 | Owner (human deployer) | Project owner during setup; `roles/iap.httpsResourceAccessor` on the service | — |
-| Cloud Build default identity | Artifact Registry writer on `leadflow-ai-demo`; Logging writer | Cloud Run admin, Firestore access |
+| `leadflow-ai-build` (passed to `gcloud builds submit --service-account`) | Artifact Registry writer on `leadflow-ai-demo`; `roles/logging.logWriter` | Cloud Run admin, Firestore access |
 | `leadflow-ai-runtime` | `roles/datastore.user` on the project, conditioned on the `(default)` database where the console allows it | Deploy, image write, IAM admin, key creation |
 | IAP service agent `service-PROJECT_NUMBER@gcp-sa-iap.iam.gserviceaccount.com` | `roles/run.invoker` on the service only | Anything else |
 
@@ -75,12 +75,23 @@ Secret Manager and Cloud Storage stay off. If any step asks for one of them, sto
    collection group; run them and confirm each with `gcloud firestore fields ttls list`.
 5. Create the Artifact Registry repository:
    `gcloud artifacts repositories create leadflow-ai-demo --repository-format=docker --location=northamerica-northeast2`.
-6. Create the runtime identity and grant `roles/datastore.user`; grant Cloud Build's identity
-   `roles/artifactregistry.writer` on the repository.
-7. IAP in a project without an organization cannot create its OAuth client from the command line.
-   Enable IAP once from the Cloud Run console on the first deployed service (Security tab →
-   Identity-Aware Proxy), set the support contact privately, then use the scripted path for every
-   later release.
+6. Create the runtime identity and grant `roles/datastore.user`. New projects have no default Cloud
+   Build identity (the Compute Engine API is off), so create `leadflow-ai-build` and grant it
+   `roles/artifactregistry.writer` on the repository and `roles/logging.logWriter` on the project.
+   Retry a binding after about 20 seconds if IAM reports a just-created account as missing.
+7. IAP in a project without an organization needs a **custom OAuth client**: Google-managed clients
+   serve only users inside an organization, and IAP otherwise answers every request with
+   "Empty Google Account OAuth client ID(s)/secret(s)". Once, in the console:
+   - Google Auth Platform → Get started: app name `LeadFlow AI Demo`, the owner as support and
+     contact email, audience **External**, accept the User Data Policy, Create; then Audience: keep
+     **Testing** and add the owner as the only test user.
+   - Security → Identity-Aware Proxy → Applications → `leadflow-ai-demo` ⋮ → Settings → **Custom
+     OAuth** → **Auto Generate Credentials** → Save. Do not download or copy the secret; IAP keeps it
+     and it can be regenerated.
+
+   Enabling IAP from the command line or ticking it in the Cloud Run Security tab does not create
+   this client. The console budget, branding and IAP forms also misread synthetic clicks and typed
+   text (single-key console shortcuts fire); drive them through the page's own controls.
 
 Before rendering the first service, capture the active owner's stable Google subject without logging
 the token or subject:
@@ -100,7 +111,8 @@ From Cloud Shell, in a clone of the public repository at the candidate commit:
 
 ```sh
 gcloud builds submit --no-source --region=northamerica-northeast2 \
-  --config=deploy/cloudbuild.yaml --substitutions=_COMMIT_SHA=COMMIT_SHA
+  --config=deploy/cloudbuild.yaml --substitutions=_COMMIT_SHA=COMMIT_SHA \
+  --service-account=projects/PROJECT_ID/serviceAccounts/leadflow-ai-build@PROJECT_ID.iam.gserviceaccount.com
 ```
 
 Record the build ID and the pushed digest (`gcloud builds describe BUILD_ID --region=... --format='value(results.images[0].digest)'`).
@@ -121,9 +133,11 @@ LEADFLOW_COMMIT_SHA=COMMIT_SHA LEADFLOW_ALLOWED_SUBJECTS=OWNER_SUBJECT \
 gcloud run services replace .local/service.yaml --region=northamerica-northeast2
 gcloud run services add-iam-policy-binding leadflow-ai-demo --region=northamerica-northeast2 \
   --member=serviceAccount:service-PROJECT_NUMBER@gcp-sa-iap.iam.gserviceaccount.com --role=roles/run.invoker
-gcloud iap web add-iam-policy-binding --region=northamerica-northeast2 --resource-type=cloud-run \
-  --service=leadflow-ai-demo --member=user:OWNER_EMAIL --role=roles/iap.httpsResourceAccessor
 ```
+
+The project Owner role already carries IAP access, so the owner needs no IAP binding.
+`gcloud iap web add-iam-policy-binding` would also require the Cloud Resource Manager API, which is not
+in the approved service list; add any further accessor in the console's IAP policy instead.
 
 The first release takes 100% of traffic. Later candidates deploy at 0% beside the verified previous
 revision with the `candidate` tag. Compare `gcloud run services describe` with the template: image
