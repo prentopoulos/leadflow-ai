@@ -1424,106 +1424,99 @@ function explodedSystem() {
   });
 }
 
-function accessMatrix() {
+function securityTrifecta() {
   const d = new Diagram({
-    slug: 'access-matrix',
-    width: 960,
-    height: 520,
+    slug: 'access-triangle-matrix',
+    width: 1000,
+    height: 560,
     maxNodes: 0,
     maxArrows: 0,
   });
-  const roles = [
-    ['Local operator', 'loopback'],
-    ['Hosted owner', 'IAP allowlist'],
-    ['Other account', 'signed in'],
-    ['Public request', 'unauthenticated'],
+  const markup = [
+    `<text x="40" y="48" fill="${tokens.ink}" font-size="28" font-family="${fonts.title}">No run gets all three capabilities</text>`,
+    `<text x="40" y="72" fill="${tokens.muted}" font-size="12" font-family="${fonts.sans}">Current modes accept bounded fictional input without combining it with real personal data and an outbound channel.</text>`,
+    `<text x="40" y="116" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" letter-spacing="0.14em">SECURITY TRIFECTA / VENN VIEW</text>`,
+    `<circle cx="180" cy="224" r="104" fill="${rgba(tokens.link, 0.08)}" stroke="${tokens.link}" stroke-width="1.2"/>`,
+    `<circle cx="116" cy="324" r="104" fill="${rgba(tokens.muted, 0.05)}" stroke="${rgba(tokens.muted, 0.62)}" stroke-width="1.2"/>`,
+    `<circle cx="244" cy="324" r="104" fill="${rgba(tokens.white, 0.76)}" stroke="${tokens.ink}" stroke-width="1.2"/>`,
+    `<text x="180" y="166" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Untrusted input</text>`,
+    `<text x="180" y="183" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">bounded fictional leads</text>`,
+    `<text x="82" y="352" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Sensitive data</text>`,
+    `<text x="82" y="369" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">real data gated</text>`,
+    `<text x="278" y="352" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Way out</text>`,
+    `<text x="278" y="369" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">approved HTTPS GET</text>`,
+    `<circle cx="180" cy="292" r="42" fill="${tokens.accent}" stroke="${tokens.ink}" stroke-width="1"/>`,
+    `<text x="180" y="288" fill="${tokens.white}" font-size="12" font-weight="700" font-family="${fonts.sans}" text-anchor="middle">3 / 3</text>`,
+    `<text x="180" y="306" fill="${tokens.white}" font-size="9" font-weight="600" font-family="${fonts.sans}" text-anchor="middle" letter-spacing="0.1em">BLOCKED</text>`,
+    `<rect x="116" y="440" width="128" height="40" rx="6" fill="${tokens.white}" stroke="${tokens.ink}" stroke-width="1"/>`,
+    `<text x="180" y="457" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">No 3 / 3 mode</text>`,
+    `<text x="180" y="472" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">tools + config + gates</text>`,
+    `<rect x="380" y="116" width="580" height="336" rx="8" fill="${tokens.white}" stroke="${rgba(tokens.ink, 0.16)}"/>`,
+    `<rect x="380" y="116" width="580" height="64" fill="${rgba(tokens.ink, 0.03)}"/>`,
+    `<line x1="380" y1="180" x2="960" y2="180" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<line x1="540" y1="116" x2="540" y2="452" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<line x1="660" y1="116" x2="660" y2="452" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<line x1="780" y1="116" x2="780" y2="452" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<line x1="880" y1="116" x2="880" y2="452" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<text x="400" y="153" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" letter-spacing="0.14em">MODE</text>`,
+    `<text x="600" y="146" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">UNTRUSTED</text>`,
+    `<text x="600" y="158" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">INPUT</text>`,
+    `<text x="720" y="146" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">SENSITIVE</text>`,
+    `<text x="720" y="158" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">DATA</text>`,
+    `<text x="830" y="146" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">WAY OUT</text>`,
+    `<text x="920" y="146" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">COUNT</text>`,
   ];
   const rows = [
-    ['Workspace', ['Use', 'Use', 'Denied', 'Denied']],
-    ['Intake + runs API', ['Use', 'Use', 'Denied', 'Denied']],
-    ['Firestore records', ['Via API', 'Via service', 'No access', 'No access']],
+    ['Recorded local', 'saved evidence', 'BOUNDED', 'ABSENT', 'NONE', '1 / 3'],
     [
-      'Public lookups',
-      ['Live / saved', 'Saved only', 'No access', 'No access'],
-    ],
-    ['Draft review', ['Approve', 'Approve', 'No access', 'No access']],
-    [
-      'Message sending',
-      ['Not present', 'Not present', 'Not present', 'Not present'],
+      'Live local',
+      'public enrichment',
+      'BOUNDED',
+      'ABSENT',
+      'HTTPS GET',
+      '2 / 3',
     ],
     [
-      'Deploy + purge',
-      ['Not applicable', 'Owner action', 'No access', 'No access'],
+      'Private hosted',
+      'recorded evidence',
+      'BOUNDED',
+      'ABSENT',
+      'NONE',
+      '1 / 3',
     ],
   ];
-  const left = 12;
-  const labelWidth = 208;
-  const gap = 12;
-  const roleWidth = 164;
-  const roleGap = 8;
-  const roleX = (index) =>
-    left + labelWidth + gap + index * (roleWidth + roleGap);
-  const rowY = (index) => 140 + index * 44;
-  const markup = [
-    `<rect x="${left}" y="72" width="${labelWidth}" height="52" rx="6" fill="${tokens.white}" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
-    `<text x="${left + labelWidth / 2}" y="95" fill="${tokens.ink}" font-size="11" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Capability</text>`,
-    `<text x="${left + labelWidth / 2}" y="111" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">by access context</text>`,
-  ];
-  for (const [index, [name, code]] of roles.entries()) {
-    const x = roleX(index);
+  for (const [index, row] of rows.entries()) {
+    const [name, sub, input, sensitive, wayOut, count] = row;
+    const top = 180 + index * 68;
+    const baseline = 210 + index * 68;
     markup.push(
-      `<rect x="${x}" y="72" width="${roleWidth}" height="52" rx="6" fill="${tokens.ink}"/>`,
-      `<text x="${x + roleWidth / 2}" y="94" fill="${tokens.white}" font-size="11" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">${name}</text>`,
-      `<text x="${x + roleWidth / 2}" y="110" fill="${rgba(tokens.white, 0.85)}" font-size="8" font-family="${fonts.mono}" text-anchor="middle">${code}</text>`,
+      `<line x1="380" y1="${top + 68}" x2="960" y2="${top + 68}" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+      `<text x="400" y="${baseline}" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}">${name}</text>`,
+      `<text x="400" y="${baseline + 16}" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}">${sub}</text>`,
+      `<text x="600" y="${baseline + 6}" fill="${tokens.ink}" font-size="10" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">${input}</text>`,
+      `<text x="720" y="${baseline + 6}" fill="${tokens.muted}" font-size="10" font-family="${fonts.sans}" text-anchor="middle">${sensitive}</text>`,
+      `<text x="830" y="${baseline + 6}" fill="${wayOut === 'NONE' ? tokens.muted : tokens.ink}" font-size="10" font-weight="${wayOut === 'NONE' ? 400 : 600}" font-family="${fonts.sans}" text-anchor="middle">${wayOut}</text>`,
+      `<text x="920" y="${baseline + 6}" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">${count}</text>`,
     );
   }
-  for (const [rowIndex, [name, values]] of rows.entries()) {
-    const y = rowY(rowIndex);
-    markup.push(
-      `<rect x="${left}" y="${y}" width="${labelWidth}" height="36" rx="4" fill="${tokens.white}" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
-      `<text x="${left + 12}" y="${y + 23}" fill="${tokens.ink}" font-size="11" font-weight="600" font-family="${fonts.sans}">${name}</text>`,
-    );
-    for (const [columnIndex, value] of values.entries()) {
-      const x = roleX(columnIndex);
-      const focal = rowIndex === 5 && columnIndex === 1;
-      const denied = /^(Denied|No access)$/u.test(value);
-      const limited = /^(Via API|Via service|Saved only|Not applicable)$/u.test(
-        value,
-      );
-      const fill = focal
-        ? rgba(tokens.accent, 0.08)
-        : denied
-          ? tokens.paper
-          : limited
-            ? rgba(tokens.muted, 0.08)
-            : rgba(tokens.ink, 0.05);
-      const stroke = focal ? tokens.accent : rgba(tokens.ink, 0.16);
-      const textColor = focal
-        ? tokens.accent
-        : denied
-          ? tokens.soft
-          : tokens.ink;
-      markup.push(
-        `<rect x="${x}" y="${y}" width="${roleWidth}" height="36" rx="4" fill="${fill}" stroke="${stroke}" stroke-width="${focal ? 1.4 : 0.6}"/>`,
-        `<text x="${x + roleWidth / 2}" y="${y + 23}" fill="${textColor}" font-size="10" font-weight="${focal ? 600 : 400}" font-family="${fonts.sans}" text-anchor="middle">${value}</text>`,
-      );
-    }
-  }
-  const legendY = 468;
   markup.push(
-    `<line x1="${left}" y1="${legendY}" x2="948" y2="${legendY}" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
-    `<text x="${left}" y="493" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" letter-spacing="0.14em">ENFORCED BOUNDARY</text>`,
-    `<text x="156" y="493" fill="${tokens.muted}" font-size="10" font-family="${fonts.sans}">The browser never talks to Firestore; LeadFlow contains no message-sending capability.</text>`,
+    `<rect x="388" y="392" width="564" height="52" rx="4" fill="${rgba(tokens.accent, 0.08)}" stroke="${tokens.accent}" stroke-width="1.2"/>`,
+    `<text x="404" y="416" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}">Rejected configuration</text>`,
+    `<text x="404" y="433" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}">Lead input + real personal data + model or sender cannot enter a run.</text>`,
+    `<text x="914" y="423" fill="${tokens.accent}" font-size="8" font-weight="700" font-family="${fonts.sans}" text-anchor="middle">3 / 3 BLOCKED</text>`,
+    `<line x1="40" y1="496" x2="960" y2="496" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<text x="40" y="520" fill="${tokens.ink}" font-size="10" font-weight="600" font-family="${fonts.sans}">Current boundary</text>`,
+    `<text x="140" y="520" fill="${tokens.muted}" font-size="10" font-family="${fonts.sans}">Fictional identities and test contact details. No model, insurer integration, quote, or message sending.</text>`,
   );
   d.under(markup.join('\n  '));
 
   return page({
     diagram: d,
-    eyebrow: 'Security matrix · local and hosted modes',
-    title: 'Access and authority by mode',
-    desc: 'Security matrix comparing the local operator, the allowlisted hosted owner, another signed-in account and a public unauthenticated request across workspace, API, Firestore, enrichment, draft review, message sending and deployment or purge authority.',
+    eyebrow: 'Security trifecta · runtime modes',
+    title: 'No run gets all three capabilities',
+    desc: 'Three overlapping capability sets show bounded untrusted input, sensitive data and a way out. Their shared center is blocked. The matrix shows recorded local, live local and private hosted modes without real personal data, models or message sending.',
     intro:
-      'Local access stays on loopback. Hosted access requires IAP and the owner allowlist. The browser has no direct database path, and no mode can send a message.',
+      'LeadFlow keeps real personal data behind its gate and exposes only two fixed read-only enrichment requests in live local mode. No current mode combines all three capabilities.',
   });
 }
 
@@ -1616,7 +1609,7 @@ export const diagrams = {
   'private-cloud': privateCloud,
   'hosted-execution': hostedExecution,
   'hosted-lifecycle': hostedLifecycle,
-  'access-matrix': accessMatrix,
+  'access-triangle-matrix': securityTrifecta,
 };
 
 export const readmeAssets = { principles };

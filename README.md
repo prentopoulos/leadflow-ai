@@ -11,7 +11,7 @@ Fictional leads · Firestore Emulator · Public vehicle and ZIP data · No AI mo
 
 </div>
 
-## Quick setup
+## Start
 
 Clone the public repository, then enter it:
 
@@ -69,7 +69,12 @@ real public sources for leads you enter. Stopping the emulator discards all stat
 
 ## How it works
 
-<img src="docs/diagrams/exploded-system.svg" alt="Exploded product view: stored evidence supports deterministic scoring, consent and verification controls; those controls support the bounded qualification, enrichment and drafting workflow; the operator workspace sits above for intake, run monitoring and review" width="100%">
+<p align="center">
+  <img src="docs/diagrams/exploded-system.svg" alt="Exploded product view: stored evidence supports deterministic scoring, consent and verification controls; those controls support the bounded qualification, enrichment and drafting workflow; the operator workspace sits above for intake, run monitoring and review" width="900">
+</p>
+
+The exploded view shows the dependency order: stored evidence supports deterministic controls,
+those controls constrain the workflow, and the workflow serves the operator workspace.
 
 1. An operator enters a fictional inquiry. The API saves the lead and its run in one Firestore
    transaction before any work starts
@@ -125,14 +130,17 @@ be resumed by the operator. A run stopped by a crash can be picked up again once
 and lookups that were in flight are repeated. Failures stay visible rather than turning into
 success.
 
-## Security boundaries
+## Security
 
-<img src="docs/diagrams/access-matrix.svg" alt="Access matrix: the local operator uses the loopback workspace and API; the hosted owner uses them only through IAP and an account allowlist; other signed-in accounts and public requests are denied; browsers never access Firestore directly; live lookups are local-only; no mode can send a message" width="100%">
+<p align="center">
+  <img src="docs/diagrams/access-triangle-matrix.svg" alt="LeadFlow security trifecta: the current runtime prevents bounded untrusted input, sensitive data and an outbound channel from overlapping in one run; recorded-local, live-local and private-hosted modes use fictional identities and test contact details, while only live local enrichment has approved read-only HTTPS access" width="900">
+</p>
 
-Local mode relies on the workstation boundary and binds services to `127.0.0.1`. Hosted mode checks
-IAP's signed identity and the one-account allowlist before it serves the workspace or API. Firestore
-is server-only. Deployment and purge remain explicit owner actions, and message sending is absent
-from the application.
+The current runtime cannot combine untrusted lead input, real personal data and a way to send data
+out. Current modes accept bounded fictional input and no real personal data. Only live local
+enrichment has an outbound path: fixed read-only HTTPS requests to NHTSA and Zippopotam.us. Model
+calls, insurer connections, quotes and message sending are absent. See [PROJECT.md](PROJECT.md) for
+the gates that must be resolved before any of those boundaries changes.
 
 ## Private hosted demo
 
