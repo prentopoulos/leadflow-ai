@@ -106,11 +106,20 @@ async function contentFindings(appDirectory, privateValues) {
   return findings;
 }
 
+// The checkout may be owned by another local account (the Codex sandbox);
+// trust it for these read-only calls without changing global Git config.
+const git = (args) =>
+  run('git', [
+    '-c',
+    `safe.directory=${repoRoot.replaceAll('\\', '/')}`,
+    ...args,
+  ]);
+
 export async function inspectCandidateImage() {
-  const { stdout: commitOutput } = await run('git', ['rev-parse', 'HEAD']);
+  const { stdout: commitOutput } = await git(['rev-parse', 'HEAD']);
   const commit = commitOutput.trim();
   if (!/^[a-f0-9]{40}$/u.test(commit)) throw new Error('HEAD is not a commit.');
-  const { stdout: status } = await run('git', [
+  const { stdout: status } = await git([
     'status',
     '--porcelain',
     '--untracked-files=no',
@@ -123,7 +132,7 @@ export async function inspectCandidateImage() {
 
   await rm(work, { recursive: true, force: true });
   await mkdir(context, { recursive: true });
-  await run('git', ['archive', '--format=tar', `--output=${archive}`, commit]);
+  await git(['archive', '--format=tar', `--output=${archive}`, commit]);
   await run('tar', ['-xf', archive, '-C', context]);
   const tag = `leadflow-ai-candidate:${commit.slice(0, 12)}`;
   await run(
