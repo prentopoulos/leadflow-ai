@@ -9,6 +9,7 @@ import {
   type VerificationResult,
 } from './phase2.js';
 import type { IntakeSubmission } from './phase1.js';
+import { agentParagraphSlotValue, type AgentBriefRecord } from './agents.js';
 
 export const DRAFT_SUBJECT = 'Following up on your auto insurance inquiry';
 
@@ -31,6 +32,9 @@ export interface ComposerInput {
     placeName: string;
     stateAbbreviation: string;
   } | null;
+  // A drafted agent brief's paragraph; the template places it after the
+  // location sentence (PROJECT.md § Phase 5 decisions).
+  agentParagraph?: { briefId: string; text: string } | null;
 }
 
 export interface ComposedDraft {
@@ -153,6 +157,14 @@ export function composeDraft(input: ComposerInput): ComposedDraft {
       evidenceId: input.location.evidenceId,
     });
   }
+  if (input.agentParagraph != null) {
+    slots.push({
+      key: 'agentParagraph',
+      value: agentParagraphSlotValue(input.agentParagraph.text),
+      provenance: 'agent_brief',
+      evidenceId: input.agentParagraph.briefId,
+    });
+  }
   slots.push(
     fixed('closingIntro'),
     ...intake(
@@ -177,6 +189,7 @@ export function composerInputFrom(input: {
   intake: IntakeSubmission;
   priority: ComposerInput['priority'];
   evidence: readonly EnrichmentEvidence[];
+  agentBrief?: AgentBriefRecord | null;
 }): ComposerInput {
   const vehicleEvidence = input.evidence.find(
     (record) =>
@@ -228,6 +241,13 @@ export function composerInputFrom(input: {
             stateAbbreviation: onlyPlace.stateAbbreviation,
           }
         : null,
+    agentParagraph:
+      input.agentBrief?.paragraph == null
+        ? null
+        : {
+            briefId: input.agentBrief.briefId,
+            text: input.agentBrief.paragraph,
+          },
   };
 }
 

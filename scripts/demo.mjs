@@ -3,7 +3,7 @@
 // then prints the dashboard link. Press "Run simulated traffic" on Metrics to
 // play the flight live. Ctrl+C stops everything; the emulator keeps no data.
 // Run from an activated toolchain shell: `pnpm demo` (add `-- --open` to open
-// the browser).
+// the browser; add `-- --agents` to draft with the paid Claude agent team).
 import { spawn, spawnSync } from 'node:child_process';
 import net from 'node:net';
 import path from 'node:path';
@@ -92,10 +92,19 @@ try {
     stdio: 'ignore',
   });
   if (build.status !== 0) throw new Error('The build failed; run pnpm build.');
-  console.log('Starting the API (saved responses only)…');
+  const agents = process.argv.includes('--agents');
+  console.log(
+    agents
+      ? 'Starting the API (saved responses, Claude agent team on)…'
+      : 'Starting the API (saved responses only)…',
+  );
   await start(
     'API',
-    ['scripts/run-local-api.mjs', '--enrichment=recorded'],
+    [
+      'scripts/run-local-api.mjs',
+      '--enrichment=recorded',
+      ...(agents ? ['--agents=claude'] : []),
+    ],
     /starting the API|listening/iu,
     { ...process.env, LEADFLOW_WEB_ORIGIN: webOrigin },
   );

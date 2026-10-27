@@ -11,6 +11,7 @@ export * from './verification.js';
 export * from './phase3.js';
 export * from './acquisition.js';
 export * from './traffic.js';
+export * from './agents.js';
 
 export const EvidenceClassSchema = z.enum([
   'synthetic',

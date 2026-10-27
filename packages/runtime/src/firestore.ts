@@ -144,6 +144,7 @@ export function createCloudFirestoreBoundary(
 
 export interface FirestoreDocumentStore {
   create(path: string, data: DocumentData): Promise<void>;
+  set(path: string, data: DocumentData): Promise<void>;
   get(path: string): Promise<unknown | null>;
 }
 
@@ -164,6 +165,10 @@ export class AdminFirestoreDocumentStore implements FirestoreDocumentStore {
 
   async create(path: string, data: DocumentData): Promise<void> {
     await this.database.doc(path).create(stampRetention(this.database, data));
+  }
+
+  async set(path: string, data: DocumentData): Promise<void> {
+    await this.database.doc(path).set(stampRetention(this.database, data));
   }
 
   async get(path: string): Promise<unknown | null> {

@@ -9,6 +9,7 @@ import {
   type EnrichmentMode,
 } from '@leadflow-ai/domain';
 import {
+  AGENT_PROMPTS_SHA256,
   LOCAL_DEPLOYMENT,
   bindSystemBundle,
   type SystemBundleBase,
@@ -91,6 +92,8 @@ export interface SystemBundleOptions {
   // local bundle reads them from Git.
   source?: SourceIdentity;
   runtime?: 'local' | 'cloud';
+  // Phase 5: the opt-in Anthropic agent team (local only).
+  agents?: boolean;
 }
 
 async function gitSourceIdentity(): Promise<SourceIdentity> {
@@ -111,6 +114,10 @@ export async function createSystemBundleBase(
   options: SystemBundleOptions = {},
 ): Promise<SystemBundleBase> {
   const enrichmentMode = options.enrichmentMode ?? 'recorded';
+  const agents = options.agents === true;
+  if (agents && options.runtime === 'cloud') {
+    throw new Error('A hosted bundle has no agent team.');
+  }
   const source = options.source ?? (await gitSourceIdentity());
   const lockfileDigest = sha256(
     await readFile(path.join(repoRoot, 'pnpm-lock.yaml')),
@@ -124,7 +131,7 @@ export async function createSystemBundleBase(
   const fixtureDigest = sha256(JSON.stringify(COMBINED_CASES));
 
   return {
-    schemaVersion: 'system-bundle-v4',
+    schemaVersion: 'system-bundle-v5',
     code: {
       revision: source.revision,
       dirty: source.dirty,
@@ -149,12 +156,13 @@ export async function createSystemBundleBase(
       simulator: 'simulator-v1',
       enrichmentAdapters: 'enrichment-adapters-v1',
       composer: 'deterministic-template-v1',
-      verificationRules: 'verification-rules-v1',
+      verificationRules: 'verification-rules-v2',
       decisionLanguage: 'decision-language-v1',
       metricsDefinitions: 'metrics-definitions-v2',
       channelRules: 'channel-rules-v1',
       spendFixture: 'synthetic-spend-v1',
       trafficPlan: 'traffic-plan-v1',
+      agentTeam: agents ? 'agent-team-v1' : null,
       evaluator: EVALUATOR_VERSION,
       configuration:
         options.runtime === 'cloud'
@@ -171,9 +179,35 @@ export async function createSystemBundleBase(
       platform: process.platform,
       architecture: process.arch,
     },
-    provider: { value: null, reason: 'provider gate unresolved' },
-    model: { value: null, reason: 'model gate unresolved' },
-    prompt: { value: null, reason: 'no model prompt; drafts use a template' },
+    ...(agents
+      ? {
+          provider: { value: 'anthropic' as const },
+          model: {
+            value: {
+              lead: 'claude-sonnet-5-5' as const,
+              writer: 'claude-sonnet-5-5' as const,
+              critic: 'claude-sonnet-5-5' as const,
+              worker: 'claude-haiku-5-5' as const,
+            },
+          },
+          prompt: {
+            value: {
+              version: 'agent-prompts-v1' as const,
+              sha256: AGENT_PROMPTS_SHA256,
+            },
+          },
+        }
+      : {
+          provider: {
+            value: null,
+            reason: 'agent team off; drafts use the template',
+          },
+          model: { value: null, reason: 'agent team off; no model call' },
+          prompt: {
+            value: null,
+            reason: 'no model prompt; drafts use a template',
+          },
+        }),
     enrichmentMode,
     liveToolContracts: {
       hosts: ['vpic.nhtsa.dot.gov', 'api.zippopotam.us'],

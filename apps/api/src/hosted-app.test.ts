@@ -136,6 +136,7 @@ describe('strict local and hosted configuration', () => {
     ['emulator host', { FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080' }],
     ['reset flag', { LEADFLOW_LOCAL_RESET_ENABLED: 'false' }],
     ['key file', { GOOGLE_APPLICATION_CREDENTIALS: '/tmp/key.json' }],
+    ['agent team', { LEADFLOW_AGENTS: 'claude' }],
     ['other service', { K_SERVICE: 'another-service' }],
     ['mutable image', { LEADFLOW_IMAGE_DIGEST: 'latest' }],
     ['missing retention', { LEADFLOW_RETENTION_POLICY: undefined }],
@@ -185,6 +186,7 @@ describe('strict local and hosted configuration', () => {
         configuration: {
           ...unlabelled,
           apiHost: '127.0.0.1',
+          agents: 'off',
           webOrigin: 'http://127.0.0.1:5173',
         },
       } as unknown as PhaseOneStartup,
@@ -391,6 +393,7 @@ describe('hosted request-bound execution', () => {
           apiHost: 'localhost',
           localResetEnabled: false,
           enrichmentMode: 'recorded',
+          agents: 'off',
           webOrigin: 'http://127.0.0.1:5173',
         },
         firestore: {

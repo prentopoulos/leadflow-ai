@@ -26,6 +26,7 @@ function startup(localResetEnabled: boolean): PhaseOneStartup {
       apiHost: 'localhost',
       localResetEnabled,
       enrichmentMode: 'recorded',
+      agents: 'off',
       webOrigin: 'http://127.0.0.1:5173',
     },
     firestore: {

@@ -310,6 +310,7 @@ function template(
     createdAt: timestamp,
     origin: 'template',
     composerVersion: 'deterministic-template-v1',
+    agentBriefId: null,
     channel: 'email',
     subject: composed.subject,
     body: composed.body,

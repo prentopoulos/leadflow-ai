@@ -1737,6 +1737,57 @@ small {
   white-space: pre-wrap;
 }
 
+.agent-research {
+  margin: 1rem 0;
+  border-top: 1px solid var(--line);
+  padding-top: 0.75rem;
+}
+
+.agent-research h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.agent-summary {
+  margin: 0.5rem 0;
+  font-size: 0.82rem;
+}
+
+.agent-sources {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+  font-size: 0.82rem;
+}
+
+.agent-sources p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.agent-sources blockquote {
+  margin: 0.3rem 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.6rem;
+  color: var(--muted);
+  background: var(--paper-strong);
+  overflow-wrap: anywhere;
+}
+
+.agent-sources a {
+  display: inline-block;
+  min-height: 24px;
+  color: var(--accent-dark);
+  overflow-wrap: anywhere;
+}
+
+.agent-calls li {
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
 .draft-edit {
   display: grid;
   gap: 0.4rem;

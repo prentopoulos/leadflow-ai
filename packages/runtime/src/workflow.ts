@@ -8,6 +8,9 @@ import {
   type BaseCheckpointSaver,
 } from '@langchain/langgraph';
 import {
+  AGENT_VERSIONS,
+  AgentBriefRecordSchema,
+  agentProjectionFrom,
   CONTRACT_VERSIONS,
   QualificationGraphStateSchema,
   scoreQualification,
@@ -20,7 +23,19 @@ import {
   type SafeError,
   type WorkflowStep,
 } from '@leadflow-ai/domain';
-import { deterministicUuid, sha256Hex, templateRevision } from './drafts.js';
+import {
+  AGENT_PROMPTS_SHA256,
+  runAgentTeam,
+  type ModelPort,
+  type SpendLedger,
+} from './agent-team.js';
+import {
+  agentBriefIdFor,
+  agentBriefIdOf,
+  deterministicUuid,
+  sha256Hex,
+  templateRevision,
+} from './drafts.js';
 import {
   EnrichmentRefusedError,
   checkEmail,
@@ -63,6 +78,8 @@ export interface QualificationWorkflowDependencies {
   checkpointer: BaseCheckpointSaver;
   enrichment: WorkflowEnrichmentDependencies;
   events: RunEventReader;
+  // Present only when the local process was started with --agents=claude.
+  agents?: { port: ModelPort; ledger: SpendLedger };
   now?: () => string;
   idFactory?: () => string;
 }
@@ -267,6 +284,60 @@ export function compileQualificationWorkflow(
     return records.filter(
       (record): record is EnrichmentEvidence => record !== null,
     );
+  }
+
+  // Runs the agent team once per run and evidence set; a replayed step
+  // reuses the stored brief instead of paying for a second run.
+  async function agentBriefFor(
+    state: QualificationGraphState,
+    lead: Awaited<ReturnType<typeof loadLead>>,
+    evidence: readonly EnrichmentEvidence[],
+  ) {
+    const agents = dependencies.agents;
+    if (agents === undefined) return null;
+    const briefId = agentBriefIdFor(state.runId, state.enrichmentEvidenceIds);
+    const stored = await dependencies.repositories.agentBriefs.get(briefId);
+    if (stored !== null) {
+      if (stored.status !== 'in_progress') return stored;
+      // A prior process stopped after reserving/potentially making a paid
+      // call. Preserve that conservative cost record and fall back instead of
+      // spending again for the same lead.
+      return dependencies.repositories.agentBriefs.set({
+        ...stored,
+        status: 'fallback',
+        fallbackReason: 'model_error',
+      });
+    }
+    const projection = agentProjectionFrom({ intake: lead.intake, evidence });
+    const createdAt = now();
+    const record = (outcome: Awaited<ReturnType<typeof runAgentTeam>>) =>
+      AgentBriefRecordSchema.parse({
+        schemaVersion: AGENT_VERSIONS.brief,
+        briefId,
+        runId: state.runId,
+        leadId: state.leadId,
+        createdAt,
+        teamVersion: AGENT_VERSIONS.team,
+        rulesVersion: AGENT_VERSIONS.rules,
+        promptsSha256: AGENT_PROMPTS_SHA256,
+        projectionSha256: sha256Hex(JSON.stringify(projection)),
+        ...outcome,
+      });
+    let progressWrites = Promise.resolve();
+    const outcome = await runAgentTeam({
+      projection,
+      port: agents.port,
+      budget: agents.ledger.forLead(),
+      onProgress: async (progress) => {
+        const snapshot = record(progress);
+        progressWrites = progressWrites.then(async () => {
+          await dependencies.repositories.agentBriefs.set(snapshot);
+        });
+        await progressWrites;
+      },
+    });
+    const brief = record(outcome);
+    return dependencies.repositories.agentBriefs.set(brief);
   }
 
   async function scheduleInterpreterRetry(
@@ -591,12 +662,17 @@ export function compileQualificationWorkflow(
             loadLead(state),
             loadEvidence(state.enrichmentEvidenceIds),
           ]);
+          const agentBrief =
+            dependencies.agents === undefined
+              ? null
+              : await agentBriefFor(state, lead, evidence);
           const composed = templateRevision({
             run: current,
             lead,
             qualification: state.qualification,
             evidence,
             createdAt: now(),
+            agentBrief,
           });
           const stored = await dependencies.repositories.draftRevisions.get(
             composed.draftId,
@@ -657,6 +733,11 @@ export function compileQualificationWorkflow(
         if (state.draftRevisionId !== null && draft === null) {
           throw new WorkflowIntegrityError('Composed draft is missing.');
         }
+        const briefId = draft === null ? null : agentBriefIdOf(draft);
+        const agentBrief =
+          briefId === null
+            ? null
+            : await dependencies.repositories.agentBriefs.get(briefId);
         const verificationResultId =
           draft?.verificationResultId ??
           deterministicUuid(
@@ -684,6 +765,7 @@ export function compileQualificationWorkflow(
             ),
             draft,
             scope: 'run',
+            agentBrief,
           });
         await dependencies.repositories.verificationResults.createIdempotent(
           verification,

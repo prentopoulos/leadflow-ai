@@ -5,7 +5,7 @@
 **Turns a fictional auto-insurance inquiry into a stored, scored and enriched lead with an email
 draft a person can approve, on your own machine or as a private one-person cloud demo.**
 
-Fictional leads · Firestore Emulator · Public vehicle and ZIP data · No AI model or paid API
+Fictional leads · Firestore Emulator · Public vehicle and ZIP data · Optional Claude agent team
 
 <img src="docs/readme/principles.svg" alt="Three principles: persist before processing, verified sources, human approval" width="100%">
 
@@ -39,9 +39,12 @@ Open the link it prints (the Metrics view), then press **Run simulated traffic**
 leads arrive one every 10 seconds from made-up ad channels, and the cost-per-lead figures update
 live. Press Ctrl+C to stop; nothing is kept. Add `-- --open` to open the browser for you.
 
+`pnpm demo -- --agents` turns on the Claude agent team (below). It reads `ANTHROPIC_API_KEY` from
+the gitignored `.env`, spends real money, and stops itself at $0.30 per lead and $8 per session.
+
 ## How it works
 
-<img src="docs/diagrams/architecture.svg" alt="Local architecture: operator dossier, Fastify API, workflow runtime and domain contracts, Firestore Emulator and offline evaluator inside the workstation boundary; NHTSA vPIC and Zippopotam.us as external sources; model provider, outreach sending and real personal data deferred" width="100%">
+<img src="docs/diagrams/architecture.svg" alt="Local architecture: operator dossier, Fastify API, workflow runtime and domain contracts, Firestore Emulator and offline evaluator inside the workstation boundary; NHTSA vPIC, Zippopotam.us and the opt-in Anthropic API as external services; hosted model calls, outreach sending and real personal data deferred" width="100%">
 
 1. An operator enters a fictional inquiry. The API saves the lead and its run in one Firestore
    transaction before any work starts
@@ -52,7 +55,8 @@ live. Press Ctrl+C to stop; nothing is kept. Add `-- --open` to open the browser
    answer is stored with its source, time and a fingerprint, labelled live, recorded or mock. A
    source that does not answer is shown as unavailable, never as a "no".
 4. If the lead agreed to be contacted, it writes an email draft from a fixed template. Every
-   sentence comes from the inquiry, from a verified answer, or from fixed wording.
+   sentence comes from the inquiry, from a verified answer, or from fixed wording. With the agent
+   team switched on, one extra paragraph comes from cited web research.
 5. Eight checks run before a draft reaches a person: sources are complete, claims are verified,
    consent is recorded, there is no pricing or eligibility language, and none of the lead's own
    free text is copied in.
@@ -65,8 +69,26 @@ A LangGraph orchestrator runs three specialist agents and a verifier in a fixed 
 qualification agent scores the inquiry, the enrichment agent looks up public vehicle and ZIP data,
 and the outreach agent writes a draft only when consent is recorded. Agents never call each other;
 the orchestrator saves a checkpoint after every step, so a stopped run resumes where it left off.
-The agents are deterministic today. A language model would sit behind the same interface once its
-gate in [PROJECT.md](PROJECT.md) is opened.
+Scoring and verification stay deterministic; only the outreach agent can use a language model, and
+only when the agent team is switched on.
+
+## Agent team
+
+<img src="docs/diagrams/agent-team.svg" alt="Agent team inside the compose step: a Sonnet 5.5 lead plans questions, three Haiku 5.5 workers search the web in parallel, a code claim verifier keeps only claims whose quoted source carries their numbers and words, the lead merges kept claims into a brief, a Sonnet 5.5 writer drafts a cited paragraph that a code rule checker and a Sonnet 5.5 critic review with at most two rewrites, and the approved paragraph joins the template draft that eight rules check before human review" width="100%">
+
+With `--agents`, the outreach agent becomes a small team that researches the lead's situation and
+writes one short paragraph for the email. A Claude Sonnet 5.5 lead plans a few questions, three
+Claude Haiku 5.5 workers search the web at the same time (the car, the area, the coverage the lead
+asked about), and plain code keeps only the answers whose quoted source contains their numbers and
+key words. A Sonnet writer drafts from those facts and cites them; a code checker and a Sonnet
+critic review the paragraph, with at most two rewrites. The run's dossier shows every cited source
+with its quote and what the run cost.
+
+The models see the vehicle, the area and the coded answers, never the person's name, email, ZIP
+Code or message; plain code adds the greeting. Every call reserves its worst-case cost first. A
+failed check, a model error or the spend cap leaves the plain template draft. The paragraph is a
+new slot in the same template, so the eight checks still run, now including the stored sources.
+The hosted demo never uses the agent team.
 
 ## Human review
 
@@ -131,13 +153,15 @@ differences between channels show the calculation, not which channel is better.
 ## Evidence
 
 <!-- bottom-line:start -->
-- 84 fixed synthetic evaluation cases
+- 90 fixed synthetic evaluation cases
 - rubric-v1 weights: need timeline 40, request clarity 30, completeness 30
 <!-- bottom-line:end -->
 
-Results are tied to a system bundle that records the code, lockfile, cases and tool versions. Cases
-that need a hosted model, the live sources, the deployed service, real personal data or production
-are reported as `not_run`, never as passes. The live lookups were checked once with an authorized
+Results are tied to a system bundle that records the code, lockfile, cases and tool versions, and,
+when the agent team runs, the provider, models and prompt fingerprint. The agent cases use a
+scripted model, so they prove the checks, not the quality of Claude's writing. Cases that need a
+hosted model, the live sources, the deployed service, real personal data or production are
+reported as `not_run`, never as passes. The live lookups were checked once with an authorized
 probe, and their saved responses are what the offline tests use. See [AI_OPS.md](AI_OPS.md).
 
 ## Limits
@@ -149,8 +173,9 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
   ([source record](docs/research/military-com-intake-2026-10-26.md)). That form also asks about
   driving record, insurance history and personal details that LeadFlow leaves out, so form parity
   is not claimed.
-- AI models, real personal data, live lookups from the cloud and any sending of messages stay
-  behind the gates in [PROJECT.md](PROJECT.md).
+- The agent team is local and opt-in, under the owner's spend limits. Hosted model calls, real
+  personal data, live lookups from the cloud and any sending of messages stay behind the gates in
+  [PROJECT.md](PROJECT.md).
 
 ## Commands
 
@@ -158,8 +183,8 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 |---|---|
 | `pnpm check` | Full offline gate |
 | `pnpm emulator:start` | Temporary Firestore Emulator on `127.0.0.1:8080` |
-| `pnpm api:local` | Serve the API with live lookups; add `-- --enrichment=recorded` for saved responses |
-| `pnpm demo` | Start the emulator, API and web app for a live demo |
+| `pnpm api:local` | Serve the API with live lookups; add `-- --enrichment=recorded` for saved responses or `-- --agents=claude` for the agent team |
+| `pnpm demo` | Start the emulator, API and web app for a live demo; add `-- --agents` for the paid Claude agent team |
 | `pnpm simulate:traffic` | Send 60 fictional leads with simulated attribution through the API, one every 10 s (saved responses only) |
 | `pnpm enrichment:probe` | Owner-authorized live lookup that refreshes the saved responses |
 | `pnpm emulator:runtime` | End-to-end test of the API and workflow against the emulator |
@@ -176,6 +201,7 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 | [docs/architecture/workspace.dsl](docs/architecture/workspace.dsl) | Structurizr model behind the diagrams |
 | [docs/dependencies/phase-2.md](docs/dependencies/phase-2.md) | Phase 2 dependencies, licences and limits |
 | [docs/dependencies/phase-3.md](docs/dependencies/phase-3.md) | Phase 3 container base and IAP verification library |
+| [docs/dependencies/phase-5.md](docs/dependencies/phase-5.md) | Phase 5 Anthropic SDK, models, prices and spend limits |
 | [docs/operations/runbook.md](docs/operations/runbook.md) | Hosted setup, release, smoke, rollback, purge and teardown |
 | [docs/evidence/phase-3/index.json](docs/evidence/phase-3/index.json) | Deployment evidence, with checks not yet run marked `not_run` |
 | [docs/evidence/phase-4/index.json](docs/evidence/phase-4/index.json) | Phase 4 hosted demonstration evidence; every check `not_run` until the approved run |
@@ -185,11 +211,13 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 ## Licence and credits
 
 Released under the [MIT License](LICENSE). Vehicle data comes from NHTSA's
-vPIC API, and ZIP data comes from Zippopotam.us, which uses GeoNames data. Diagrams are drawn with
+vPIC API, and ZIP data comes from Zippopotam.us, which uses GeoNames data. The optional agent team
+uses Anthropic's Claude API. Diagrams are drawn with
 the MIT-licensed [diagram-design](.agents/skills/diagram-design/SKILL.md) skill. Dependencies and
 their licences are listed in [docs/dependencies/phase-1.md](docs/dependencies/phase-1.md),
-[docs/dependencies/phase-2.md](docs/dependencies/phase-2.md) and
-[docs/dependencies/phase-3.md](docs/dependencies/phase-3.md).
+[docs/dependencies/phase-2.md](docs/dependencies/phase-2.md),
+[docs/dependencies/phase-3.md](docs/dependencies/phase-3.md) and
+[docs/dependencies/phase-5.md](docs/dependencies/phase-5.md).
 
 LeadFlow AI is an independent portfolio prototype. It is not affiliated with or endorsed by
-Military.com, NHTSA, Google or any insurer.
+Military.com, NHTSA, Google, Anthropic or any insurer.

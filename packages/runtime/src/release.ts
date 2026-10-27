@@ -61,6 +61,14 @@ export function bindSystemBundle(
       enrichmentMode: base.enrichmentMode,
       configuration: base.versions.configuration,
       deployment,
+      // Agent bundles differ from template bundles on the same commit;
+      // template-only identities keep their earlier digest input.
+      ...(base.versions.agentTeam === null
+        ? {}
+        : {
+            agentTeam: base.versions.agentTeam,
+            prompt: base.prompt.value,
+          }),
     }),
   );
   return SystemBundleDocumentSchema.parse({

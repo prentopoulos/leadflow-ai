@@ -1,5 +1,7 @@
 import { isDeepStrictEqual } from 'node:util';
 import {
+  AgentBriefRecordSchema,
+  type AgentBriefRecord,
   DraftReviewSchema,
   EmailCheckSchema,
   EnrichmentEvidenceSchema,
@@ -99,6 +101,12 @@ export class ValidatedDocumentRepository<
     }
   }
 
+  async set(candidate: unknown): Promise<T> {
+    const prepared = this.prepareCreate(candidate);
+    await this.store.set(prepared.path, prepared.data);
+    return prepared.data;
+  }
+
   async get(...lookup: Lookup): Promise<T | null> {
     const stored = await this.store.get(this.readPath(...lookup));
     if (stored === null) return null;
@@ -148,6 +156,8 @@ export interface FirestoreRepositories {
     VerificationResult,
     readonly [string]
   >;
+  // Local agent runs only; hosted mode never enables the agent team.
+  agentBriefs: ValidatedDocumentRepository<AgentBriefRecord, readonly [string]>;
 }
 
 export function createFirestoreRepositories(
@@ -240,6 +250,12 @@ export function createFirestoreRepositories(
         `verificationResults/${assertDocumentSegment(value.verificationResultId)}`,
       (verificationResultId) =>
         `verificationResults/${assertDocumentSegment(verificationResultId)}`,
+    ),
+    agentBriefs: new ValidatedDocumentRepository(
+      store,
+      AgentBriefRecordSchema,
+      (value) => `agentBriefs/${assertDocumentSegment(value.briefId)}`,
+      (briefId) => `agentBriefs/${assertDocumentSegment(briefId)}`,
     ),
   };
 }
