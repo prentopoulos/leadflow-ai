@@ -57,9 +57,10 @@ verified_artifact() {
   fi
   rm -f "$destination.partial"
   echo "Downloading $name" >&2
-  /usr/bin/curl --fail --location --retry 3 --output "$destination.partial" "$url"
-  /bin/mv "$destination.partial" "$destination"
-  verify_checksum "$destination" "$expected"
+  # set -e is off inside $(...), so every step returns its failure explicitly.
+  /usr/bin/curl --fail --location --retry 3 --output "$destination.partial" "$url" || return 1
+  /bin/mv "$destination.partial" "$destination" || return 1
+  verify_checksum "$destination" "$expected" || { /bin/rm -f "$destination"; return 1; }
   printf '%s\n' "$destination"
 }
 
