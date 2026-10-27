@@ -28,11 +28,14 @@ updated); `gcloud iap` asked for the unapproved Cloud Resource Manager API and w
 Owner role already grants IAP access); commit `2f75efa` was pushed with one failing evaluation
 case, fixed in `d6ded3f`.
 
-Next actions, in order: (1) recheck cost after billing posts and record it; (2) record and send the
-walkthrough preview privately (`docs/walkthrough.md`); (3) owner approves the evidence and
-walkthrough, which starts the seven-day teardown clock (runbook "Teardown schedule"); (4) archive the
-OpenSpec change and merge PR #7 only on the owner's go-ahead. If the owner wants to demo the live
-service during Phase 4, he extends hosting instead of starting the seven-day teardown.
+Owner decisions (2026-10-27): hosting is extended through Phase 4 (same cap, budget and stop rules;
+the teardown clock starts at Phase 4's demonstration approval), and the walkthrough recording moves
+to the end of Phase 4.
+
+Next actions, in order: (1) on 2026-10-27 or later, recheck the posted cost and record
+`deployed-cost-status`; (2) mark 6.1 complete, archive the OpenSpec change, sync specs, set Phase 3
+Done, rerun the gate and push; (3) merge PR #7 only on the owner's go-ahead; (4) clear the context
+and run `/next-phase` for Phase 4.
 
 Phase 4 direction (owner, 2026-10-27), to be grilled and proposed in a fresh session: keep it simple.
 One small simulation script feeds fictional leads through the real API at a steady pace with

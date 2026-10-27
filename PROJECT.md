@@ -255,6 +255,11 @@ single consolidated confirmation:
 - This confirmation authorizes the branch, OpenSpec artifacts, local planning checks, publication
   scans, spec-only commit, push, and draft PR. It does not authorize API enablement, resource
   creation, a build, deployment, merge, or MP4 publication; those actions remain gated.
+- Owner decisions after the hosted proof (2026-10-27): hosting is extended through Phase 4 so the
+  live service can be demonstrated, under the same Cloud Run cap, project alert budget and stop
+  rules; the seven-day teardown clock starts when Phase 4's demonstration evidence is approved. The
+  walkthrough recording moves to the end of Phase 4; Phase 3 delivers its timed script
+  (`docs/walkthrough.md`) only.
 
 ## 5. Non-negotiables
 
