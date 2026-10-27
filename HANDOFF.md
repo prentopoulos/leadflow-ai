@@ -16,6 +16,29 @@ within 24 hours" window, so `deployed-cost-status` stays pending.
 Next: task 1.1, recheck the posted cost after about 22:45 Toronto on 2026-10-27 and record it.
 Local tasks 2.1-7.1 do not wait for it; only the hosted approval in task 8.1 does.
 
+### Build progress (2026-10-27)
+
+Done and pushed on the branch: 2.1 attribution contract (`c83dd13`), 3.1 traffic plan, runner,
+`pnpm simulate:traffic` and the hosted traffic control, 4.1 spend fixture and acquisition metrics
+(`c2adc80`), 5.1 acquisition section and dossier block (`fda36f0`). Peter added three figures
+mid-build: qualified-lead rate, cost per contactable lead, and spend share against lead share
+(PROJECT.md § Phase 4 decisions).
+
+Checks on `fda36f0`'s slice: strict TypeScript; 427 unit tests; ESLint; Prettier; build;
+evaluation 59 passed, 0 failed, 25 not_run (`phase-4.0`, 16 new cases including hand-calculated
+costs); docs check; the emulator probe (stores a paid attribution and proves no event carries it).
+Running local app: a 60-lead flight stored 60 leads and a rerun added none; dashboard figures match
+hand calculation ($2,550 / 60 = $42.50 CPL, $51.00 per qualified, $56.67 per contactable);
+Playwright at 1280 and 390 px found no overflow, no target under 24 px, four chart labels and no
+console errors at 390 px. The full `pnpm check` has not run yet (task 7.1).
+
+Retained: a frozen case row for GA4's `(not set)` medium was removed before measurement because
+the slug rule refuses its space, which made that Direct branch unreachable.
+
+Not yet verified: the hosted "Run simulated traffic" control renders only in cloud mode and is
+exercised in task 8.1. Next local task: 6.1 (diagrams with diagram-design, README with showcase,
+AI_OPS, runbook, walkthrough script).
+
 ## Phase 3 closing checkpoint (2026-10-27)
 
 Phase 3 is complete and archived as `openspec/changes/archive/2026-10-27-phase-3-deployment-access-evidence`
