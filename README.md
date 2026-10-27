@@ -5,7 +5,7 @@
 **Turns a fictional auto-insurance inquiry into a stored, scored and enriched lead with an email
 draft a person can approve, on your own machine or as a private one-person cloud demo.**
 
-Fictional leads Â· Firestore Emulator Â· Public vehicle and ZIP data Â· No AI model or paid API
+Fictional leads · Firestore Emulator · Public vehicle and ZIP data · No AI model or paid API
 
 <img src="docs/readme/principles.svg" alt="Three principles: persist before processing, verified sources, human approval" width="100%">
 
@@ -33,14 +33,15 @@ that it is ready:
 ```powershell
 pnpm emulator:start
 pnpm build; pnpm api:local -- --enrichment=recorded
-pnpm seed:local
+pnpm simulate:traffic -- --interval=0
 pnpm --filter @leadflow-ai/web exec vite
 ```
 
 Open the URL Vite prints. It opens on the LeadFlow AI cover; `#intake` takes a new fictional lead,
-`#runs` shows leads and the approval queue, and `#metrics` shows the dashboard. The seed adds 40 fictional leads that use saved
-responses. Run `pnpm api:local` without `--enrichment` to look up the real public sources for leads
-you enter. Stopping the emulator discards all state.
+`#runs` shows leads and the approval queue, and `#metrics` shows the dashboard. The simulator adds
+60 fictional leads from simulated ad channels and campaigns, using saved responses; leave out
+`--interval=0` to watch them arrive one every 10 seconds. Run `pnpm api:local` without `--enrichment` to look up the
+real public sources for leads you enter. Stopping the emulator discards all state.
 
 ## How it works
 
@@ -119,6 +120,18 @@ the approval queue. Each figure is calculated from stored runs and states what i
 leaves out. Live and saved lookups are never added together, and the synthetic simulator's
 outcomes appear only in their own labelled panel. Every chart also has a table of its values.
 
+### Simulated acquisition
+
+The acquisition section shows where leads came from and what they cost. Each simulated lead
+carries a made-up source, campaign and click ID. A fixed spend sheet gives each simulated campaign
+a budget, so the dashboard can show cost per lead, cost per qualified lead and cost per lead that
+agreed to be contacted, overall and by channel. Each channel's share of spend sits beside its
+share of leads. Channels follow Google Analytics' default channel rules in simplified form.
+
+Everything in this section is simulated: the spend, channels, campaigns and click IDs are made up,
+and no Google Ads or Analytics data is used. Leads are assigned to channels at random, so
+differences between channels show the calculation, not which channel is better.
+
 ## Evidence
 
 <!-- bottom-line:start -->
@@ -150,7 +163,7 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 | `pnpm check` | Full offline gate |
 | `pnpm emulator:start` | Temporary Firestore Emulator on `127.0.0.1:8080` |
 | `pnpm api:local` | Serve the API with live lookups; add `-- --enrichment=recorded` for saved responses |
-| `pnpm seed:local` | Add 40 fictional leads through the API (saved responses only) |
+| `pnpm simulate:traffic` | Send 60 fictional leads with simulated attribution through the API, one every 10 s (saved responses only) |
 | `pnpm enrichment:probe` | Owner-authorized live lookup that refreshes the saved responses |
 | `pnpm emulator:runtime` | End-to-end test of the API and workflow against the emulator |
 | `pnpm eval` | Run the fixed evaluation cases (after `pnpm build`) |

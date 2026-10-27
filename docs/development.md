@@ -125,8 +125,9 @@ cloud Firestore, external communication, or other credentialed service.
   entry directly through `cmd /c` with a redirect, for example
   `cmd /c "node node_modules\vitest\vitest.mjs run packages/domain > out.txt 2>&1"`, and read
   `$LASTEXITCODE`. Run `openspec validate` from Git Bash, where its spinner on stderr is harmless.
-- Windows PowerShell 5.1 `Set-Content -Encoding utf8` writes a byte-order mark. Edit files with
-  Node or the editor instead; if a BOM slips in, strip the first three bytes before committing.
+- Never round-trip a file through Windows PowerShell 5.1 `Get-Content` and `Set-Content`: it reads
+  UTF-8 as the ANSI code page (so `·` becomes `Â·`) and `-Encoding utf8` adds a byte-order mark.
+  Edit files with Node or the editor.
 - Playwright's bundled Chromium is not installed; rendered checks launch the installed Chrome with
   `p.chromium.launch(channel="chrome")` under `py -3.10`.
 - Diagram tooling runs under the Python launcher: `py -3.13` for the diagram-design self-check and

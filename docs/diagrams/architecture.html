@@ -61,7 +61,7 @@
     <div class="diagram-container">
 <svg viewBox="0 0 960 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
   <title id="architecture-title">LeadFlow AI local architecture</title>
-  <desc id="architecture-desc">An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while the model provider, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.</desc>
+  <desc id="architecture-desc">An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while a traffic simulator feeds fictional leads with simulated attribution through the same intake API, and the model provider, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.</desc>
   <defs>
       <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#626a66"/></marker>
       <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#075e57"/></marker>
@@ -83,6 +83,7 @@
   <path d="M424,362 L760,362" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
   <path d="M424,500 L760,500" fill="none" stroke="#626a66" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
   <path d="M176,484 L244,484" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <path d="M106,456 L106,428 Q106,420 114,420 L206,420 Q214,420 214,412 L214,236 Q214,228 222,228 L244,228" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
   <rect x="184" y="192" width="52" height="12" rx="2" fill="#f4f1e9"/>
   <text x="210" y="201" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">HTTP /V1</text>
   <rect x="444" y="192" width="64" height="12" rx="2" fill="#f4f1e9"/>
@@ -99,6 +100,8 @@
   <text x="592" y="517" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">NOT ENABLED</text>
   <rect x="188" y="464" width="44" height="12" rx="2" fill="#f4f1e9"/>
   <text x="210" y="473" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">CHECKS</text>
+  <rect x="118" y="400" width="64" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="150" y="409" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">SIM INTAKE</text>
   <rect x="36" y="24" width="140" height="56" rx="6" fill="#f4f1e9"/>
   <rect x="36" y="24" width="140" height="56" rx="6" fill="rgba(98,106,102,0.1)" stroke="#56605b" stroke-width="1"/>
   <rect x="44" y="30" width="40" height="12" rx="2" fill="none" stroke="#56605b" stroke-opacity="0.5" stroke-width="0.8"/>
@@ -145,18 +148,20 @@
   <text x="840" y="507" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">model provider</text>
   <text x="840" y="520" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">outreach sending</text>
   <text x="840" y="533" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">real personal data</text>
-  <rect x="36" y="456" width="140" height="56" rx="6" fill="#f4f1e9"/>
-  <rect x="36" y="456" width="140" height="56" rx="6" fill="rgba(26,33,31,0.05)" stroke="#626a66" stroke-width="1"/>
+  <rect x="36" y="456" width="140" height="80" rx="6" fill="#f4f1e9"/>
+  <rect x="36" y="456" width="140" height="80" rx="6" fill="rgba(26,33,31,0.05)" stroke="#626a66" stroke-width="1"/>
   <rect x="44" y="462" width="24" height="12" rx="2" fill="none" stroke="#626a66" stroke-opacity="0.5" stroke-width="0.8"/>
   <text x="56" y="471" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">CLI</text>
-  <text x="106" y="488" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Offline evaluator</text>
-  <text x="106" y="503" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">phase-3.0 cases</text>
+  <text x="106" y="488" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Local tools</text>
+  <text x="106" y="503" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">Offline evaluator</text>
+  <text x="106" y="516" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">Traffic simulator</text>
+  <text x="106" y="529" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">SIMULATED leads</text>
   <rect x="244" y="456" width="180" height="56" rx="6" fill="#f4f1e9"/>
   <rect x="244" y="456" width="180" height="56" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
   <rect x="252" y="462" width="32" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
   <text x="268" y="471" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">RULES</text>
   <text x="334" y="488" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Domain contracts</text>
-  <text x="334" y="503" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">rubric · template · rules</text>
+  <text x="334" y="503" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">rubric · rules · spend</text>
 </svg>
     </div>
   </div>

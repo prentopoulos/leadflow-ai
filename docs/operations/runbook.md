@@ -147,7 +147,9 @@ holding only the IAP service agent. Any difference keeps the release on hold.
 ## Smoke and evidence (the authorized deployed probe)
 
 Run each case with fictional recorded-mode leads entered through the authenticated interface, then
-record it in `docs/evidence/phase-3/index.json` with sanitized inputs and observed results:
+record it in the current phase's evidence index (`docs/evidence/phase-3/index.json`, or
+`docs/evidence/phase-4/index.json` for the Phase 4 release) with sanitized inputs and observed
+results:
 
 1. Owner signs in; `/v1/session` reports `cloud`, `iap-verified`, `recorded`.
 2. A private window without a session is redirected to Google sign-in; `curl` without a session gets
@@ -167,7 +169,8 @@ record it in `docs/evidence/phase-3/index.json` with sanitized inputs and observ
 ## Rollback
 
 1. Check the previous revision reads the current stored schema; if not, purge and reseed synthetic
-   data and record the loss.
+   data and record the loss. A Phase 3 revision reads only `lead-v2` and rejects Phase 4
+   `lead-v3` leads, so rolling back across that boundary is followed by the purge.
 2. `gcloud run services update-traffic leadflow-ai-demo --region=northamerica-northeast2 --to-revisions=PREVIOUS=100`.
 3. Rerun smoke cases 1, 2, 5 and 6 against it. Moving traffic alone is not a passing rollback.
 4. Return traffic to the candidate the same way and rerun case 1.
@@ -187,6 +190,19 @@ node deploy/purge-hosted.mjs
 
 Any identity, target, confirmation, or unknown-collection mismatch issues no delete. TTL removes
 documents about seven days after their last create, usually within a further 24 hours.
+
+## Phase 4 release and simulated traffic
+
+The Phase 4 release changes the stored lead to `lead-v3`, and its strict reads reject the older
+records. Under the enumerated approval, and only after the posted cost is recorded below the 50%
+inspection point: export evidence, run the guarded purge, build and deploy the exact candidate as
+above, then rerun smoke cases 5 and 6 and the rollback section.
+
+To run the simulated traffic, sign in, open `#metrics` and press **Run simulated traffic**. It sends
+60 fictional leads with simulated attribution, one every 10 seconds, from that tab only: keep it
+visible (a hidden tab pauses) and press **Stop** to end early. Record Firestore document reads
+(Monitoring, Firestore) in the pre- and post-demo cost checks. If reads cost money, slow the hosted
+metrics poll to 15 seconds before the next demo.
 
 ## Pre-demo, post-demo and monthly
 

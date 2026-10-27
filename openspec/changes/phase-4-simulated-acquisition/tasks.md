@@ -20,7 +20,7 @@
 
 ## 6. Documentation and diagrams
 
-- [ ] 6.1 Update the Structurizr model and ERD (`pnpm docs:diagrams`), AI_OPS, the runbook (simulation step, Phase 4 redeploy, purge-after-rollback note), the README "Simulated acquisition" subsection and `docs/walkthrough.md` with the acquisition scenes and intake-first opening.
+- [x] 6.1 Update the Structurizr model and ERD (`pnpm docs:diagrams`), AI_OPS, the runbook (simulation step, Phase 4 redeploy, purge-after-rollback note), the README "Simulated acquisition" subsection and `docs/walkthrough.md` with the acquisition scenes and intake-first opening.
 
 ## 7. Verify the exact local candidate
 

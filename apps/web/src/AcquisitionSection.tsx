@@ -88,7 +88,7 @@ export function AcquisitionSection({
           Acquisition <span className="simulated-tag">SIMULATED</span>
         </h2>
         <p className="acquisition-label">
-          Synthetic spend fixture Â· fictional leads Â· simulated USD.{' '}
+          Synthetic spend fixture · fictional leads · simulated USD.{' '}
           {acquisition.storedLeads} of {acquisition.plannedLeads} planned leads
           stored; flight spend {dollars(blended.spendCents)}.
         </p>
@@ -181,7 +181,7 @@ export function AcquisitionSection({
             <div>
               <dt>Cost per lead</dt>
               <dd>
-                {METRICS_DEFINITIONS.blendedCostPerLead.numerator} Ã·{' '}
+                {METRICS_DEFINITIONS.blendedCostPerLead.numerator} ÷{' '}
                 {METRICS_DEFINITIONS.blendedCostPerLead.denominator}
               </dd>
             </div>
