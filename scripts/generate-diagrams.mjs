@@ -1643,7 +1643,7 @@ function securityTrifecta() {
   const d = new Diagram({
     slug: 'security-trifecta',
     width: 1000,
-    height: 560,
+    height: 496,
     maxNodes: 0,
     maxArrows: 0,
   });
@@ -1719,9 +1719,6 @@ function securityTrifecta() {
     `<text x="404" y="416" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}">Rejected configuration</text>`,
     `<text x="404" y="433" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}">Lead input + real personal data + model or sender cannot enter a run.</text>`,
     `<text x="914" y="423" fill="${tokens.accent}" font-size="8" font-weight="700" font-family="${fonts.sans}" text-anchor="middle">3 / 3 BLOCKED</text>`,
-    `<line x1="40" y1="496" x2="960" y2="496" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
-    `<text x="40" y="520" fill="${tokens.ink}" font-size="10" font-weight="600" font-family="${fonts.sans}">Current boundary</text>`,
-    `<text x="140" y="520" fill="${tokens.muted}" font-size="10" font-family="${fonts.sans}">Fictional identities and test contacts. No insurer integration, quote, real personal data, or automatic sending.</text>`,
   );
   d.under(markup.join('\n  '));
 
@@ -1813,7 +1810,7 @@ function principles() {
 }
 
 function simplePipeline() {
-  const d = new Diagram({ slug: 'pipeline', width: 960, height: 600 });
+  const d = new Diagram({ slug: 'pipeline', width: 960, height: 464 });
   const xs = [20, 176, 332, 488, 644, 800];
   const y = 200;
   for (let index = 0; index < xs.length - 1; index += 1) {
@@ -1877,14 +1874,6 @@ function simplePipeline() {
     name: 'Cited research',
     sub: ['one short paragraph', 'failure keeps template'],
   });
-  d.callout(
-    [
-      'No consent means no draft. A passing draft still waits for a person.',
-      'LeadFlow never sends email or makes an insurance decision.',
-    ],
-    20,
-    520,
-  );
   return page({
     diagram: d,
     eyebrow: 'Plain-language pipeline',
@@ -1896,7 +1885,7 @@ function simplePipeline() {
 }
 
 function simpleArchitecture() {
-  const d = new Diagram({ slug: 'architecture', width: 960, height: 600 });
+  const d = new Diagram({ slug: 'architecture', width: 960, height: 560 });
   d.zone({
     x: 16,
     y: 96,
@@ -2024,11 +2013,6 @@ function simpleArchitecture() {
     name: 'Claude API',
     sub: ['research + drafting', 'off by default'],
   });
-  d.callout(
-    ['The browser never connects to stored records or providers directly.'],
-    40,
-    504,
-  );
   return page({
     diagram: d,
     eyebrow: 'Technical system boundary',
@@ -2043,83 +2027,151 @@ function simpleAgentWorkflow() {
   const d = new Diagram({
     slug: 'agent-workflow',
     width: 960,
-    height: 520,
-    maxNodes: 4,
-    maxArrows: 5,
+    height: 540,
+    maxNodes: 8,
+    maxArrows: 11,
   });
 
+  d.path([
+    [16, 300],
+    [36, 300],
+  ]);
+  d.path([
+    [160, 276],
+    [192, 276],
+    [192, 140],
+    [216, 140],
+  ]);
+  d.path([
+    [164, 300],
+    [216, 300],
+  ]);
+  d.path([
+    [160, 324],
+    [192, 324],
+    [192, 460],
+    [216, 460],
+  ]);
+  d.path([
+    [344, 140],
+    [376, 140],
+    [376, 276],
+    [408, 276],
+  ]);
+  d.path([
+    [344, 300],
+    [404, 300],
+  ]);
+  d.path([
+    [344, 460],
+    [376, 460],
+    [376, 324],
+    [408, 324],
+  ]);
   d.path(
     [
-      [480, 200],
-      [480, 244],
+      [540, 300],
+      [564, 300],
+      [564, 196],
+      [588, 196],
     ],
-    { marker: false, role: 'accent' },
+    { role: 'accent' },
   );
+  d.path([
+    [640, 262],
+    [640, 346],
+  ]);
   d.path(
     [
-      [240, 244],
-      [720, 244],
+      [672, 346],
+      [672, 262],
     ],
-    { marker: false },
+    { dashed: true },
   );
-  for (const x of [240, 480, 720]) {
-    d.path([
-      [x, 244],
-      [x, 284],
-    ]);
-  }
+  d.path([
+    [720, 408],
+    [780, 408],
+  ]);
 
   d.bubble({
-    cx: 480,
-    cy: 128,
-    r: 72,
+    cx: 100,
+    cy: 300,
+    r: 64,
     kind: 'focal',
     tag: 'ORCHESTRATOR',
     name: 'Research lead',
-    sub: 'plan · assign · merge',
+    sub: 'plan · delegate',
   });
   d.bubble({
-    cx: 240,
-    cy: 348,
+    cx: 280,
+    cy: 140,
     r: 64,
     kind: 'backend',
     tag: 'SPECIALIST',
     name: 'Vehicle',
-    sub: 'vehicle facts',
+    sub: 'facts',
   });
   d.bubble({
-    cx: 480,
-    cy: 348,
+    cx: 280,
+    cy: 300,
     r: 64,
     kind: 'backend',
     tag: 'SPECIALIST',
-    name: 'Area',
-    sub: 'local context',
+    name: 'Environmental',
+    sub: 'facts',
   });
   d.bubble({
-    cx: 720,
-    cy: 348,
+    cx: 280,
+    cy: 460,
     r: 64,
     kind: 'backend',
     tag: 'SPECIALIST',
     name: 'Coverage',
-    sub: 'requested topic',
+    sub: 'education',
   });
-  d.callout(
-    [
-      'Public web only · no identity or message.',
-      'Citations checked before one short paragraph reaches human review.',
-    ],
-    240,
-    464,
-  );
+  d.bubble({
+    cx: 472,
+    cy: 300,
+    r: 68,
+    kind: 'backend',
+    tag: 'CODE',
+    name: 'Evidence check',
+    sub: 'sources · claims',
+  });
+  d.bubble({
+    cx: 656,
+    cy: 196,
+    r: 68,
+    kind: 'backend',
+    tag: 'AGENT',
+    name: 'Drafting agent',
+    sub: 'one short paragraph',
+  });
+  d.bubble({
+    cx: 656,
+    cy: 408,
+    r: 64,
+    kind: 'backend',
+    tag: 'CHECK',
+    name: 'Draft review',
+    sub: 'check · rewrite ≤2',
+  });
+  d.bubble({
+    cx: 856,
+    cy: 408,
+    r: 76,
+    kind: 'input',
+    tag: 'PERSON',
+    name: 'Human review',
+    sub: 'approve · edit · reject',
+  });
   return page({
     diagram: d,
-    eyebrow: 'Optional research team',
-    title: 'One lead coordinates three specialists',
-    desc: 'A research orchestrator delegates bounded questions to vehicle, area and coverage specialists, then combines only cited findings for verification, drafting and human review.',
+    eyebrow: 'Optional agent pipeline',
+    title: 'From research to a reviewed draft',
+    desc: 'A research lead coordinates vehicle facts, environmental facts and coverage education; code checks the evidence before a drafting agent writes one paragraph, draft review permits two rewrites, and a person makes the final decision.',
     intro:
-      'Each specialist has one job. The lead combines only checked findings.',
+      'Checked research feeds drafting, review and a final human decision.',
   });
 }
 

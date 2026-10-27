@@ -59,7 +59,7 @@
     <h1>Where LeadFlow runs and what it can call</h1>
     <p class="intro">The browser, server, stored records, rules and workflow stay inside the local boundary. Only the workflow can reach approved services.</p>
     <div class="diagram-container">
-<svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
+<svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
   <title id="architecture-title">Where LeadFlow runs and what it can call</title>
   <desc id="architecture-desc">The operator workspace calls a loopback Fastify server, which stores the lead before the LangGraph workflow uses deterministic rules, read-only public vehicle and ZIP services, and an optional local-only Claude service.</desc>
   <defs>
@@ -130,7 +130,6 @@
   <text x="832" y="488" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Claude API</text>
   <text x="832" y="503" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">research + drafting</text>
   <text x="832" y="516" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">off by default</text>
-  <text x="40" y="504" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">The browser never connects to stored records or providers directly.</text>
 </svg>
     </div>
   </div>
