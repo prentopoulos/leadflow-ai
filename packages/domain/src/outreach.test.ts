@@ -577,6 +577,21 @@ describe('agent paragraph slot (verification-rules-v2)', () => {
     }
   });
 
+  it('sends no vehicle to models unless NHTSA lists it', () => {
+    const unlisted = agentProjectionFrom({
+      intake,
+      evidence: [
+        evidence('nhtsa_vpic', { outcome: 'not_found' }),
+        evidence('zippopotam_us'),
+      ],
+    });
+    expect(unlisted.vehicle).toBeNull();
+    expect(unlisted.area).toEqual({
+      placeName: 'Springfield',
+      stateAbbreviation: 'VA',
+    });
+  });
+
   it('passes every rule when the slot reproduces a clean stored brief', () => {
     const draft = agentRevision(brief);
     expect(draft.body).toContain(`\n\n${paragraph}\n\nA member`);

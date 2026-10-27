@@ -370,7 +370,11 @@ async function executeAmbiguousResultWrite(
 async function executeSuccessfulWorkflow(
   submittedIntake: IntakeSubmission,
   transport: EnrichmentTransport = enrichmentTransport,
-  agents?: { port: ModelPort; ledger: SpendLedger },
+  agents?: {
+    port: ModelPort;
+    ledger: SpendLedger;
+    isEnabled?: () => boolean;
+  },
 ) {
   const store = new WorkflowMemoryStore();
   const repositories = createFirestoreRepositories(store);
@@ -802,6 +806,30 @@ A member`);
     ]) {
       expect(sent).not.toContain(value);
     }
+  });
+
+  it('makes no model call while the dashboard switch is off', async () => {
+    const model = scriptedModel('Unused.');
+    const result = await executeSuccessfulWorkflow(
+      {
+        ...intake,
+        emailContactConsent: true,
+        consentRecord: currentConsentRecord(),
+      },
+      enrichmentTransport,
+      {
+        port: model.port,
+        ledger: new SpendLedger(),
+        isEnabled: () => false,
+      },
+    );
+    expect(model.requests).toHaveLength(0);
+    expect(
+      [...result.store.documents.keys()].some((path) =>
+        path.startsWith('agentBriefs/'),
+      ),
+    ).toBe(false);
+    expect(result.verification).toMatchObject({ draftPassed: true });
   });
 
   it('falls back to the template draft when the agent team fails', async () => {

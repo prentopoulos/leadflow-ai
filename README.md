@@ -49,8 +49,10 @@ pnpm demo
 Open the printed link and press **Run simulated traffic**. Sixty fictional leads arrive from
 simulated channels while the dashboard updates. Press Ctrl+C to stop; nothing is kept.
 
-Add `-- --open` to open a browser. Add `-- --agents` to enable the paid Claude research team, capped
-at $0.30 per lead and $8 per session.
+Add `-- --open` to open a browser. To try the paid Claude research team, put `ANTHROPIC_API_KEY` in a
+`.env` file in the repository root before `pnpm demo`; the Metrics page then shows an **AI research
+agents** switch (off until you turn it on, capped at $0.30 per lead and $8 per session, with the
+session's Claude spend beside it). Without a key the switch explains how to add one.
 
 ## How it works
 
@@ -73,7 +75,7 @@ read-only public lookups and, in local agent mode, the capped Anthropic agent ru
 
 <img src="docs/diagrams/agent-workflow.svg" alt="Agent pipeline: one research leader plans questions for three sub-agents covering vehicle facts, environmental facts and coverage education; verified findings return to the leader and then pass to separate drafting and critic agents before human review, with no more than two rewrites" width="100%">
 
-With `--agents`, one research leader delegates to three sub-agents, merges their checked findings and
+With the switch on, one research leader delegates to three sub-agents, merges their checked findings and
 hands one brief to a separate drafting agent. Fixed rules and a separate critic allow at most two
 rewrites before human review.
 
@@ -145,8 +147,8 @@ as `not_run`, never as a pass. See [AI_OPS.md](AI_OPS.md).
 |---|---|
 | `pnpm check` | Full offline gate |
 | `pnpm emulator:start` | Temporary Firestore Emulator on `127.0.0.1:8080` |
-| `pnpm api:local` | Serve the API with live lookups; add `-- --enrichment=recorded` for saved responses or `-- --agents=claude` for the agent team |
-| `pnpm demo` | Start the emulator, API and web app for a live demo; add `-- --agents` for the paid Claude agent team |
+| `pnpm api:local` | Serve the API with live lookups; add `-- --enrichment=recorded` for saved responses or `-- --agents=auto` to offer the agent switch when a key is present |
+| `pnpm demo` | Start the emulator, API and web app for a live demo; the agent switch appears when `.env` holds a key |
 | `pnpm simulate:traffic` | Send 60 fictional leads with simulated attribution through the API, one every 10 s (saved responses only) |
 | `pnpm enrichment:probe` | Owner-authorized live lookup that refreshes the saved responses |
 | `pnpm emulator:runtime` | End-to-end test of the API and workflow against the emulator |

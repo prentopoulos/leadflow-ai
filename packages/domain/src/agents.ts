@@ -114,12 +114,23 @@ export const AgentLeadProjectionSchema = z
   .strict();
 export type AgentLeadProjection = z.infer<typeof AgentLeadProjectionSchema>;
 
-// The vehicle is a bounded coded intake value. Area comes only from found
-// evidence matching the lead; a ZIP with several places contributes no area.
+// Vehicle and area come only from found evidence matching the lead: the model
+// sees an NHTSA-listed year, make and model, never the typed text, and a ZIP
+// with several places contributes no area.
 export function agentProjectionFrom(input: {
   intake: IntakeSubmission;
   evidence: readonly EnrichmentEvidence[];
 }): AgentLeadProjection {
+  const vehicleEvidence = input.evidence.find(
+    (record) =>
+      record.source === 'nhtsa_vpic' &&
+      record.outcome === 'found' &&
+      record.subject.kind === 'vehicle' &&
+      record.subject.make === input.intake.vehicleMake &&
+      record.subject.modelYear === input.intake.vehicleYear &&
+      record.subject.model === input.intake.vehicleModel,
+  );
+  const vehicleClaim = vehicleEvidence?.claim;
   const zipEvidence = input.evidence.find(
     (record) =>
       record.source === 'zippopotam_us' &&
@@ -134,13 +145,15 @@ export function agentProjectionFrom(input: {
       : undefined;
   return AgentLeadProjectionSchema.parse({
     vehicle:
-      input.intake.vehicleYear !== null &&
-      input.intake.vehicleMake !== null &&
-      input.intake.vehicleModel !== null
+      vehicleClaim?.kind === 'vehicle_listing' &&
+      vehicleClaim.listed &&
+      vehicleClaim.modelName !== null &&
+      vehicleEvidence?.subject.kind === 'vehicle' &&
+      vehicleEvidence.subject.make !== null
         ? {
-            modelYear: input.intake.vehicleYear,
-            make: input.intake.vehicleMake,
-            model: input.intake.vehicleModel,
+            modelYear: vehicleClaim.modelYear,
+            make: vehicleEvidence.subject.make,
+            model: vehicleClaim.modelName,
           }
         : null,
     area:
@@ -469,3 +482,24 @@ export const projectionNumbers = (projection: AgentLeadProjection) =>
 // The draft slot value: the paragraph as its own block of the email body.
 export const agentParagraphSlotValue = (paragraph: string) =>
   `\n\n${paragraph}`;
+
+// The operator's on/off switch for the local agent team. `available` means
+// the process holds an API key; `enabled` is the switch, off at start.
+export const AgentSettingsSchema = z
+  .object({
+    schemaVersion: z.literal('agent-settings-v1'),
+    available: z.boolean(),
+    enabled: z.boolean(),
+    leadCapUsd: z.number().nonnegative(),
+    processCapUsd: z.number().nonnegative(),
+    spentUsd: z.number().nonnegative(),
+  })
+  .strict()
+  .refine((value) => value.available || !value.enabled, {
+    path: ['enabled'],
+    message: 'an unavailable agent team cannot be enabled',
+  });
+export type AgentSettings = z.infer<typeof AgentSettingsSchema>;
+export const AgentSettingsUpdateSchema = z
+  .object({ enabled: z.boolean() })
+  .strict();

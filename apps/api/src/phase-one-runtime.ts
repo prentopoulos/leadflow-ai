@@ -1,4 +1,6 @@
 import {
+  AGENT_LIMITS,
+  AgentSettingsSchema,
   HOSTED_TARGET,
   type ExecuteResponse,
   type QualificationGraphState,
@@ -32,6 +34,7 @@ import {
   type QualificationInterpreter,
 } from '@leadflow-ai/runtime';
 import { z } from 'zod';
+import type { AgentRouteDependencies } from './agent-route.js';
 import type { ExecuteRouteDependencies } from './execute-route.js';
 import type { IntakeRouteDependencies } from './intake-route.js';
 import type { ResetRouteDependencies } from './reset-route.js';
@@ -50,6 +53,8 @@ export interface PhaseOneApiDependencies {
   drafts: DraftService;
   operations: OperationsRouteDependencies;
   executor: WorkflowExecutor;
+  // Local only: the dashboard switch for the agent team.
+  agents?: AgentRouteDependencies;
   // Present only in hosted mode, where intake starts no post-response work.
   execute?: ExecuteRouteDependencies;
 }
@@ -122,14 +127,34 @@ export async function createPhaseOneApiDependencies(
   if (agentsEnabled !== bundleAgents) {
     throw new Error('The system bundle does not match the agent setting.');
   }
+  // The team is available when the process holds a key; the dashboard
+  // switch turns it on, and it starts off so no click means no spend.
+  const agentSwitch = { enabled: false };
   const agents = agentsEnabled
     ? {
         port:
           options.modelPort ??
           new AnthropicModelPort(process.env.ANTHROPIC_API_KEY ?? ''),
         ledger: new SpendLedger(),
+        isEnabled: () => agentSwitch.enabled,
       }
     : undefined;
+  const agentSettings = () =>
+    AgentSettingsSchema.parse({
+      schemaVersion: 'agent-settings-v1',
+      available: agents !== undefined,
+      enabled: agents !== undefined && agentSwitch.enabled,
+      leadCapUsd: AGENT_LIMITS.leadCapMicros / 1_000_000,
+      processCapUsd: AGENT_LIMITS.processCapMicros / 1_000_000,
+      spentUsd: (agents?.ledger.processSpentMicros ?? 0) / 1_000_000,
+    });
+  const agentRoutes: AgentRouteDependencies = {
+    settings: agentSettings,
+    setEnabled: (enabled) => {
+      agentSwitch.enabled = agents !== undefined && enabled;
+      return agentSettings();
+    },
+  };
   const transport =
     options.enrichmentTransport ??
     (await createEnrichmentTransport(enrichmentMode));
@@ -315,6 +340,6 @@ export async function createPhaseOneApiDependencies(
       systemBundleId: validatedBundleId,
     },
     executor,
-    ...(hosted ? { execute } : {}),
+    ...(hosted ? { execute } : { agents: agentRoutes }),
   };
 }

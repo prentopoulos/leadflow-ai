@@ -2,6 +2,19 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## After Phase 5 (2026-10-27): agent switch and benchmark
+
+Branch `feat/agent-toggle`: the agent team is now a dashboard switch. `pnpm demo` passes
+`--agents=auto`, so a key in `.env` makes the team available and the Metrics page shows an "AI
+research agents" switch (off at start, `PUT /v1/agents`, local only) with the session's Claude spend;
+without a key it explains how to add one. Models again see only an NHTSA-listed vehicle (Codex had
+switched to the typed intake text). Fresh-clone check from GitHub on Windows passed: bootstrap,
+install, `pnpm demo`, Run simulated traffic, approve a draft, cost per lead recalculated by hand.
+Benchmark, same first 10 traffic-plan leads, sequential, recorded enrichment: agents off 0.92 s
+median per lead, $0, 8/8 drafts pass; agents on 28 s median, $0.94 total ($0.12 per draft), 8/8 pass,
+6 researched paragraphs and 2 `rule_check_failed` fallbacks. Outcomes are simulated, so no
+conversion effect can be measured.
+
 ## Phase 5 complete (2026-10-27) — owner approved PR #11 merge
 
 Phase 5 is complete on branch `phase-5-agent-drafts`. The opt-in local Anthropic team researches
@@ -41,7 +54,7 @@ checks. No automatic outreach, hosted agent use or real-data gate was authorized
 Environment note: the repo folder is owned by the `CodexSandboxOffline` Windows account, so git
 needs `git -c safe.directory=C:/Users/Peter/Documents/leadflow_ai …` and `gh` needs
 `GIT_CONFIG_PARAMETERS="'safe.directory=C:/Users/Peter/Documents/leadflow_ai'"` (global git config
-was not changed). Capture the gate with `cmd /c "node scriptsun-checks.mjs > %TEMP%\check.log 2>&1"`
+was not changed). Capture the gate with `cmd /c "node scripts\run-checks.mjs > %TEMP%\check.log 2>&1"`
 after activating the toolchain.
 
 Open Phase 4 items carried alongside: PR #10 (macOS setup); recheck the posted hosted cost;
