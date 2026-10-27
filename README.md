@@ -2,8 +2,7 @@
 
 # LeadFlow AI
 
-**A consent-gated lead workflow built from stored evidence, fixed scoring and human-reviewed drafts.**<br>
-Fictional inquiry in. Reviewable outreach draft out.
+**Lead qualification and outreach drafting for fictional auto-insurance inquiries.**
 
 Fictional leads · Firestore Emulator · Public vehicle and ZIP data · Optional Claude agent team
 
@@ -76,11 +75,10 @@ and quality gate offline.
 
 ## Optional research team
 
-<img src="docs/diagrams/agent-workflow.svg" alt="Optional research team: a lead plans bounded questions, three workers research vehicle, area and coverage topics in parallel, code checks every cited claim, the lead merges only kept claims, a writer drafts one paragraph, review allows at most two rewrites, and a person reviews the result" width="100%">
+<img src="docs/diagrams/agent-workflow.svg" alt="Optional research team: one orchestrator delegates bounded questions to vehicle, area and coverage specialists, then combines their cited findings for checking, drafting and human review" width="100%">
 
-With `--agents`, three bounded researchers cover the vehicle, area and requested coverage. Code
-checks their citations before a writer adds one short paragraph to the template; review allows at
-most two rewrites.
+With `--agents`, one research lead coordinates three specialists: vehicle, area and requested
+coverage. Code checks their citations before one short paragraph is added to the template.
 
 The team receives no name, email, ZIP Code or free-text message. Failed evidence, model errors or a
 spend cap leave the plain template draft. The hosted demo never enables this team.

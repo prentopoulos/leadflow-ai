@@ -165,6 +165,44 @@ export class Diagram {
     return { x, y, w, h, cx, cy: y + h / 2, right: x + w, bottom: y + h };
   }
 
+  bubble({ cx, cy, r, kind, tag, name, sub }) {
+    const x = cx - r;
+    const y = cy - r;
+    const size = r * 2;
+    this.#assertInside(x, y, size, size, `bubble ${name}`);
+    for (const value of [cx, cy, r]) {
+      if (value % 4 !== 0)
+        throw new Error(`${this.slug}: ${name} is off the 4px grid`);
+    }
+    if (kind === 'focal') this.#accent();
+    this.nodeCount += 1;
+    if (this.nodeCount > this.maxNodes) {
+      throw new Error(`${this.slug}: node budget exceeded`);
+    }
+    const treatment = treatments[kind];
+    this.#fit(name, 13, SANS_EM, size - 24, `bubble (${name})`);
+    this.#fit(sub, 9, MONO_EM, size - 20, `bubble (${name})`);
+    this.texts.push(tag);
+    this.nodeRects.push({ x, y, w: size, h: size, name });
+    this.nodes.push(
+      `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${tokens.paper}"/>`,
+      `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${treatment.fill}" stroke="${treatment.stroke}" stroke-width="1.2"${treatment.dash ? ` stroke-dasharray="${treatment.dash}"` : ''}/>`,
+      `<text x="${cx}" y="${cy - 20}" fill="${tokens.soft}" font-size="7" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">${escapeXml(tag)}</text>`,
+      `<text x="${cx}" y="${cy + 2}" fill="${tokens.ink}" font-size="13" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">${escapeXml(name)}</text>`,
+      `<text x="${cx}" y="${cy + 22}" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">${escapeXml(sub)}</text>`,
+    );
+    return {
+      x,
+      y,
+      w: size,
+      h: size,
+      cx,
+      cy,
+      right: x + size,
+      bottom: y + size,
+    };
+  }
+
   /** Free-form box drawn by the caller (entities, actors); still budgeted. */
   box({ x, y, w, h, kind, markup, name }) {
     this.#assertInside(x, y, w, h, `box ${name}`);
