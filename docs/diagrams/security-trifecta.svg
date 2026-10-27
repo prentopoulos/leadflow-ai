@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="security-trifecta-title security-trifecta-desc" id="security-trifecta-root">
+<svg viewBox="0 0 1000 496" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="security-trifecta-title security-trifecta-desc" id="security-trifecta-root">
   <title id="security-trifecta-title">No run gets all three capabilities</title>
   <desc id="security-trifecta-desc">Three overlapping capability sets show bounded untrusted input, sensitive data and a way out. Their shared center is blocked. The matrix shows recorded local, live local and optional agent-local modes without real personal data or automatic sending.</desc>
   <defs>
@@ -78,7 +78,4 @@
   <text x="404" y="416" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif">Rejected configuration</text>
   <text x="404" y="433" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace">Lead input + real personal data + model or sender cannot enter a run.</text>
   <text x="914" y="423" fill="#075e57" font-size="8" font-weight="700" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">3 / 3 BLOCKED</text>
-  <line x1="40" y1="496" x2="960" y2="496" stroke="#1a211f" stroke-width="0.8" stroke-opacity="0.16"/>
-  <text x="40" y="520" fill="#1a211f" font-size="10" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif">Current boundary</text>
-  <text x="140" y="520" fill="#626a66" font-size="10" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif">Fictional identities and test contacts. No insurer integration, quote, real personal data, or automatic sending.</text>
 </svg>

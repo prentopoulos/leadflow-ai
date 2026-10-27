@@ -1643,7 +1643,7 @@ function securityTrifecta() {
   const d = new Diagram({
     slug: 'security-trifecta',
     width: 1000,
-    height: 560,
+    height: 496,
     maxNodes: 0,
     maxArrows: 0,
   });
@@ -1719,9 +1719,6 @@ function securityTrifecta() {
     `<text x="404" y="416" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}">Rejected configuration</text>`,
     `<text x="404" y="433" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}">Lead input + real personal data + model or sender cannot enter a run.</text>`,
     `<text x="914" y="423" fill="${tokens.accent}" font-size="8" font-weight="700" font-family="${fonts.sans}" text-anchor="middle">3 / 3 BLOCKED</text>`,
-    `<line x1="40" y1="496" x2="960" y2="496" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
-    `<text x="40" y="520" fill="${tokens.ink}" font-size="10" font-weight="600" font-family="${fonts.sans}">Current boundary</text>`,
-    `<text x="140" y="520" fill="${tokens.muted}" font-size="10" font-family="${fonts.sans}">Fictional identities and test contacts. No insurer integration, quote, real personal data, or automatic sending.</text>`,
   );
   d.under(markup.join('\n  '));
 
@@ -1813,7 +1810,7 @@ function principles() {
 }
 
 function simplePipeline() {
-  const d = new Diagram({ slug: 'pipeline', width: 960, height: 600 });
+  const d = new Diagram({ slug: 'pipeline', width: 960, height: 464 });
   const xs = [20, 176, 332, 488, 644, 800];
   const y = 200;
   for (let index = 0; index < xs.length - 1; index += 1) {
@@ -1877,14 +1874,6 @@ function simplePipeline() {
     name: 'Cited research',
     sub: ['one short paragraph', 'failure keeps template'],
   });
-  d.callout(
-    [
-      'No consent means no draft. A passing draft still waits for a person.',
-      'LeadFlow never sends email or makes an insurance decision.',
-    ],
-    20,
-    520,
-  );
   return page({
     diagram: d,
     eyebrow: 'Plain-language pipeline',
@@ -1896,7 +1885,7 @@ function simplePipeline() {
 }
 
 function simpleArchitecture() {
-  const d = new Diagram({ slug: 'architecture', width: 960, height: 600 });
+  const d = new Diagram({ slug: 'architecture', width: 960, height: 560 });
   d.zone({
     x: 16,
     y: 96,
@@ -2024,11 +2013,6 @@ function simpleArchitecture() {
     name: 'Claude API',
     sub: ['research + drafting', 'off by default'],
   });
-  d.callout(
-    ['The browser never connects to stored records or providers directly.'],
-    40,
-    504,
-  );
   return page({
     diagram: d,
     eyebrow: 'Technical system boundary',
@@ -2043,7 +2027,7 @@ function simpleAgentWorkflow() {
   const d = new Diagram({
     slug: 'agent-workflow',
     width: 960,
-    height: 520,
+    height: 440,
     maxNodes: 4,
     maxArrows: 5,
   });
@@ -2105,14 +2089,6 @@ function simpleAgentWorkflow() {
     name: 'Coverage',
     sub: 'education',
   });
-  d.callout(
-    [
-      'Public web only · no identity or message.',
-      'Citations checked before one short paragraph reaches human review.',
-    ],
-    240,
-    464,
-  );
   return page({
     diagram: d,
     eyebrow: 'Optional research team',
