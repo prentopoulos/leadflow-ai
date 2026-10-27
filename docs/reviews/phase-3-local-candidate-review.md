@@ -72,7 +72,7 @@ findings that were all third-party package tests and docs or the compiled local-
 constants; the content rules were scoped to what each area can leak (project files: artifacts,
 build-machine paths, emulator data or configuration, key material, private values; third-party
 packages: env or Git files, key material, private values), with a test proving each class is still
-caught and that an upstream `-----BEGIN PRIVATE KEY-----xxxxxxx` documentation placeholder is not.
+caught and that an upstream documentation placeholder (a private-key header followed by `xxxxxxx`) is not.
 
 ## Selected local candidate
 
