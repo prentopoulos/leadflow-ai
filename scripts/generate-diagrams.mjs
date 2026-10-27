@@ -2040,141 +2040,86 @@ function simpleArchitecture() {
 }
 
 function simpleAgentWorkflow() {
-  const d = new Diagram({ slug: 'agent-workflow', width: 960, height: 600 });
-  d.zone({
-    x: 16,
-    y: 104,
-    w: 768,
-    h: 224,
-    label: 'RESEARCH · PUBLIC WEB · BOUNDED QUESTIONS',
-    dashed: true,
-    labelX: 256,
+  const d = new Diagram({
+    slug: 'agent-workflow',
+    width: 960,
+    height: 520,
+    maxNodes: 4,
+    maxArrows: 5,
   });
-  d.path([
-    [184, 208],
-    [208, 208],
-  ]);
-  d.path([
-    [416, 208],
-    [440, 208],
-  ]);
-  d.path([
-    [600, 208],
-    [624, 208],
-  ]);
-  d.path([
-    [784, 208],
-    [800, 208],
-  ]);
-  d.path([
-    [868, 256],
-    [868, 336],
-  ]);
-  d.path([
-    [868, 432],
-    [868, 488],
-  ]);
+
   d.path(
     [
-      [800, 372],
-      [760, 372],
-      [760, 300],
-      [868, 300],
-      [868, 256],
+      [480, 200],
+      [480, 244],
     ],
-    { dashed: true },
+    { marker: false, role: 'accent' },
   );
-
-  d.node({
-    x: 24,
-    y: 160,
-    w: 160,
-    h: 96,
-    kind: 'backend',
-    tag: 'RESEARCH LEAD',
-    name: 'Plan research',
-    sub: ['1–3 questions per topic', 'no tools'],
-  });
-  d.box({
-    x: 208,
-    y: 136,
-    w: 208,
-    h: 144,
-    kind: 'backend',
-    name: 'Three research workers',
-    markup: [
-      `<text x="312" y="172" fill="${tokens.ink}" font-size="14" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Three workers</text>`,
-      `<line x1="224" y1="188" x2="400" y2="188" stroke="${rgba(tokens.ink, 0.14)}" stroke-width="0.8"/>`,
-      `<text x="312" y="216" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Vehicle · area · coverage</text>`,
-      `<text x="312" y="240" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">search in parallel</text>`,
-      `<text x="312" y="258" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">URL + quote + answer</text>`,
+  d.path(
+    [
+      [240, 244],
+      [720, 244],
     ],
-  });
-  d.node({
-    x: 440,
-    y: 160,
-    w: 160,
-    h: 96,
+    { marker: false },
+  );
+  for (const x of [240, 480, 720]) {
+    d.path([
+      [x, 244],
+      [x, 284],
+    ]);
+  }
+
+  d.bubble({
+    cx: 480,
+    cy: 128,
+    r: 72,
     kind: 'focal',
-    tag: 'CODE',
-    name: 'Check claims',
-    sub: ['quote carries words', 'and every number'],
+    tag: 'ORCHESTRATOR',
+    name: 'Research lead',
+    sub: 'plan · assign · merge',
   });
-  d.node({
-    x: 624,
-    y: 160,
-    w: 160,
-    h: 96,
+  d.bubble({
+    cx: 240,
+    cy: 348,
+    r: 64,
     kind: 'backend',
-    tag: 'RESEARCH LEAD',
-    name: 'Merge brief',
-    sub: ['kept claims only', 'no new facts'],
+    tag: 'SPECIALIST',
+    name: 'Vehicle',
+    sub: 'vehicle facts',
   });
-  d.node({
-    x: 800,
-    y: 160,
-    w: 136,
-    h: 96,
+  d.bubble({
+    cx: 480,
+    cy: 348,
+    r: 64,
     kind: 'backend',
-    tag: 'WRITER',
-    name: 'Write paragraph',
-    sub: ['claim IDs', '600 chars max'],
+    tag: 'SPECIALIST',
+    name: 'Area',
+    sub: 'local context',
   });
-  d.node({
-    x: 800,
-    y: 336,
-    w: 136,
-    h: 96,
+  d.bubble({
+    cx: 720,
+    cy: 348,
+    r: 64,
     kind: 'backend',
-    tag: 'CHECK',
-    name: 'Review draft',
-    sub: ['rules · critic', '≤ 2 rewrites'],
-  });
-  d.node({
-    x: 800,
-    y: 488,
-    w: 136,
-    h: 80,
-    kind: 'input',
-    tag: 'PERSON',
-    name: 'Human review',
-    sub: ['approve · edit', 'reject · no send'],
+    tag: 'SPECIALIST',
+    name: 'Coverage',
+    sub: 'requested topic',
   });
   d.callout(
     [
-      'Workers never see name, email, ZIP or request text.',
-      'Any failure keeps the plain template draft and records the reason.',
+      'Public web only · no identity or message.',
+      'Citations checked before one short paragraph reaches human review.',
     ],
-    24,
-    500,
+    240,
+    464,
   );
   return page({
     diagram: d,
-    eyebrow: 'Optional research and drafting',
-    title: 'How the team builds one paragraph',
-    desc: 'A research lead assigns bounded vehicle, area and coverage questions to three workers; code checks every cited claim, the lead merges only kept claims, a writer drafts one paragraph, review allows at most two rewrites, and a person reviews the result.',
+    eyebrow: 'Optional research team',
+    title: 'One lead coordinates three specialists',
+    desc: 'A research orchestrator delegates bounded questions to vehicle, area and coverage specialists, then combines only cited findings for verification, drafting and human review.',
     intro:
-      'Research, claim checking, writing and review have separate jobs. A failed step falls back to the normal template.',
+      'Each specialist has one job. The lead combines only checked findings.',
   });
 }
 
