@@ -8,6 +8,8 @@ import {
   EmailCheckSchema,
   EnrichmentEvidenceSchema,
   RAW_BODY_LIMIT_BYTES,
+  RECORDED_VEHICLE_SUBJECTS,
+  RECORDED_ZIP_SUBJECTS,
   TEST_EMAIL_DOMAINS,
   TestEmailSchema,
   VEHICLE_LISTING_STATEMENT,
@@ -647,36 +649,13 @@ export function checkEmail(input: {
   });
 }
 
-// The fixed subjects the authorized probe captures and the seed reuses. Each
-// URL is requested once per probe run; Camero and Chevy are deliberate
-// non-matches that reuse a recorded make/year response or test vPIC naming.
-export const PROBE_VEHICLE_SUBJECTS: readonly VehicleInput[] = [
-  { vehicleYear: 2022, vehicleMake: 'Toyota', vehicleModel: 'Camry' },
-  { vehicleYear: 2022, vehicleMake: 'Toyota', vehicleModel: 'Camero' },
-  { vehicleYear: 2021, vehicleMake: 'Honda', vehicleModel: 'Civic' },
-  { vehicleYear: 2023, vehicleMake: 'Ford', vehicleModel: 'F-150' },
-  { vehicleYear: 2020, vehicleMake: 'Subaru', vehicleModel: 'Outback' },
-  { vehicleYear: 2024, vehicleMake: 'Tesla', vehicleModel: 'Model 3' },
-  { vehicleYear: 2019, vehicleMake: 'Jeep', vehicleModel: 'Wrangler' },
-  { vehicleYear: 2021, vehicleMake: 'Chevy', vehicleModel: 'Malibu' },
-  {
-    vehicleYear: 2024,
-    vehicleMake: 'Example Motors',
-    vehicleModel: 'Demo One',
-  },
-];
-export const PROBE_ZIP_SUBJECTS: readonly string[] = [
-  '22150',
-  '10001',
-  '90210',
-  '60614',
-  '98101',
-  '78201',
-  '30303',
-  '02108',
-  '00000',
-  '99999',
-];
+// The fixed subjects the authorized probe captures and simulated traffic
+// reuses (owned by the domain traffic plan). Each URL is requested once per
+// probe run; Camero and Chevy are deliberate non-matches that reuse a recorded
+// make/year response or test vPIC naming.
+export const PROBE_VEHICLE_SUBJECTS: readonly VehicleInput[] =
+  RECORDED_VEHICLE_SUBJECTS;
+export const PROBE_ZIP_SUBJECTS: readonly string[] = RECORDED_ZIP_SUBJECTS;
 
 export function probeUrls(): { source: EnrichmentSource; url: URL }[] {
   const seen = new Set<string>();

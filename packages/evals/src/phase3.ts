@@ -182,7 +182,9 @@ export const PHASE_THREE_CASES = [
     'methodology-unchanged',
     {
       rubric: 'rubric-v1',
-      metricsDefinitions: 'metrics-definitions-v1',
+      // Phase 4 moved metrics to v2 by owner decision (2026-10-27); the rest
+      // of the Phase 2 methodology is unchanged.
+      metricsDefinitions: 'metrics-definitions-v2',
       composer: 'deterministic-template-v1',
       verificationRules: 'verification-rules-v1',
       enrichmentAdapters: 'enrichment-adapters-v1',
@@ -258,7 +260,7 @@ function refusedBy(action: () => unknown): boolean {
 }
 
 const releaseBase = {
-  schemaVersion: 'system-bundle-v3',
+  schemaVersion: 'system-bundle-v4',
   code: {
     revision: 'c'.repeat(40),
     dirty: false,
@@ -283,6 +285,9 @@ const releaseBase = {
     verificationRules: CONTRACT_VERSIONS.verificationRules,
     decisionLanguage: CONTRACT_VERSIONS.decisionLanguage,
     metricsDefinitions: CONTRACT_VERSIONS.metricsDefinitions,
+    channelRules: CONTRACT_VERSIONS.channelRules,
+    spendFixture: CONTRACT_VERSIONS.spendFixture,
+    trafficPlan: CONTRACT_VERSIONS.trafficPlan,
     evaluator: DATASET_VERSION,
     configuration: 'phase-3-cloud-v1',
   },

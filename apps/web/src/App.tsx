@@ -209,6 +209,8 @@ export function App({
       requestDetails: getOptionalText(formData, 'requestDetails'),
       emailContactConsent: consentGiven,
       consentRecord: consentGiven ? currentConsentRecord() : null,
+      // The form never captures URL parameters; only simulated traffic carries attribution.
+      attribution: null,
     };
     const result = IntakeSubmissionSchema.safeParse(candidate);
 

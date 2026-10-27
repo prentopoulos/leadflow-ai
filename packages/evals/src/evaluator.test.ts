@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { evaluateAll, evaluateCase } from './evaluator.js';
 import { PHASE_TWO_CASES } from './phase2.js';
 import { PHASE_THREE_CASES } from './phase3.js';
+import { PHASE_FOUR_CASES } from './phase4.js';
 import {
   COMBINED_CASES,
   PHASE_ONE_CASES,
@@ -31,11 +32,13 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
     expect(PHASE_ONE_CASES).toHaveLength(14);
     expect(PHASE_TWO_CASES).toHaveLength(13);
     expect(PHASE_THREE_CASES).toHaveLength(17);
+    expect(PHASE_FOUR_CASES).toHaveLength(16);
     expect(COMBINED_CASES).toHaveLength(
       PHASE_ZERO_CASES.length +
         PHASE_ONE_CASES.length +
         PHASE_TWO_CASES.length +
-        PHASE_THREE_CASES.length,
+        PHASE_THREE_CASES.length +
+        PHASE_FOUR_CASES.length,
     );
     // Every case that depends on real cloud behaviour stays not_run offline.
     const results = await evaluateAll(PHASE_THREE_CASES);
@@ -134,7 +137,7 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
       label: 'synthetic-local',
       generatedAt: new Date().toISOString(),
       bundle: {
-        schemaVersion: 'system-bundle-v3',
+        schemaVersion: 'system-bundle-v4',
         systemBundleId: '11111111-1111-4111-8111-111111111111',
         createdAt: '2026-10-24T20:00:00.000Z',
         code: {
@@ -146,8 +149,8 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
         lockfileDigest: digest,
         fixtures: { version: DATASET_VERSION, digest },
         versions: {
-          intake: 'intake-v2',
-          lead: 'lead-v2',
+          intake: 'intake-v3',
+          lead: 'lead-v3',
           run: 'run-v2',
           event: 'event-v2',
           checkpoint: 'checkpoint-v1',
@@ -160,7 +163,10 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
           composer: 'deterministic-template-v1',
           verificationRules: 'verification-rules-v1',
           decisionLanguage: 'decision-language-v1',
-          metricsDefinitions: 'metrics-definitions-v1',
+          metricsDefinitions: 'metrics-definitions-v2',
+          channelRules: 'channel-rules-v1',
+          spendFixture: 'synthetic-spend-v1',
+          trafficPlan: 'traffic-plan-v1',
           evaluator: EVALUATOR_VERSION,
           configuration: 'phase-2-local-v1',
         },

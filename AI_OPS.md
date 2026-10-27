@@ -21,14 +21,15 @@ maps AI capabilities to current evidence. Read
 | MCP / external tool servers | deferred | Not part of the runtime design | An MCP/runtime tool server is proposed |
 | Messages sent to people | deferred | Consent-gated email drafts with content-bound human review; "approved" means approved for manual use. A governance check fails on any delivery package, send route, mail transport or unauthorized outbound host | Any outbound channel is proposed |
 | Business outcome measurement | deferred | MVP reports operational metrics, not insurer quotes or CRM conversion attribution | Downstream CRM/outcome integration is proposed |
+| Simulated acquisition attribution | implemented-local | Phase 4: optional synthetic attribution on `lead-v3` (slug source/medium/campaign, schema-enforced `sim-` click ID), `channel-rules-v1`, the labelled `synthetic-spend-v1` fixture and `traffic-plan-v1` (60 fictional leads, content-independent channel assignment) through `pnpm simulate:traffic` or the hosted owner-triggered control. Attribution never reaches scoring, drafts, verification, events, logs or a model. No Google Ads/Analytics data, real click IDs, clicks or revenue | Real advertising or analytics data (real-personal-information and paid-API gates plus a new phase), or any click/revenue measure |
 
 ## Evidence locations
 
 | Record | Location / current status |
 |---|---|
 | Design choices: autonomy, pattern, framework, model tiers, hosting, fallback | Phase 0 foundation design records the local-only boundary; runtime/model choices remain Phase 1 work |
-| System bundle and last known-good version | `system-bundle-v3` adds the deployment binding: local emulator, or hosted project digest, Cloud Run revision, image digest, IAP policy, Firestore location and retention policy; latest verified checkpoint is in `HANDOFF.md` |
-| Evaluation plan, held-out cases and evaluator | `packages/evals`; combined `phase-3.0` corpus retains all Phase 0–2 IDs, adds 17 fixed Phase 3 cases (8 runnable, 2 emulator-measured, 7 deployed `not_run`), validates bundle freshness, and preserves explicit `not_run` outcomes |
+| System bundle and last known-good version | `system-bundle-v4` records `intake-v3`, `lead-v3`, `metrics-definitions-v2`, `channel-rules-v1`, `synthetic-spend-v1` and `traffic-plan-v1`; `system-bundle-v3` added the deployment binding: local emulator, or hosted project digest, Cloud Run revision, image digest, IAP policy, Firestore location and retention policy; latest verified checkpoint is in `HANDOFF.md` |
+| Evaluation plan, held-out cases and evaluator | `packages/evals`; combined `phase-4.0` corpus retains all Phase 0–3 IDs and adds 16 fixed Phase 4 cases (channel rules, click-ID shapes, version gate, score independence, traffic plan and runner, spend fixture, hand-calculated cost answers); `p3-methodology-unchanged` now expects `metrics-definitions-v2` by owner decision. Validates bundle freshness and preserves explicit `not_run` outcomes |
 | Offline deterministic check command | Activate with `. .\scripts\activate-toolchain.ps1`, then run `pnpm check` |
 | Authorized provider-evaluation command and budget | Not authorized; paid API gate unresolved |
 | Run records / metrics / alerts | Local run/event/result records plus `lifecycle-report-v1` privacy-aware summaries are implemented; dashboard queries, alert thresholds, retention, and production telemetry remain deferred |
@@ -54,6 +55,13 @@ maps AI capabilities to current evidence. Read
 - Metrics: `metrics-definitions-v1` names numerator, denominator, exclusions and window for every
   value, scopes to the current system bundle, keeps live and recorded/mock enrichment apart and
   shows simulator outcomes only as SYNTHETIC. A window above 2,000 runs is an explicit error.
+  `metrics-definitions-v2` keeps every v1 definition and adds a SIMULATED acquisition block:
+  blended, per-channel and per-campaign cost per lead, per marketing-qualified lead (high or
+  standard) and per contactable (consented) lead, qualified-lead rate, and spend share against lead
+  share. Spend is the labelled fixture and denominators are stored leads; zero-spend groups report
+  `no_spend` and empty denominators `insufficient_data`. Channel differences are chance by design.
+  The hosted metrics poll re-reads every run (plus its lead) every 3 s; Firestore reads are
+  measured in the Phase 4 cost checks, with a 15 s hosted poll as the fallback.
 - Data: fictional identities and test contacts only until the real-data gate is resolved. Minimize
   fields sent to models; secrets and raw credentials never enter prompts or logs.
 - Models and paid tools: provider, model, token/time budgets, concurrency, and spend ceiling are TBD

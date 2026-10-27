@@ -105,7 +105,8 @@ describe('Phase 1 intake workspace', () => {
     await waitFor(() => expect(runHeading).toHaveFocus());
     expect(intakeClient).toHaveBeenCalledWith(
       expect.objectContaining({
-        schemaVersion: 'intake-v2',
+        schemaVersion: 'intake-v3',
+        attribution: null,
         identityClass: 'fictional',
         email: 'avery.jordan@example.com',
       }),

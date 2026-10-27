@@ -42,7 +42,8 @@ const ids = {
 const timestamp = '2026-10-25T20:00:00.000Z';
 
 const intake: IntakeSubmission = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Jordan',

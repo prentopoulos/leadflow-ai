@@ -2,6 +2,128 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## Phase 5 direction (owner, 2026-10-27) — start here in the next session
+
+Peter wants Phase 5 built in one shot from a fresh `/next-phase`: few tasks, one slice, tests and the
+full gate at the end, no granular per-step checks. Settled direction (do not re-grill these):
+
+- **What:** per lead, an AdScout-style multi-agent system. A **research team** (Sonnet 5.5 lead plans
+  1–3 questions per worker; three Haiku 5.5 workers in parallel: vehicle, area, coverage needs; a
+  code claim verifier keeps only claims with a cited URL whose quote supports the text and numbers;
+  the lead merges cited points into a brief) feeds a **draft loop** (Sonnet 5.5 writer drafts a short
+  personalised paragraph citing claim IDs → code rule checker → Sonnet critic → at most 2 rewrites)
+  → a person approves. Nothing is sent.
+- **Privacy adaptation:** research the lead's situation, never the person (real-data gate): vehicle
+  (year/make/model public info), area (from the ZIP place), stated needs. Models never receive the
+  name, email or free-text request details; the code fills the greeting.
+- **Paid-API gate (owner decision):** "use the same API as AdScout and the same spend limit". Provider
+  Anthropic direct; models `claude-sonnet-5-5` (lead, writer, critic) and `claude-haiku-5-5`
+  (workers); caps from AdScout's Phase 2 design: about **$0.30 per lead** and **$8 per run**,
+  reserved in code before each call (worst case) and settled after; a budget error falls back to the
+  template draft and is recorded. `ANTHROPIC_API_KEY` is already in the gitignored `.env` (copied
+  from `Documents/leadscout/.env`, the key AdScout's design reads); never print it. Record this gate
+  decision in PROJECT.md.
+- **Scope guard:** behind a switch (`api:local -- --agents=claude`, and `pnpm demo -- --agents`),
+  off by default, so `pnpm demo` keeps working with no cost. Hosted stays template-only.
+- **Fit with existing code:** run inside the `compose_draft` node; the agent paragraph is a new draft
+  slot (provenance such as `agent_brief`) inside the existing template, so the 8 verification rules
+  still run (extend `slots_grounded` / `claim_bounded` for the agent slot; keep `no_request_text`
+  and `no_decision_language` over the whole text). Store the brief's claims (URL, quote) and per-call
+  cost on the draft record; the system bundle's provider/model/prompt fields must stop saying
+  "gate unresolved" when agents run. Show the cited sources in the dossier draft panel. Offline tests
+  use a fake model port; one small live probe runs at the end.
+- **API facts already checked (claude-api skill, 2026-10-27):** Sonnet 5.5 $2/$10 per MTok, Haiku 5.5
+  $0.10/$0.50, web search $0.01 each; Sonnet 5.5 uses `web_search_20260209`, Haiku 5.5
+  `web_search_20250305`; forced `tool_choice` returns 400 on Sonnet 5.5, so get JSON through
+  `output_config.format` (JSON schema); web-search citations arrive on text blocks as
+  `web_search_result_location` with `url` and `cited_text`. SDK: `@anthropic-ai/sdk` 0.71.2 lacks
+  `output_config`; npm shows 1.3.0 — pick an exact version that types both, and record it in
+  `docs/dependencies/phase-5.md`.
+
+Open Phase 4 items carried alongside: Peter merges PR #9 (GitHub button; the agent's merge was
+blocked), then PR #10 (macOS setup, README conflicts expected); recheck the posted cost (hosted
+Firestore reads reached 108,327 on 2026-10-27); walkthrough recording; Peter's evidence approval
+starts the seven-day teardown. `pnpm demo` was verified from a fresh clone on Windows.
+
+## Phase 4 hosted demonstration (2026-10-27)
+
+Revision `leadflow-ai-demo-a151256aac80` (build `d13d3e74`, image `sha256:83c7f364…`) serves 100%.
+Recorded in `docs/evidence/phase-4/index.json`: owner access, both purges, configuration match,
+persist-before-202, polling, duplicate-execution conflict, recorded labels, consent/no-send, verified
+rollback to `95b6c04eda59` and back, the 60-lead hosted flight and the acquisition labels all pass.
+Open: `deployed-cost-status` (Firestore reads rose to 108,327 today because the open hosted
+dashboard polls every 3 s; above the 50,000 free tier, cents expected; recheck the bill),
+`deployed-teardown` (starts at Peter's evidence approval), the walkthrough recording, and the
+design's fallback of a 15 s hosted metrics poll before any further hosted demo.
+
+Live demo for Peter: `pnpm demo` (Windows and macOS; local, no cloud cost) then **Run simulated
+traffic** on Metrics. macOS setup lives on `feat/macos-showcase-readme` with the checksum fix
+(`5a7a8e9`, local worktree `../lf-mac`), not yet pushed or merged.
+
+## Phase 4 local candidate checkpoint (2026-10-27)
+
+Branch `phase-4-simulated-acquisition`, draft PR #9. Tasks 2.1-7.1 are complete; the exact local
+candidate is `2da8a5d` (rebased onto `main` at `ec4fc66`; it adds the Phase 4 evidence index to the
+reviewed `8471757`, and the full gate passed on it with 431 tests). Task 1.1 is done: at 13:03 Toronto on
+2026-10-27 the posted usage (Cloud Run 32 requests, 25.1 s CPU; Cloud Build 4.9 min; Firestore 551
+reads, 321 writes) cost CA$0.00 within free tiers, both budgets at $0.00 of $10, recorded as
+`deployed-cost-status` pass in the Phase 3 evidence index. Spend is below the 50% inspection point.
+Open: 8.1 (hosted demonstration and walkthrough, after an enumerated owner approval) and 9.1.
+
+Task 7.1 evidence on `8471757`: the full `pnpm check` passed (430 tests; evaluation 59 passed,
+0 failed, 25 not_run; smoke, governance, docs, strict OpenSpec). The first full gate of the phase
+retained 2 failures in `session.test.tsx` (focus asserted before its effect ran under parallel
+load); the test now waits for focus. Code review (`/code-review high`): 10 findings; six fixed in
+`fix: resolve phase four code review findings`, three answered with reasons in the PR, one (a
+checksum bug in the macOS bootstrap script) belongs to the commits below. Design eval (design
+review plus detector, browser and contrast evidence; taste reviewer skipped for app screens):
+26/40 with two P1s; Peter chose P1 + P2, fixed in `fix: resolve phase four design review
+findings` and checked in the running app at 1280 and 390 px for a 20- and a 60-lead flight.
+Publication scan of the branch diff: no private value, key shape or home path.
+
+Branch hygiene: at 09:58 the working tree had been switched to `feat/macos-showcase-readme`, so the
+Phase 4 branch picked up its two commits (`587b1c1` macOS setup, `9204b73` README trifecta). Peter
+chose to move them out: the branch was rebased onto `main` and pushed with `--force-with-lease`; a
+local `backup/phase-4-before-rebase` keeps the pre-rebase state. `feat/macos-showcase-readme` is
+unchanged on GitHub with no PR; before it merges, its bootstrap script must stop installing an
+artifact whose checksum failed (the check runs inside `$(...)`, where `set -e` is off).
+
+## Phase 4 spec checkpoint (2026-10-27)
+
+Branch `phase-4-simulated-acquisition`, OpenSpec change of the same name. Grilling finished in one
+round: Peter accepted all nine owner calls and ten settled answers (PROJECT.md § Phase 4
+decisions). The spec-only commit and draft PR were the first actions.
+
+Interim cost reading (2026-10-27 09:45 Toronto, read-only in Peter's Chrome): billing Overview,
+Reports and all three budgets showed CA$0.00 (the Cloud Run cap "~$0.00 / $10.00"). That was about
+11 hours after the last hosted activity (about 02:45 UTC on 2026-10-27), inside Google's "usually
+within 24 hours" window, so `deployed-cost-status` stays pending.
+
+Next: task 1.1, recheck the posted cost after about 22:45 Toronto on 2026-10-27 and record it.
+Local tasks 2.1-7.1 do not wait for it; only the hosted approval in task 8.1 does.
+
+### Build progress (2026-10-27)
+
+Done and pushed on the branch: 2.1 attribution contract (`c83dd13`), 3.1 traffic plan, runner,
+`pnpm simulate:traffic` and the hosted traffic control, 4.1 spend fixture and acquisition metrics
+(`c2adc80`), 5.1 acquisition section and dossier block (`fda36f0`). Peter added three figures
+mid-build: qualified-lead rate, cost per contactable lead, and spend share against lead share
+(PROJECT.md § Phase 4 decisions).
+
+Checks on `fda36f0`'s slice: strict TypeScript; 427 unit tests; ESLint; Prettier; build;
+evaluation 59 passed, 0 failed, 25 not_run (`phase-4.0`, 16 new cases including hand-calculated
+costs); docs check; the emulator probe (stores a paid attribution and proves no event carries it).
+Running local app: a 60-lead flight stored 60 leads and a rerun added none; dashboard figures match
+hand calculation ($2,550 / 60 = $42.50 CPL, $51.00 per qualified, $56.67 per contactable);
+Playwright at 1280 and 390 px found no overflow, no target under 24 px, four chart labels and no
+console errors at 390 px.
+
+Retained: a frozen case row for GA4's `(not set)` medium was removed before measurement because
+the slug rule refuses its space, which made that Direct branch unreachable.
+
+Not yet verified: the hosted "Run simulated traffic" control renders only in cloud mode and is
+exercised in task 8.1 (its logic is covered by component tests).
+
 ## Phase 3 closing checkpoint (2026-10-27)
 
 Phase 3 is complete and archived as `openspec/changes/archive/2026-10-27-phase-3-deployment-access-evidence`

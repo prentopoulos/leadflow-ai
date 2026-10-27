@@ -91,7 +91,7 @@ export class IntakePersistenceService {
         createdAt,
       });
     const lead = this.dependencies.repositories.leads.prepareCreate({
-      schemaVersion: 'lead-v2',
+      schemaVersion: 'lead-v3',
       leadId,
       createdAt,
       intake,
@@ -113,6 +113,7 @@ export class IntakePersistenceService {
           'requestDetails',
           'emailContactConsent',
         ],
+        simulatedFields: ['attribution'],
         parityVerified: false,
       },
       evidenceClass: 'synthetic',

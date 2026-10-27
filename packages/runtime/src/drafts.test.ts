@@ -41,11 +41,12 @@ const ids = {
 const timestamp = '2026-10-25T20:00:00.000Z';
 
 const lead: LeadDocument = {
-  schemaVersion: 'lead-v2',
+  schemaVersion: 'lead-v3',
   leadId: ids.lead,
   createdAt: timestamp,
   intake: {
-    schemaVersion: 'intake-v2',
+    schemaVersion: 'intake-v3',
+    attribution: null,
     identityClass: 'fictional',
     givenName: 'Avery',
     familyName: 'Jordan',
@@ -67,6 +68,7 @@ const lead: LeadDocument = {
     retrievedAt: '2026-10-24',
     exactSourceFields: ['zipCode'],
     demoFields: ['givenName', 'familyName', 'email', 'emailContactConsent'],
+    simulatedFields: ['attribution'],
     parityVerified: false,
   },
   evidenceClass: 'synthetic',

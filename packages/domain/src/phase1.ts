@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ACQUISITION_VERSIONS, AttributionSchema } from './acquisition.js';
 import {
   CLOUD_CONFIGURATION_VERSION,
   DeploymentIdentitySchema,
@@ -6,8 +7,8 @@ import {
 } from './phase3.js';
 
 export const CONTRACT_VERSIONS = {
-  intake: 'intake-v2',
-  lead: 'lead-v2',
+  intake: 'intake-v3',
+  lead: 'lead-v3',
   run: 'run-v2',
   event: 'event-v2',
   checkpoint: 'checkpoint-v1',
@@ -18,7 +19,7 @@ export const CONTRACT_VERSIONS = {
   graphState: 'phase-2-graph-state-v1',
   rubric: 'rubric-v1',
   simulator: 'simulator-v1',
-  systemBundle: 'system-bundle-v3',
+  systemBundle: 'system-bundle-v4',
   graph: 'phase-2-graph-v1',
   configuration: 'phase-2-local-v1',
   enrichmentEvidence: 'enrichment-evidence-v1',
@@ -30,8 +31,11 @@ export const CONTRACT_VERSIONS = {
   verificationResult: 'verification-result-v1',
   verificationRules: 'verification-rules-v1',
   decisionLanguage: 'decision-language-v1',
-  metricsDefinitions: 'metrics-definitions-v1',
-  metricsReport: 'metrics-report-v1',
+  metricsDefinitions: 'metrics-definitions-v2',
+  metricsReport: 'metrics-report-v2',
+  channelRules: ACQUISITION_VERSIONS.channelRules,
+  spendFixture: ACQUISITION_VERSIONS.spendFixture,
+  trafficPlan: ACQUISITION_VERSIONS.trafficPlan,
 } as const;
 
 export const LEADFLOW_LOCAL_PROJECT_ID = 'demo-leadflow-ai-local' as const;
@@ -148,6 +152,8 @@ export const IntakeSubmissionSchema = z
     requestDetails: z.string().trim().max(1_000).nullable().default(null),
     emailContactConsent: z.boolean().default(false),
     consentRecord: ConsentRecordSchema.nullable().default(null),
+    // Synthetic LeadFlow simulation data, never a Military.com field.
+    attribution: AttributionSchema.nullable().default(null),
   })
   .strict()
   .superRefine((value, context) => {
@@ -182,6 +188,7 @@ export const IntakeFieldProvenanceSchema = z
         'emailContactConsent',
       ]),
     ),
+    simulatedFields: z.tuple([z.literal('attribution')]),
     parityVerified: z.literal(false),
   })
   .strict();
@@ -848,6 +855,9 @@ export const SystemBundleDocumentSchema = z
         verificationRules: z.literal(CONTRACT_VERSIONS.verificationRules),
         decisionLanguage: z.literal(CONTRACT_VERSIONS.decisionLanguage),
         metricsDefinitions: z.literal(CONTRACT_VERSIONS.metricsDefinitions),
+        channelRules: z.literal(CONTRACT_VERSIONS.channelRules),
+        spendFixture: z.literal(CONTRACT_VERSIONS.spendFixture),
+        trafficPlan: z.literal(CONTRACT_VERSIONS.trafficPlan),
         evaluator: z.string().min(1),
         configuration: z.enum([
           LOCAL_CONFIGURATION_VERSION,
@@ -867,7 +877,7 @@ export const SystemBundleDocumentSchema = z
         architecture: z.string().min(1),
       })
       .strict(),
-    // system-bundle-v3: local emulator or the exact hosted deployment.
+    // system-bundle-v3+: local emulator or the exact hosted deployment.
     deployment: DeploymentIdentitySchema,
     provider: UnavailableBoundarySchema,
     model: UnavailableBoundarySchema,

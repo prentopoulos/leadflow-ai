@@ -1,6 +1,6 @@
 # Walkthrough script
 
-A captioned screen recording of about two minutes at 1920 × 1080, with no voice. It is recorded
+A captioned screen recording of about two and a quarter minutes at 1920 × 1080, with no voice. It is recorded
 from the verified private hosted candidate with fictional leads entered through the signed-in
 interface, using only vehicles and ZIP Codes that have saved responses (the intake form's own
 defaults, 2020 Subaru Outback in 22150, among them). The captions below are the on-screen text.
@@ -22,9 +22,11 @@ Times are targets. The real times are measured from the finished video and writt
 | 0:56–1:10 | Score and criteria | The lead gets a marketing-readiness score out of 100. It never measures insurance eligibility or price. |
 | 1:10–1:22 | Vehicle and ZIP evidence | Each lookup is stored with its source and time and labelled recorded. |
 | 1:22–1:38 | Draft with eight checks passed | With consent recorded, a template writes a draft, and eight checks run before a person sees it. |
-| 1:38–1:48 | Approve, confirmation, next pending | Approval covers this exact text and allows manual use only. Nothing is ever sent. |
-| 1:48–1:56 | Metrics | The dashboard counts only stored runs and says what each figure includes. |
-| 1:56–2:04 | End card | Private demo, fictional data, removed after seven days. Code and evidence: github.com/prentopoulos/leadflow-ai |
+| 1:38–1:46 | Approve, confirmation, next pending | Approval covers this exact text and allows manual use only. Nothing is ever sent. |
+| 1:46–1:52 | Metrics | The dashboard counts only stored runs and says what each figure includes. |
+| 1:52–2:00 | Run simulated traffic, leads arriving | A button sends 60 fictional leads from made-up ad campaigns, one every 10 seconds. |
+| 2:00–2:10 | Acquisition section, cost tiles and channel chart | A fixed, made-up spend sheet gives cost per lead and per qualified lead by channel. All of it is simulated. |
+| 2:10–2:18 | End card | Private demo, fictional data, removed after seven days. Code and evidence: github.com/prentopoulos/leadflow-ai |
 
 ## Preview pass
 

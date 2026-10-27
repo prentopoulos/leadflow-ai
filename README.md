@@ -27,20 +27,17 @@ pnpm check
 evaluation cases, local smoke tests, diagram and docs checks, governance and OpenSpec validation. It
 needs no credentials and makes no outside calls.
 
-To use the app, run each line in its own activated PowerShell window, waiting for each to report
-that it is ready:
+### Run the demo
 
-```powershell
-pnpm emulator:start
-pnpm build; pnpm api:local -- --enrichment=recorded
-pnpm seed:local
-pnpm --filter @leadflow-ai/web exec vite
+In an activated shell (above), one command starts everything with saved responses:
+
+```console
+pnpm demo
 ```
 
-Open the URL Vite prints. It opens on the LeadFlow AI cover; `#intake` takes a new fictional lead,
-`#runs` shows leads and the approval queue, and `#metrics` shows the dashboard. The seed adds 40 fictional leads that use saved
-responses. Run `pnpm api:local` without `--enrichment` to look up the real public sources for leads
-you enter. Stopping the emulator discards all state.
+Open the link it prints (the Metrics view), then press **Run simulated traffic**. Sixty fictional
+leads arrive one every 10 seconds from made-up ad channels, and the cost-per-lead figures update
+live. Press Ctrl+C to stop; nothing is kept. Add `-- --open` to open the browser for you.
 
 ## How it works
 
@@ -119,10 +116,22 @@ the approval queue. Each figure is calculated from stored runs and states what i
 leaves out. Live and saved lookups are never added together, and the synthetic simulator's
 outcomes appear only in their own labelled panel. Every chart also has a table of its values.
 
+### Simulated acquisition
+
+The acquisition section shows where leads came from and what they cost. Each simulated lead
+carries a made-up source, campaign and click ID. A fixed spend sheet gives each simulated campaign
+a budget, so the dashboard can show cost per lead, cost per qualified lead and cost per lead that
+agreed to be contacted, overall and by channel. Each channel's share of spend sits beside its
+share of leads. Channels follow Google Analytics' default channel rules in simplified form.
+
+Everything in this section is simulated: the spend, channels, campaigns and click IDs are made up,
+and no Google Ads or Analytics data is used. Leads are assigned to channels at random, so
+differences between channels show the calculation, not which channel is better.
+
 ## Evidence
 
 <!-- bottom-line:start -->
-- 68 fixed synthetic evaluation cases
+- 84 fixed synthetic evaluation cases
 - rubric-v1 weights: need timeline 40, request clarity 30, completeness 30
 <!-- bottom-line:end -->
 
@@ -150,7 +159,8 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 | `pnpm check` | Full offline gate |
 | `pnpm emulator:start` | Temporary Firestore Emulator on `127.0.0.1:8080` |
 | `pnpm api:local` | Serve the API with live lookups; add `-- --enrichment=recorded` for saved responses |
-| `pnpm seed:local` | Add 40 fictional leads through the API (saved responses only) |
+| `pnpm demo` | Start the emulator, API and web app for a live demo |
+| `pnpm simulate:traffic` | Send 60 fictional leads with simulated attribution through the API, one every 10 s (saved responses only) |
 | `pnpm enrichment:probe` | Owner-authorized live lookup that refreshes the saved responses |
 | `pnpm emulator:runtime` | End-to-end test of the API and workflow against the emulator |
 | `pnpm eval` | Run the fixed evaluation cases (after `pnpm build`) |
@@ -168,6 +178,7 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 | [docs/dependencies/phase-3.md](docs/dependencies/phase-3.md) | Phase 3 container base and IAP verification library |
 | [docs/operations/runbook.md](docs/operations/runbook.md) | Hosted setup, release, smoke, rollback, purge and teardown |
 | [docs/evidence/phase-3/index.json](docs/evidence/phase-3/index.json) | Deployment evidence, with checks not yet run marked `not_run` |
+| [docs/evidence/phase-4/index.json](docs/evidence/phase-4/index.json) | Phase 4 hosted demonstration evidence; every check `not_run` until the approved run |
 | [docs/walkthrough.md](docs/walkthrough.md) | Timed script for the two-minute captioned walkthrough |
 | [WORKFLOW.md](WORKFLOW.md) | Phase, review and verification workflow |
 

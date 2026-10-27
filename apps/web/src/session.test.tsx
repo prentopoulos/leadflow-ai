@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import type { SessionResponse } from '@leadflow-ai/domain';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SimulationStrip } from './Masthead.js';
@@ -72,7 +72,9 @@ describe('session gate', () => {
         </SessionGate>,
       );
       const heading = await screen.findByRole('heading', { name: title });
-      expect(heading).toHaveFocus();
+      // Focus moves in an effect after the heading commits; under a loaded
+      // parallel run the query can resolve between the two.
+      await waitFor(() => expect(heading).toHaveFocus());
       expect(screen.queryByText('workspace')).not.toBeInTheDocument();
       if (action !== null) {
         expect(

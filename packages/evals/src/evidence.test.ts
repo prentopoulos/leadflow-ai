@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEPLOYED_CHECK_IDS,
   DeploymentEvidenceIndexSchema,
+  PHASE_FOUR_DEPLOYED_CHECK_IDS,
   deploymentCandidateFingerprint,
   deploymentReady,
 } from './evidence.js';
@@ -13,6 +14,25 @@ const indexPath = path.resolve(
   fileURLToPath(new URL('../../..', import.meta.url)),
   'docs/evidence/phase-3/index.json',
 );
+
+describe('phase 4 deployment evidence index', () => {
+  it('binds Phase 4 passes to the deployed candidate and holds readiness while cost and teardown are pending', async () => {
+    const index = DeploymentEvidenceIndexSchema.parse(
+      JSON.parse(
+        await readFile(indexPath.replace('phase-3', 'phase-4'), 'utf8'),
+      ),
+    );
+    expect(index.phase).toBe('phase-4');
+    expect(index.checks.map((check) => check.id)).toEqual([
+      ...PHASE_FOUR_DEPLOYED_CHECK_IDS,
+    ]);
+    const open = index.checks
+      .filter((check) => check.outcome !== 'pass')
+      .map((check) => check.id);
+    expect(open).toEqual(['deployed-cost-status', 'deployed-teardown']);
+    expect(deploymentReady(index)).toBe(false);
+  });
+});
 
 describe('deployment evidence index', () => {
   it('lists every required deployed check and holds readiness until they pass', async () => {
@@ -26,7 +46,8 @@ describe('deployment evidence index', () => {
     const cost = index.checks.find(
       (check) => check.id === 'deployed-cost-status',
     );
-    expect(cost?.pending).toBe(true);
+    // Recorded from the posted bill in the Phase 4 session (2026-10-27).
+    expect(cost).toMatchObject({ outcome: 'pass', pending: false });
   });
 
   it('refuses a duplicate or missing check', async () => {

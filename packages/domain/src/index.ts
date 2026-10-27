@@ -9,6 +9,8 @@ export * from './metrics.js';
 export * from './outreach.js';
 export * from './verification.js';
 export * from './phase3.js';
+export * from './acquisition.js';
+export * from './traffic.js';
 
 export const EvidenceClassSchema = z.enum([
   'synthetic',

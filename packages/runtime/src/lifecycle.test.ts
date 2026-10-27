@@ -21,7 +21,8 @@ const requestId = '55555555-5555-4555-8555-555555555555';
 const initialTime = '2026-10-24T20:00:00.000Z';
 
 const intake = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',

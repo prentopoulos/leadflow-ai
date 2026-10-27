@@ -52,11 +52,12 @@ class MemoryEventReader implements RunEventReader {
 }
 
 const lead = {
-  schemaVersion: 'lead-v2',
+  schemaVersion: 'lead-v3',
   leadId: ids.lead,
   createdAt: timestamp,
   intake: {
-    schemaVersion: 'intake-v2',
+    schemaVersion: 'intake-v3',
+    attribution: null,
     identityClass: 'fictional',
     givenName: 'Avery',
     familyName: 'Example',
@@ -90,6 +91,7 @@ const lead = {
       'requestDetails',
       'emailContactConsent',
     ],
+    simulatedFields: ['attribution'],
     parityVerified: false,
   },
   evidenceClass: 'synthetic',

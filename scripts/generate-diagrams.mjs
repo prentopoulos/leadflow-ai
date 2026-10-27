@@ -76,6 +76,14 @@ function architecture() {
     [244, 484],
   ]);
   d.label('CHECKS', 210, 470);
+  d.path([
+    [106, 456],
+    [106, 420],
+    [214, 420],
+    [214, 228],
+    [244, 228],
+  ]);
+  d.label('SIM INTAKE', 150, 406);
 
   d.node({
     x: 36,
@@ -146,10 +154,11 @@ function architecture() {
     x: 36,
     y: 456,
     w: 140,
+    h: 80,
     kind: 'store',
     tag: 'CLI',
-    name: 'Offline evaluator',
-    sub: 'phase-3.0 cases',
+    name: 'Local tools',
+    sub: ['Offline evaluator', 'Traffic simulator', 'SIMULATED leads'],
   });
   d.node({
     x: 244,
@@ -158,14 +167,14 @@ function architecture() {
     kind: 'backend',
     tag: 'RULES',
     name: 'Domain contracts',
-    sub: 'rubric · template · rules',
+    sub: 'rubric · rules · spend',
   });
 
   return page({
     diagram: d,
     eyebrow: 'Architecture · local mode',
     title: 'LeadFlow AI local architecture',
-    desc: 'An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while the model provider, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.',
+    desc: 'An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while a traffic simulator feeds fictional leads with simulated attribution through the same intake API, and the model provider, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.',
     intro:
       'Everything inside the boundary runs on one workstation against synthetic data. The only outbound calls are read-only GETs to the two authorized enrichment sources; nothing is ever sent.',
   });
@@ -400,6 +409,7 @@ function dataModel() {
     fields: [
       '# leadId',
       'intake · fictional values',
+      'attribution · simulated, optional',
       'provenance · ZIP only exact',
     ],
   });

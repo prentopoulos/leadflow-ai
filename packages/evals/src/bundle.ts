@@ -124,7 +124,7 @@ export async function createSystemBundleBase(
   const fixtureDigest = sha256(JSON.stringify(COMBINED_CASES));
 
   return {
-    schemaVersion: 'system-bundle-v3',
+    schemaVersion: 'system-bundle-v4',
     code: {
       revision: source.revision,
       dirty: source.dirty,
@@ -137,8 +137,8 @@ export async function createSystemBundleBase(
       digest: fixtureDigest,
     },
     versions: {
-      intake: 'intake-v2',
-      lead: 'lead-v2',
+      intake: 'intake-v3',
+      lead: 'lead-v3',
       run: 'run-v2',
       event: 'event-v2',
       checkpoint: 'checkpoint-v1',
@@ -151,7 +151,10 @@ export async function createSystemBundleBase(
       composer: 'deterministic-template-v1',
       verificationRules: 'verification-rules-v1',
       decisionLanguage: 'decision-language-v1',
-      metricsDefinitions: 'metrics-definitions-v1',
+      metricsDefinitions: 'metrics-definitions-v2',
+      channelRules: 'channel-rules-v1',
+      spendFixture: 'synthetic-spend-v1',
+      trafficPlan: 'traffic-plan-v1',
       evaluator: EVALUATOR_VERSION,
       configuration:
         options.runtime === 'cloud'

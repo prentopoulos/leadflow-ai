@@ -1,4 +1,4 @@
-workspace "LeadFlow AI" "Phase 3 local prototype and private hosted proof of concept. Unrendered source of truth for component names; rendered views live in docs/diagrams." {
+workspace "LeadFlow AI" "Phase 4 local prototype and private hosted proof of concept with simulated acquisition. Unrendered source of truth for component names; rendered views live in docs/diagrams." {
 
     !identifiers hierarchical
 
@@ -6,14 +6,15 @@ workspace "LeadFlow AI" "Phase 3 local prototype and private hosted proof of con
         operator = person "Operator" "Submits fictional intake, reviews drafts and reads stored metrics."
 
         leadflow = softwareSystem "LeadFlow AI" "Local synthetic intake, durable workflow, consent-gated drafts, human review and metrics." {
-            web = container "Operator dossier" "Intake, runs and approval queue, run dossier with evidence and draft review, and metrics." "React, Vite, Recharts" "Web"
+            web = container "Operator dossier" "Intake, runs and approval queue, run dossier with evidence, draft review and simulated attribution, and metrics with a SIMULATED acquisition section; hosted, an owner-triggered simulated-traffic control." "React, Vite, Recharts" "Web"
             api = container "API process" "Node process that persists intake before any workflow step; loopback locally, one Cloud Run container when hosted." "Node 24" {
                 routes = component "Fastify API" "Host/Origin-checked locally, IAP-assertion and allowlist-checked when hosted: intake, execution, runs, metrics, draft review and resume routes; serves the web build when hosted." "Fastify"
                 runtime = component "Workflow runtime" "Seven-node LangGraph workflow: qualify, enrich, compose, verify, simulate, finalize. Background executor locally; held inside the execution request (45 s deadline) when hosted." "LangGraph.js"
-                domain = component "Domain contracts" "Strict schemas, rubric-v1, the deterministic interpreter, the draft template, verification rules and metric definitions." "Zod"
+                domain = component "Domain contracts" "Strict schemas, rubric-v1, the deterministic interpreter, the draft template, verification rules, metric definitions, channel-rules-v1, the synthetic-spend-v1 fixture and traffic-plan-v1." "Zod"
             }
             firestore = container "Firestore" "Sole durable store for leads, runs, events, checkpoints, evidence, drafts, reviews, verification and results. Emulator locally; the Toronto Standard database with seven-day TTL when hosted." "Firestore Emulator 1.22.0 locally; Firestore Standard, Native, northamerica-northeast2 hosted" "Database"
             evaluator = container "Offline evaluator" "Runs the fixed synthetic case corpus against the system bundle." "Node CLI" "Tool"
+            simulator = container "Traffic simulator" "Feeds the fixed fictional traffic-plan-v1 through the real intake API at a steady pace with recorded enrichment; every channel, campaign, click ID and spend value is simulated." "Node CLI" "Tool"
         }
 
         vpic = softwareSystem "NHTSA vPIC" "Public vehicle API; GetModelsForMakeYear only." "External"
@@ -29,6 +30,7 @@ workspace "LeadFlow AI" "Phase 3 local prototype and private hosted proof of con
         leadflow.api.runtime -> vpic "Reads model listings for make and year" "HTTPS GET, owner-authorized"
         leadflow.api.runtime -> zippopotam "Reads places for a ZIP Code" "HTTPS GET, owner-authorized"
         leadflow.evaluator -> leadflow.api.domain "Checks fixed synthetic cases against"
+        leadflow.simulator -> leadflow.api.routes "Submits simulated intake with synthetic attribution" "HTTP, loopback"
         leadflow.api.runtime -> deferred "Not enabled; gated by PROJECT.md" "" "Deferred"
 
         local = deploymentEnvironment "Local" {
