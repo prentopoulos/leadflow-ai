@@ -299,6 +299,10 @@ Owner calls:
   spend share against its lead share. Click-, revenue- and appointment-based measures (CTR, CPC,
   conversion rate, ROAS, CPA, LTV, cost per appointment) stay out: the demo stores no clicks or
   revenue and `simulator-v1` outcomes are score-independent.
+- Before the hosted demonstration (owner, 2026-10-27), so a performance-marketing manager reads it
+  first: the acquisition panel moves to the top of the Metrics view, and its figures use industry
+  terms explained once (CPL, cost per MQL for high or standard readiness, cost per contactable
+  lead, MQL rate) with Spend and Leads tiles beside them.
 - Hosted traffic runs from an owner-triggered "Run simulated traffic" control in the signed-in
   browser (Stop, pauses when hidden); no OAuth-client allowlisting, service account or unattended
   run. Locally `pnpm simulate:traffic` is the script.

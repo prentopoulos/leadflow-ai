@@ -104,6 +104,13 @@ export function MetricsDashboard({
         </div>
       )}
 
+      {/* A marketing manager's first question is what a lead cost, so the
+          simulated acquisition panel leads the page (owner, 2026-10-27). */}
+      <AcquisitionSection acquisition={report.acquisition} />
+      {hosted ? (
+        <SimulatedTrafficControl systemBundleId={report.systemBundleId} />
+      ) : null}
+
       <section className="metric-ledger" aria-labelledby="metric-ledger-title">
         <div className="section-heading operations-section-heading">
           <h2 id="metric-ledger-title">Workload</h2>
@@ -313,11 +320,6 @@ export function MetricsDashboard({
           </dl>
         </section>
       </div>
-
-      {hosted ? (
-        <SimulatedTrafficControl systemBundleId={report.systemBundleId} />
-      ) : null}
-      <AcquisitionSection acquisition={report.acquisition} />
     </div>
   );
 }

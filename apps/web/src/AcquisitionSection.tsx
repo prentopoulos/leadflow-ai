@@ -115,10 +115,15 @@ export function AcquisitionSection({
       dollars: Math.round(row.cpl.valueCents ?? 0) / 100,
       leads: row.leads,
     }));
-  const mixed =
-    acquisition.unattributedLeads === 0 && acquisition.failedRunLeads === 0
-      ? 'No unattributed or failed-run leads are in the window.'
-      : `Includes ${acquisition.unattributedLeads} unattributed and ${acquisition.failedRunLeads} failed-run leads.`;
+  const notes = [
+    provisional ? 'Provisional: costs fall as the flight fills.' : null,
+    acquisition.unattributedLeads > 0
+      ? `Includes ${acquisition.unattributedLeads} intake-form leads.`
+      : null,
+    acquisition.failedRunLeads > 0
+      ? `Includes ${acquisition.failedRunLeads} failed runs.`
+      : null,
+  ].filter((note) => note !== null);
 
   return (
     <section
@@ -130,142 +135,126 @@ export function AcquisitionSection({
           Acquisition <SimulatedTag />
         </h2>
         <p className="acquisition-label">
-          Made-up spend plan · fictional leads · simulated USD. Flight{' '}
-          {flightLeads} of {acquisition.plannedLeads} planned leads; spend{' '}
-          {dollars(blended.spendCents)}.
+          Made-up spend, channels and leads (simulated USD).
         </p>
       </div>
 
-      <dl className="metric-strip">
+      <dl className="metric-strip acquisition-strip">
+        <div>
+          <dt>Spend · simulated</dt>
+          <dd>{dollars(blended.spendCents)}</dd>
+          <dd className="metric-detail">budget</dd>
+        </div>
+        <div>
+          <dt>Leads · simulated</dt>
+          <dd>{blended.leads}</dd>
+          <dd className="metric-detail">
+            {flightLeads} of {acquisition.plannedLeads} planned
+          </dd>
+        </div>
         <Tile
-          label="Cost per lead"
+          label="CPL"
           value={blended.cpl}
-          detail={`${blended.leads} leads`}
+          detail="per lead"
           provisional={provisional}
         />
         <Tile
-          label="Cost per qualified lead"
+          label="Cost per MQL"
           value={blended.cpql}
-          detail={`${blended.qualified} high or standard`}
+          detail={`${blended.qualified} MQLs`}
           provisional={provisional}
         />
         <Tile
           label="Cost per contactable lead"
           value={blended.cpcl}
-          detail={`${blended.contactable} with email consent`}
+          detail={`${blended.contactable} consented`}
           provisional={provisional}
         />
         <Tile
-          label="Qualified-lead rate"
+          label="MQL rate"
           value={blended.qualifiedRate}
-          detail={`${blended.qualified} / ${blended.leads}`}
+          detail={`${blended.qualified} of ${blended.leads}`}
           provisional={false}
         />
       </dl>
-      <p className="acquisition-note">
-        {provisional
-          ? "Costs are provisional until the flight finishes: spend is the whole flight's budget, so cost per lead starts high and falls as leads arrive. "
-          : ''}
-        {mixed}
-      </p>
+      {notes.length > 0 ? (
+        <p className="acquisition-note">{notes.join(' ')}</p>
+      ) : null}
 
-      <div className="metrics-grid">
-        <div className="chart-section">
-          <h3 id="channel-cpl-title">Cost per lead by channel</h3>
-          <figure className="chart-frame" aria-labelledby="channel-cpl-caption">
-            <figcaption id="channel-cpl-caption" className="chart-caption">
-              <SimulatedTag /> {TRAFFIC_INDEPENDENCE_NOTICE} Bars show simulated
-              cost per lead and lead count, ordered by spend. Focus the chart
-              and use the arrow keys to step through bars; the channel table
-              lists every value.
-            </figcaption>
-            {chartData.length === 0 ? (
-              <p className="chart-empty">
-                No channel has both spend and leads yet.
-              </p>
-            ) : (
-              <ResponsiveContainer
-                width="100%"
-                height={Math.max(160, chartData.length * 44 + 40)}
+      <div className="chart-section">
+        <h3 id="channel-cpl-title">CPL by channel</h3>
+        <figure className="chart-frame" aria-labelledby="channel-cpl-caption">
+          <figcaption id="channel-cpl-caption" className="chart-caption">
+            <SimulatedTag /> {TRAFFIC_INDEPENDENCE_NOTICE}
+            <span className="sr-only">
+              {' '}
+              Focus the chart and use the arrow keys to step through bars; the
+              channel table lists every value.
+            </span>
+          </figcaption>
+          {chartData.length === 0 ? (
+            <p className="chart-empty">
+              No channel has both spend and leads yet.
+            </p>
+          ) : (
+            <ResponsiveContainer
+              width="100%"
+              height={Math.max(160, chartData.length * 44 + 40)}
+            >
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ left: 8, right: 112 }}
+                accessibilityLayer
+                title="Simulated CPL by channel"
               >
-                <BarChart
-                  data={chartData}
-                  layout="vertical"
-                  margin={{ left: 8, right: 112 }}
-                  accessibilityLayer
-                  title="Simulated cost per lead by channel"
+                <CartesianGrid stroke="#c8c6bd" horizontal={false} />
+                <XAxis
+                  type="number"
+                  tick={{ fill: '#4e5753', fontSize: 12 }}
+                  tickFormatter={(value: number) => `$${value}`}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="label"
+                  width={112}
+                  tick={{ fill: '#4e5753', fontSize: 12 }}
+                />
+                <Tooltip
+                  animationDuration={0}
+                  formatter={(value) => [
+                    usd.format(Number(value)),
+                    'Simulated CPL',
+                  ]}
+                />
+                <Bar
+                  dataKey="dollars"
+                  fill="#087f73"
+                  stroke="#075e57"
+                  // Static: polling would restart an animation, and Recharts
+                  // draws value labels only once an animation finishes.
+                  isAnimationActive={false}
                 >
-                  <CartesianGrid stroke="#c8c6bd" horizontal={false} />
-                  <XAxis
-                    type="number"
-                    tick={{ fill: '#4e5753', fontSize: 12 }}
-                    tickFormatter={(value: number) => `$${value}`}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="label"
-                    width={112}
-                    tick={{ fill: '#4e5753', fontSize: 12 }}
-                  />
-                  <Tooltip
-                    animationDuration={0}
-                    formatter={(value) => [
-                      usd.format(Number(value)),
-                      'Simulated cost per lead',
-                    ]}
-                  />
-                  <Bar
+                  <LabelList
                     dataKey="dollars"
-                    fill="#087f73"
-                    stroke="#075e57"
-                    // Static: polling would restart an animation, and Recharts
-                    // draws value labels only once an animation finishes.
-                    isAnimationActive={false}
-                  >
-                    <LabelList
-                      dataKey="dollars"
-                      content={({ x, y, width, height, value, index }) => (
-                        <text
-                          x={Number(x) + Number(width) + 6}
-                          y={Number(y) + Number(height) / 2}
-                          dominantBaseline="central"
-                          fill="#1d2420"
-                          fontSize={12}
-                        >
-                          {usd.format(Number(value))} ·{' '}
-                          {chartData[Number(index)]?.leads} leads
-                        </text>
-                      )}
-                    />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </figure>
-        </div>
-
-        <div className="chart-section acquisition-notes">
-          <h3>How these are calculated</h3>
-          <dl className="definition-list">
-            <div>
-              <dt>Cost per lead</dt>
-              <dd>
-                {METRICS_DEFINITIONS.blendedCostPerLead.numerator} Divided by{' '}
-                {METRICS_DEFINITIONS.blendedCostPerLead.denominator}
-              </dd>
-            </div>
-            <div>
-              <dt>Qualified</dt>
-              <dd>{METRICS_DEFINITIONS.costPerQualifiedLead.denominator}</dd>
-            </div>
-            <div>
-              <dt>Contactable</dt>
-              <dd>{METRICS_DEFINITIONS.costPerContactableLead.denominator}</dd>
-            </div>
-          </dl>
-          <p>{CHANNEL_RULES_NOTICE}</p>
-          <p>{acquisition.spendLabel}</p>
-        </div>
+                    content={({ x, y, width, height, value, index }) => (
+                      <text
+                        x={Number(x) + Number(width) + 6}
+                        y={Number(y) + Number(height) / 2}
+                        dominantBaseline="central"
+                        fill="#1d2420"
+                        fontSize={12}
+                      >
+                        {usd.format(Number(value))} ·{' '}
+                        {chartData[Number(index)]?.leads} leads
+                      </text>
+                    )}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </figure>
       </div>
 
       <div
@@ -277,19 +266,16 @@ export function AcquisitionSection({
         <table className="data-table">
           <caption id="channel-table-caption">
             Channels <SimulatedTag />
-            <span className="scroll-hint">
-              {' '}
-              Scroll sideways for all columns.
-            </span>
+            <span className="scroll-hint"> Scroll for more.</span>
           </caption>
           <thead>
             <tr>
               <th scope="col">Channel</th>
               <th scope="col">Leads</th>
-              <th scope="col">Cost per lead</th>
-              <th scope="col">Cost per qualified</th>
+              <th scope="col">CPL</th>
+              <th scope="col">Cost per MQL</th>
               <th scope="col">Cost per contactable</th>
-              <th scope="col">Qualified rate</th>
+              <th scope="col">MQL rate</th>
               <th scope="col">Spend</th>
               <th scope="col">Spend share</th>
               <th scope="col">Lead share</th>
@@ -328,10 +314,10 @@ export function AcquisitionSection({
                 <th scope="col">Campaign</th>
                 <th scope="col">Channel</th>
                 <th scope="col">Leads</th>
-                <th scope="col">Cost per lead</th>
-                <th scope="col">Cost per qualified</th>
+                <th scope="col">CPL</th>
+                <th scope="col">Cost per MQL</th>
                 <th scope="col">Cost per contactable</th>
-                <th scope="col">Qualified rate</th>
+                <th scope="col">MQL rate</th>
                 <th scope="col">Spend</th>
               </tr>
             </thead>
@@ -349,6 +335,29 @@ export function AcquisitionSection({
             </tbody>
           </table>
         </div>
+      </details>
+
+      <details className="campaign-disclosure acquisition-notes">
+        <summary>How these are calculated</summary>
+        <dl className="definition-list">
+          <div>
+            <dt>CPL (cost per lead)</dt>
+            <dd>
+              {METRICS_DEFINITIONS.blendedCostPerLead.numerator} Divided by{' '}
+              {METRICS_DEFINITIONS.blendedCostPerLead.denominator}
+            </dd>
+          </div>
+          <div>
+            <dt>MQL (marketing-qualified lead)</dt>
+            <dd>{METRICS_DEFINITIONS.costPerQualifiedLead.denominator}</dd>
+          </div>
+          <div>
+            <dt>Contactable</dt>
+            <dd>{METRICS_DEFINITIONS.costPerContactableLead.denominator}</dd>
+          </div>
+        </dl>
+        <p>{CHANNEL_RULES_NOTICE}</p>
+        <p>{acquisition.spendLabel}</p>
       </details>
     </section>
   );

@@ -1351,13 +1351,13 @@ button:disabled {
 }
 
 .traffic-control {
-  margin-top: 2.5rem;
+  margin: 1.5rem 0 2.5rem;
 }
 
-/* Simulated acquisition: kept below and apart from operational metrics, in
-   the same dashed, muted panel idiom as the Simulation panel. */
+/* Simulated acquisition: leads the Metrics page, set apart from the
+   operational metrics in the dashed, muted Simulation-panel idiom. */
 .acquisition-section {
-  margin-top: 2.5rem;
+  margin-top: 1rem;
   border: 1px dashed var(--line-strong);
   border-top: 1px solid var(--ink);
   padding: 1rem;
@@ -1366,6 +1366,19 @@ button:disabled {
 
 .acquisition-heading h2 {
   margin: 0;
+}
+
+.acquisition-section .acquisition-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.acquisition-section .acquisition-strip > div:nth-child(3n + 1) {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.acquisition-section .acquisition-strip > div:nth-child(n + 4) {
+  border-top: 1px solid var(--line);
 }
 
 .simulated-tag {

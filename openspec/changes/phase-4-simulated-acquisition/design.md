@@ -144,8 +144,10 @@ idempotency keys.
 
 ### 6. Presentation
 
-The metrics view gains an "Acquisition — SIMULATED" section below the operational metrics, with a
-persistent label "synthetic spend fixture · fictional leads":
+The metrics view gains an "Acquisition — SIMULATED" section with a persistent simulated label. The
+owner first placed it below the operational metrics, then (2026-10-27, before the hosted
+demonstration) moved it to the top of the view and chose industry terms (CPL, cost per MQL, MQL
+rate) with Spend and Leads tiles, so a performance-marketing manager reads it first:
 
 - two headline tiles: blended CPL and cost per qualified lead, each with n, spend and the
   planned-lead progress;
