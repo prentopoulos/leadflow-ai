@@ -97,8 +97,11 @@ of the prompt set `agent-prompts-v1`. `versions` gains `agentTeam` (`agent-team-
 0.79.0 (2026-03-16, Apache-2.0) types `output_config`, both web-search tool versions and the
 web-search citation; the 1.x line was under a week old. `AnthropicModelPort` reads
 `ANTHROPIC_API_KEY` from the gitignored `.env` loaded by the launch script, never logs it, uses a
-60-second timeout and the SDK's two retries. Refusals, `max_tokens` stops, unparseable JSON and API
+60-second timeout, the SDK's two retries and `effort: low`. Refusals, unparseable JSON and API
 errors become a typed `ModelCallError` whose safe code is stored; raw provider text is not stored.
+A `max_tokens` stop is an error for the JSON roles, but a worker keeps the cited blocks it finished
+(each still goes through the claim verifier) and its call records `max_tokens`. Workers get 4,000
+output tokens: the 2026-10-27 live probe cut two of three workers at 2,000 and lost their answers.
 
 ### 9. Prompt-injection boundary
 

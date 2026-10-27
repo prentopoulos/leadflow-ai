@@ -391,6 +391,37 @@ describe('agent team', () => {
     });
   });
 
+  it('keeps a truncated worker answer but not a truncated JSON answer', async () => {
+    const truncatedWorker = fakePort({
+      worker: (request) => ({
+        ...workerClaims[request.topic ?? 'coverage']!,
+        truncated: true,
+      }),
+    });
+    const kept = await run(truncatedWorker.port);
+    expect(kept.status).toBe('drafted');
+    expect(
+      kept.calls
+        .filter((call) => call.role === 'worker')
+        .every(
+          (call) => call.outcome === 'ok' && call.errorCode === 'max_tokens',
+        ),
+    ).toBe(true);
+
+    const truncatedPlan = fakePort({
+      lead_plan: () => ({
+        ...json({ vehicle: [], area: [], coverage: [] }),
+        truncated: true,
+      }),
+    });
+    const stopped = await run(truncatedPlan.port);
+    expect(stopped.fallbackReason).toBe('model_error');
+    expect(stopped.calls[0]).toMatchObject({
+      outcome: 'error',
+      errorCode: 'max_tokens',
+    });
+  });
+
   it('falls back when no claim survives verification', async () => {
     const { port } = fakePort({ worker: () => workerClaims.coverage! });
     const outcome = await run(port);

@@ -2,48 +2,50 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
-## Phase 5 direction (owner, 2026-10-27) — start here in the next session
+## Phase 5 checkpoint (2026-10-27) — start here
 
-Peter wants Phase 5 built in one shot from a fresh `/next-phase`: few tasks, one slice, tests and the
-full gate at the end, no granular per-step checks. Settled direction (do not re-grill these):
+Branch `phase-5-agent-drafts`, draft PR #11, OpenSpec change `phase-5-agent-drafts`. Direction and
+the paid-API gate decision are recorded in PROJECT.md § Phase 5 decisions (do not re-grill).
 
-- **What:** per lead, an AdScout-style multi-agent system. A **research team** (Sonnet 5.5 lead plans
-  1–3 questions per worker; three Haiku 5.5 workers in parallel: vehicle, area, coverage needs; a
-  code claim verifier keeps only claims with a cited URL whose quote supports the text and numbers;
-  the lead merges cited points into a brief) feeds a **draft loop** (Sonnet 5.5 writer drafts a short
-  personalised paragraph citing claim IDs → code rule checker → Sonnet critic → at most 2 rewrites)
-  → a person approves. Nothing is sent.
-- **Privacy adaptation:** research the lead's situation, never the person (real-data gate): vehicle
-  (year/make/model public info), area (from the ZIP place), stated needs. Models never receive the
-  name, email or free-text request details; the code fills the greeting.
-- **Paid-API gate (owner decision):** "use the same API as AdScout and the same spend limit". Provider
-  Anthropic direct; models `claude-sonnet-5-5` (lead, writer, critic) and `claude-haiku-5-5`
-  (workers); caps from AdScout's Phase 2 design: about **$0.30 per lead** and **$8 per run**,
-  reserved in code before each call (worst case) and settled after; a budget error falls back to the
-  template draft and is recorded. `ANTHROPIC_API_KEY` is already in the gitignored `.env` (copied
-  from `Documents/leadscout/.env`, the key AdScout's design reads); never print it. Record this gate
-  decision in PROJECT.md.
-- **Scope guard:** behind a switch (`api:local -- --agents=claude`, and `pnpm demo -- --agents`),
-  off by default, so `pnpm demo` keeps working with no cost. Hosted stays template-only.
-- **Fit with existing code:** run inside the `compose_draft` node; the agent paragraph is a new draft
-  slot (provenance such as `agent_brief`) inside the existing template, so the 8 verification rules
-  still run (extend `slots_grounded` / `claim_bounded` for the agent slot; keep `no_request_text`
-  and `no_decision_language` over the whole text). Store the brief's claims (URL, quote) and per-call
-  cost on the draft record; the system bundle's provider/model/prompt fields must stop saying
-  "gate unresolved" when agents run. Show the cited sources in the dossier draft panel. Offline tests
-  use a fake model port; one small live probe runs at the end.
-- **API facts already checked (claude-api skill, 2026-10-27):** Sonnet 5.5 $2/$10 per MTok, Haiku 5.5
-  $0.10/$0.50, web search $0.01 each; Sonnet 5.5 uses `web_search_20260209`, Haiku 5.5
-  `web_search_20250305`; forced `tool_choice` returns 400 on Sonnet 5.5, so get JSON through
-  `output_config.format` (JSON schema); web-search citations arrive on text blocks as
-  `web_search_result_location` with `url` and `cited_text`. SDK: `@anthropic-ai/sdk` 0.71.2 lacks
-  `output_config`; npm shows 1.3.0 — pick an exact version that types both, and record it in
-  `docs/dependencies/phase-5.md`.
+Done (tasks 1.1–4.1): opt-in agent team inside `compose_draft` — Sonnet 5.5 lead plans, three
+Haiku 5.5 web-search workers (vehicle, area, coverage), code claim verifier, lead merge, Sonnet
+writer → code rule checker → Sonnet critic (≤2 rewrites); `SpendLedger` ($0.30/lead, $8/process,
+worst case reserved first); models see only `AgentLeadProjection`; `agent-brief-v1` records in
+`agentBriefs`; `agent_brief` draft slot checked by `verification-rules-v2`; `system-bundle-v5`
+(provider/model/prompt named only with agents; agent fields enter the bundle identity); switch
+`pnpm api:local -- --agents=claude` / `pnpm demo -- --agents`, hosted refuses it; dossier "Agent
+research" panel; 6 frozen `phase-5.0` eval cases; diagrams (`agent-team` new; architecture,
+agent-architecture, data-model-outreach updated), README, AI_OPS, `docs/dependencies/phase-5.md`
+(`@anthropic-ai/sdk` 0.79.0). No-send check now allows `api.anthropic.com` and RFC 2606 `.example`
+fixture hosts.
 
-Open Phase 4 items carried alongside: Peter merges PR #9 (GitHub button; the agent's merge was
-blocked), then PR #10 (macOS setup, README conflicts expected); recheck the posted cost (hosted
-Firestore reads reached 108,327 on 2026-10-27); walkthrough recording; Peter's evidence approval
-starts the seven-day teardown. `pnpm demo` was verified from a fresh clone on Windows.
+Checks: full `pnpm check` passed on the commit after `c6182d5` (461+ tests, 65 eval pass / 25
+not_run, docs, governance, OpenSpec strict). Not run this session: `pnpm emulator:runtime`,
+rendered 390 px review of the new panel, design-eval, code review.
+
+Live probe (owner-authorized, 2026-10-27, recorded enrichment, one consented fictional 2022 Camry /
+22150 lead with an injection attempt in the request text): run complete in 31 s, draft
+`pending_review`, all `verification-rules-v2` rules passed, brief `drafted`, 4 of 16 claims kept,
+total **$0.1185** (11 calls max; reservations held: worker reserved $0.040, spent $0.034). The
+injection text did not reach any model or the draft. Finding fixed after the probe: two of three
+workers stopped at `max_tokens` (2,000) and their answers were discarded; workers now get 4,000
+tokens and keep finished cited blocks when cut off (offline test added). The fix is not yet proven
+live.
+
+Next (task 5.1): run `/code-review` on PR #11 plus the lead-quality review of the agent claims,
+`pnpm emulator:runtime`, a rendered desktop/390 px check of the dossier "Agent research" panel
+(design-eval), optionally one more live probe to confirm the worker fix (owner call: costs about
+$0.12), fix findings, then archive the change, sync specs, set Phase 5 Done, rerun the gate, push,
+mark PR #11 ready. Merge only on Peter's go-ahead.
+
+Environment note: the repo folder is owned by the `CodexSandboxOffline` Windows account, so git
+needs `git -c safe.directory=C:/Users/Peter/Documents/leadflow_ai …` and `gh` needs
+`GIT_CONFIG_PARAMETERS="'safe.directory=C:/Users/Peter/Documents/leadflow_ai'"` (global git config
+was not changed). Capture the gate with `cmd /c "node scriptsun-checks.mjs > %TEMP%\check.log 2>&1"`
+after activating the toolchain.
+
+Open Phase 4 items carried alongside: PR #10 (macOS setup); recheck the posted hosted cost;
+walkthrough recording; Peter's evidence approval starts the seven-day teardown.
 
 ## Phase 4 hosted demonstration (2026-10-27)
 

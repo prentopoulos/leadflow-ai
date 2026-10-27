@@ -55,13 +55,13 @@
 </head>
 <body>
   <div class="frame">
-    <p class="eyebrow">Data model · Phase 2</p>
+    <p class="eyebrow">Data model · Phase 5</p>
     <h1>Enrichment, draft and review records</h1>
     <p class="intro">Collection paths match the runtime repositories. The run links only the current evidence and draft; superseded records remain for audit.</p>
     <div class="diagram-container">
-<svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="data-model-outreach-title data-model-outreach-desc">
+<svg viewBox="0 0 960 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="data-model-outreach-title data-model-outreach-desc">
   <title id="data-model-outreach-title">Enrichment, draft and review records</title>
-  <desc id="data-model-outreach-desc">A run links up to two enrichment evidence records, one email check, one run-level verification result and one draft whose immutable revisions each carry a content digest, their own verification result and at most one append-only human review.</desc>
+  <desc id="data-model-outreach-desc">A run links up to two enrichment evidence records, one email check, one run-level verification result and one draft whose immutable revisions each carry a content digest, their own verification result and at most one append-only human review; a draft written with the agent team cites one stored agent brief holding its claims, sources and per-call costs.</desc>
   <defs>
       <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#626a66"/></marker>
       <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#075e57"/></marker>
@@ -74,6 +74,7 @@
   <path d="M400,188 L400,236 Q400,244 392,244 L168,244 Q160,244 160,252 L160,280" fill="none" stroke="#626a66" stroke-width="1.2"/>
   <path d="M360,340 L280,340" fill="none" stroke="#626a66" stroke-width="1.2"/>
   <path d="M600,340 L680,340" fill="none" stroke="#626a66" stroke-width="1.2"/>
+  <path d="M480,412 L480,464" fill="none" stroke="#626a66" stroke-width="1.2"/>
   <rect x="341" y="85" width="12" height="12" rx="2" fill="#f4f1e9"/>
   <text x="350" y="94" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="end" letter-spacing="0.04em">1</text>
   <rect x="287" y="85" width="28" height="12" rx="2" fill="#f4f1e9"/>
@@ -98,6 +99,10 @@
   <text x="610" y="334" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.04em">1</text>
   <rect x="645" y="325" width="28" height="12" rx="2" fill="#f4f1e9"/>
   <text x="670" y="334" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="end" letter-spacing="0.04em">0..1</text>
+  <rect x="485" y="419" width="12" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="488" y="428" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.04em">N</text>
+  <rect x="485" y="447" width="28" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="488" y="456" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.04em">0..1</text>
   <rect x="40" y="40" width="240" height="120" rx="6" fill="#f4f1e9"/>
   <rect x="40" y="40" width="240" height="120" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
   <text x="52" y="60" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="start">Enrichment evidence</text>
@@ -155,8 +160,19 @@
   <text x="692" y="372" fill="#1a211f" font-size="9" font-weight="400" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start">contentSha256</text>
   <text x="692" y="386" fill="#1a211f" font-size="9" font-weight="400" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start">approved | rejected</text>
   <text x="692" y="400" fill="#1a211f" font-size="9" font-weight="400" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start">local-operator · unauthenticated</text>
-  <text x="40" y="524" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">Revisions and reviews are append-only; earlier evidence and revisions stay stored, unlinked.</text>
-  <text x="40" y="542" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">Fields are structure only; stored fixture values are fictional and never drawn here.</text>
+  <rect x="360" y="464" width="240" height="132" rx="6" fill="#f4f1e9"/>
+  <rect x="360" y="464" width="240" height="132" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
+  <text x="372" y="484" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="start">Agent brief</text>
+  <text x="372" y="500" fill="#626a66" font-size="9" font-weight="400" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start">agentBriefs/{briefId}</text>
+  <line x1="360" y1="512" x2="600" y2="512" stroke="#1a211f" stroke-opacity="0.3" stroke-width="0.8"/>
+  <text x="372" y="528" fill="#1a211f" font-size="9" font-weight="400" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start"># briefId · → runId</text>
+  <text x="372" y="542" fill="#1a211f" font-size="9" font-weight="400" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start">drafted | fallback · reason</text>
+  <text x="372" y="556" fill="#1a211f" font-size="9" font-weight="400" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start">claims: url · quote</text>
+  <text x="372" y="570" fill="#1a211f" font-size="9" font-weight="400" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start">paragraph · → claimIds</text>
+  <text x="372" y="584" fill="#1a211f" font-size="9" font-weight="400" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start">calls · totalCostMicros</text>
+  <text x="40" y="636" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">Revisions and reviews are append-only; earlier evidence and revisions stay stored, unlinked.</text>
+  <text x="40" y="654" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">Fields are structure only; stored fixture values are fictional and never drawn here.</text>
+  <text x="40" y="672" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">An agent brief exists only for local --agents runs; its slot cites it by briefId.</text>
 </svg>
     </div>
   </div>

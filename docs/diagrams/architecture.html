@@ -57,11 +57,11 @@
   <div class="frame">
     <p class="eyebrow">Architecture · local mode</p>
     <h1>LeadFlow AI local architecture</h1>
-    <p class="intro">Everything inside the boundary runs on one workstation against synthetic data. The only outbound calls are read-only GETs to the two authorized enrichment sources; nothing is ever sent.</p>
+    <p class="intro">Everything inside the boundary runs on one workstation against synthetic data. Outbound calls are read-only GETs to the two authorized enrichment sources and, when the agent team is switched on, capped calls to the Anthropic API; nothing is ever sent.</p>
     <div class="diagram-container">
 <svg viewBox="0 0 960 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
   <title id="architecture-title">LeadFlow AI local architecture</title>
-  <desc id="architecture-desc">An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while a traffic simulator feeds fictional leads with simulated attribution through the same intake API, and the model provider, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.</desc>
+  <desc id="architecture-desc">An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, and, only when started with --agents, calls the Anthropic API for a capped research and drafting agent team, while a traffic simulator feeds fictional leads with simulated attribution through the same intake API, and hosted model calls, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.</desc>
   <defs>
       <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#626a66"/></marker>
       <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#075e57"/></marker>
@@ -80,7 +80,8 @@
   <path d="M304,240 L304,320" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
   <path d="M364,376 L364,456" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
   <path d="M424,334 L600,334 Q608,334 608,326 L608,240" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
-  <path d="M424,362 L760,362" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <path d="M424,352 L760,352" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <path d="M424,368 L760,368" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
   <path d="M424,500 L760,500" fill="none" stroke="#626a66" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
   <path d="M176,484 L244,484" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
   <path d="M106,456 L106,428 Q106,420 114,420 L206,420 Q214,420 214,412 L214,236 Q214,228 222,228 L244,228" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#arrow)"/>
@@ -94,8 +95,10 @@
   <text x="394" y="419" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">RULES</text>
   <rect x="626" y="281" width="48" height="12" rx="2" fill="#f4f1e9"/>
   <text x="650" y="290" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">RECORDS</text>
-  <rect x="552" y="370" width="80" height="12" rx="2" fill="#f4f1e9"/>
-  <text x="592" y="379" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">READ-ONLY GET</text>
+  <rect x="644" y="332" width="80" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="684" y="341" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">READ-ONLY GET</text>
+  <rect x="556" y="378" width="72" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="592" y="387" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">OPT-IN CALLS</text>
   <rect x="558" y="508" width="68" height="12" rx="2" fill="#f4f1e9"/>
   <text x="592" y="517" fill="#56605b" font-size="8" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">NOT ENABLED</text>
   <rect x="188" y="464" width="44" height="12" rx="2" fill="#f4f1e9"/>
@@ -132,20 +135,21 @@
   <text x="268" y="335" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">GRAPH</text>
   <text x="334" y="352" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Workflow runtime</text>
   <text x="334" y="367" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">LangGraph.js · 7 nodes</text>
-  <rect x="760" y="320" width="160" height="80" rx="6" fill="#f4f1e9"/>
-  <rect x="760" y="320" width="160" height="80" rx="6" fill="rgba(98,106,102,0.1)" stroke="#56605b" stroke-width="1"/>
+  <rect x="760" y="320" width="160" height="112" rx="6" fill="#f4f1e9"/>
+  <rect x="760" y="320" width="160" height="112" rx="6" fill="rgba(98,106,102,0.1)" stroke="#56605b" stroke-width="1"/>
   <rect x="768" y="326" width="48" height="12" rx="2" fill="none" stroke="#56605b" stroke-opacity="0.5" stroke-width="0.8"/>
   <text x="792" y="335" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">EXTERNAL</text>
-  <text x="840" y="352" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Enrichment sources</text>
+  <text x="840" y="352" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">External services</text>
   <text x="840" y="367" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">NHTSA vPIC</text>
   <text x="840" y="380" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">Zippopotam.us</text>
-  <text x="840" y="393" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">owner-authorized</text>
+  <text x="840" y="393" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">Anthropic API</text>
+  <text x="840" y="406" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">opt-in · capped</text>
   <rect x="760" y="460" width="160" height="80" rx="6" fill="#f4f1e9"/>
   <rect x="760" y="460" width="160" height="80" rx="6" fill="rgba(26,33,31,0.02)" stroke="rgba(26,33,31,0.45)" stroke-width="1" stroke-dasharray="4,3"/>
   <rect x="768" y="466" width="48" height="12" rx="2" fill="none" stroke="rgba(26,33,31,0.45)" stroke-opacity="0.5" stroke-width="0.8"/>
   <text x="792" y="475" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">DEFERRED</text>
   <text x="840" y="492" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Deferred services</text>
-  <text x="840" y="507" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">model provider</text>
+  <text x="840" y="507" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">hosted model calls</text>
   <text x="840" y="520" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">outreach sending</text>
   <text x="840" y="533" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">real personal data</text>
   <rect x="36" y="456" width="140" height="80" rx="6" fill="#f4f1e9"/>

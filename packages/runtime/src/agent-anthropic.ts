@@ -62,9 +62,6 @@ export class AnthropicModelPort implements ModelPort {
     if (message.stop_reason === 'refusal') {
       throw new ModelCallError('refusal', usage);
     }
-    if (message.stop_reason === 'max_tokens') {
-      throw new ModelCallError('max_tokens', usage);
-    }
     const citedBlocks: CitedBlock[] = [];
     const texts: string[] = [];
     for (const block of message.content) {
@@ -84,7 +81,14 @@ export class AnthropicModelPort implements ModelPort {
       if (citations.length > 0)
         citedBlocks.push({ text: block.text, citations });
     }
-    return { text: texts.join(''), citedBlocks, usage };
+    return {
+      text: texts.join(''),
+      citedBlocks,
+      usage,
+      // A cut-off answer keeps its complete cited blocks; the team decides
+      // whether a role can use it.
+      truncated: message.stop_reason === 'max_tokens',
+    };
   }
 }
 

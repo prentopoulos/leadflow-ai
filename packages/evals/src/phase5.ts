@@ -219,7 +219,7 @@ const safetyClaim = {
   claimId: 'c1',
   topic: 'vehicle' as const,
   text: 'The 2022 Camry has a five-star overall safety rating from NHTSA.',
-  url: 'https://www.nhtsa.gov/vehicle/2022/TOYOTA/CAMRY',
+  url: 'https://safety-ratings.example/2022-toyota-camry',
   title: 'NHTSA',
   quote: '2022 Toyota Camry overall safety rating: five-star (NHTSA).',
 };
@@ -427,7 +427,7 @@ export async function observePhaseFive(check: string): Promise<unknown> {
             text: 'The 2023 Camry has a five-star rating.',
           }),
           checkClaim({ ...base, quote: ' ' }),
-          checkClaim({ ...base, url: 'http://www.nhtsa.gov/' }),
+          checkClaim({ ...base, url: 'http://safety-ratings.example/' }),
           checkClaim({
             ...base,
             text: 'Owners praise the comfortable seating and quiet cabin.',

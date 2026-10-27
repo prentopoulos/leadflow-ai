@@ -45,6 +45,9 @@ export interface ModelResponse {
   text: string;
   citedBlocks: CitedBlock[];
   usage: ModelUsage;
+  // Stopped at max_tokens. Workers keep the cited blocks they finished;
+  // JSON roles treat it as an error.
+  truncated?: boolean;
 }
 
 export interface ModelPort {
@@ -355,7 +358,13 @@ export async function runAgentTeam(input: {
       const response = await input.port.call(request);
       const cost = callCostMicros(request.model, response.usage);
       settle(cost);
-      record('ok', null, response.usage, cost, clock() - started);
+      record(
+        'ok',
+        response.truncated === true ? 'max_tokens' : null,
+        response.usage,
+        cost,
+        clock() - started,
+      );
       return response;
     } catch (error) {
       const failure =
@@ -380,6 +389,7 @@ export async function runAgentTeam(input: {
   ): Promise<T> {
     const response = await call(request, attempt);
     try {
+      if (response.truncated === true) throw new ModelCallError('max_tokens');
       return parseJson(schema, response.text);
     } catch (error) {
       const last = calls.at(-1);
@@ -451,7 +461,8 @@ export async function runAgentTeam(input: {
           ]
             .map((question, index) => `${index + 1}. ${question}`)
             .join('\n')}`,
-          maxTokens: 2_000,
+          // The 2026-10-27 live probe cut two of three workers at 2,000.
+          maxTokens: 4_000,
           webSearchMaxUses: AGENT_LIMITS.searchesPerWorker,
         }),
       ),

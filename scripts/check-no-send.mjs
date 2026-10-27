@@ -49,7 +49,14 @@ const allowedHosts = new Set([
   // IAP's JWT issuer (`https://cloud.google.com/iap`): compared with the
   // assertion's `iss` claim, never requested.
   'cloud.google.com',
+  // Phase 5 opt-in agent team, owner-authorized 2026-10-27 (PROJECT.md):
+  // the Anthropic SDK's default endpoint, local only.
+  'api.anthropic.com',
 ]);
+
+// RFC 2606 reserves `.example`; such hosts never resolve, so fixtures may
+// use them for illustrative citation URLs.
+const reservedExampleHost = (host) => /\.example$/u.test(host);
 
 function packageNamesFromLockfile(lockfile) {
   const names = new Set();
@@ -91,7 +98,7 @@ export function inspectOutboundSurface({ manifests, lockfile, sources }) {
     for (const match of content.matchAll(
       /\b(?:https?|wss?):\/\/([^/\s'"`)?:]+)/gu,
     )) {
-      if (!allowedHosts.has(match[1])) {
+      if (!allowedHosts.has(match[1]) && !reservedExampleHost(match[1])) {
         findings.push(`${file}: outbound host ${match[1]} is not authorized`);
       }
     }

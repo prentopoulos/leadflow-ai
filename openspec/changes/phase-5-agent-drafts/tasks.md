@@ -12,7 +12,7 @@
 
 ## 4. Documentation
 
-- [ ] 4.1 Update AI_OPS.md, `docs/dependencies/phase-5.md`, the C4 model and diagrams, the README and HANDOFF.
+- [x] 4.1 Update AI_OPS.md, `docs/dependencies/phase-5.md`, the C4 model and diagrams, the README and HANDOFF.
 
 ## 5. Verify and close
 
