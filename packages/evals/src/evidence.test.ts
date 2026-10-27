@@ -45,7 +45,8 @@ describe('deployment evidence index', () => {
     const cost = index.checks.find(
       (check) => check.id === 'deployed-cost-status',
     );
-    expect(cost?.pending).toBe(true);
+    // Recorded from the posted bill in the Phase 4 session (2026-10-27).
+    expect(cost).toMatchObject({ outcome: 'pass', pending: false });
   });
 
   it('refuses a duplicate or missing check', async () => {

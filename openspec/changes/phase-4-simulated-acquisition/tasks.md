@@ -1,6 +1,6 @@
 ## 1. Record the posted Phase 3 cost
 
-- [ ] 1.1 Read the billing reports and both project budgets at least 24 hours after the last hosted activity (after about 22:45 Toronto on 2026-10-27) and record `deployed-cost-status` in `docs/evidence/phase-3/index.json` with the observed amounts and time, including the 09:45 2026-10-27 interim reading of CA$0.00; record pending with a reason if billing still has not posted, never zero by default, and note whether spend is below the 50% inspection point.
+- [x] 1.1 Read the billing reports and both project budgets at least 24 hours after the last hosted activity (after about 22:45 Toronto on 2026-10-27) and record `deployed-cost-status` in `docs/evidence/phase-3/index.json` with the observed amounts and time, including the 09:45 2026-10-27 interim reading of CA$0.00; record pending with a reason if billing still has not posted, never zero by default, and note whether spend is below the 50% inspection point.
 
 ## 2. Attribution contract
 

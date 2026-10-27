@@ -6,9 +6,11 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 
 Branch `phase-4-simulated-acquisition`, draft PR #9. Tasks 2.1-7.1 are complete; the exact local
 candidate is `2da8a5d` (rebased onto `main` at `ec4fc66`; it adds the Phase 4 evidence index to the
-reviewed `8471757`, and the full gate passed on it with 431 tests). Open: 1.1 (posted cost, after about
-22:45 Toronto on 2026-10-27), 8.1 (hosted demonstration and walkthrough, after an enumerated owner
-approval and only if the cost is below the 50% inspection point) and 9.1 (close).
+reviewed `8471757`, and the full gate passed on it with 431 tests). Task 1.1 is done: at 13:03 Toronto on
+2026-10-27 the posted usage (Cloud Run 32 requests, 25.1 s CPU; Cloud Build 4.9 min; Firestore 551
+reads, 321 writes) cost CA$0.00 within free tiers, both budgets at $0.00 of $10, recorded as
+`deployed-cost-status` pass in the Phase 3 evidence index. Spend is below the 50% inspection point.
+Open: 8.1 (hosted demonstration and walkthrough, after an enumerated owner approval) and 9.1.
 
 Task 7.1 evidence on `8471757`: the full `pnpm check` passed (430 tests; evaluation 59 passed,
 0 failed, 25 not_run; smoke, governance, docs, strict OpenSpec). The first full gate of the phase
