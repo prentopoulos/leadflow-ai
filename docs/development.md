@@ -2,28 +2,46 @@
 
 LeadFlow uses project-local Node.js 24.22.1, pnpm 12.15.0, Eclipse Temurin Java 21.0.12.1+1,
 Firestore Emulator 1.22.0, and Structurizr CLI 2025.11.09 so unrelated system installations remain
-available. The `.tools/` directory is ignored and must never be committed. Exact Phase 1 artifacts
-and SHA-256 values live in `toolchain.phase1.json`; the selection rationale is in
+available. Windows x64, macOS Apple Silicon and macOS Intel use the same versions. The `.tools/`
+directory is ignored and must never be committed. Exact platform artifacts and SHA-256 values live
+in `toolchain.phase1.json`; the selection rationale is in
 `docs/dependencies/phase-1.md`.
 
 ## Bootstrap the verified toolchain
 
 The bootstrap downloads the exact official Node.js archive, Java, Firestore Emulator, and
 Structurizr artifacts when they are missing, verifies their committed SHA-256 values, and installs
-them under `.tools/`. It then installs pnpm at the exact pinned version with that Node.js's own npm,
-because pnpm ships its Windows binary as a platform-specific optional dependency; npm checks the
-registry integrity, and a published npm version cannot be replaced. Run it once in a fresh clone,
-before activation:
+them under `.tools/`. It then installs pnpm at the exact pinned version with that Node.js's own npm.
+Run the matching bootstrap once in a fresh clone, before activation.
+
+Windows PowerShell:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap-phase1-tools.ps1
 ```
 
+macOS Bash or Zsh (Apple Silicon or Intel):
+
+```bash
+bash ./scripts/bootstrap-phase1-tools.sh
+```
+
 The bootstrap requests no application credential. Then activate the complete toolchain in each new
-PowerShell session:
+shell.
+
+Windows PowerShell:
 
 ```powershell
 . .\scripts\activate-toolchain.ps1
+node --version
+pnpm --version
+java --version
+```
+
+macOS Bash or Zsh:
+
+```bash
+source ./scripts/activate-toolchain.sh
 node --version
 pnpm --version
 java --version
@@ -37,7 +55,7 @@ paths for the current shell only.
 
 After activation, install exactly the committed dependency graph:
 
-```powershell
+```console
 pnpm install --frozen-lockfile
 pnpm tools:verify
 pnpm check
@@ -50,7 +68,7 @@ fails with the exact missing cached artifact if bootstrap has not run. After one
 
 The connected registry audit remains separate:
 
-```powershell
+```console
 pnpm audit:dependencies
 ```
 
@@ -61,7 +79,7 @@ It reports high-severity-or-greater dependency findings and never applies fixes.
 Phase 1 uses the exact synthetic project `demo-leadflow-ai-local`. Firestore binds to
 `127.0.0.1:8080`; the Emulator UI is disabled. Browser code never connects directly to Firebase.
 
-```powershell
+```console
 # Empty, ephemeral state; Ctrl+C stops it and writes no export.
 pnpm emulator:start
 
@@ -83,8 +101,8 @@ Firestore indexes, IAM, security rules, contention, backup/restore, or deployed 
 
 After one connected dependency install and tool bootstrap:
 
-```powershell
-. .\scripts\activate-toolchain.ps1
+```console
+# Activate with the command for your operating system above.
 pnpm install --frozen-lockfile --offline
 pnpm tools:verify
 pnpm emulator:exec
@@ -113,8 +131,9 @@ cloud Firestore, external communication, or other credentialed service.
 
 ## Known shell workarounds
 
-- Run `pnpm` from PowerShell after `. .\scripts\activate-toolchain.ps1`. Git Bash cannot resolve
-  the standalone pnpm shim.
+- On Windows, run `pnpm` from PowerShell after `. .\scripts\activate-toolchain.ps1`. Git Bash cannot
+  resolve the standalone Windows pnpm shim. On macOS, source `./scripts/activate-toolchain.sh` from
+  Bash or Zsh.
 - If Git reports `dubious ownership` because the checkout belongs to another Windows account, pass
   a one-command override such as `git -c safe.directory=<absolute checkout path> status`
   rather than changing global configuration, unless the owner adds the directory permanently.

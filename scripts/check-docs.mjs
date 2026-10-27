@@ -200,12 +200,24 @@ function validateWorkspace() {
   if (!cli) {
     return ['LEADFLOW_STRUCTURIZR_CLI is unset; activate the toolchain first'];
   }
-  // The pinned CLI is a .bat launcher on Windows, which needs a shell; the
-  // command is a fixed string built from the activation-provided path.
-  const result = spawnSync(
-    `"${cli}" validate -workspace docs/architecture/workspace.dsl`,
-    { cwd: repoRoot, encoding: 'utf8', shell: true, windowsHide: true },
-  );
+  // The pinned CLI uses a .bat launcher on Windows and a .sh launcher on macOS.
+  // Both paths come from the project-local activation script.
+  const options = {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    windowsHide: true,
+  };
+  const result =
+    process.platform === 'win32'
+      ? spawnSync(
+          `"${cli}" validate -workspace docs/architecture/workspace.dsl`,
+          { ...options, shell: true },
+        )
+      : spawnSync(
+          cli,
+          ['validate', '-workspace', 'docs/architecture/workspace.dsl'],
+          options,
+        );
   return result.status === 0
     ? []
     : [`Structurizr validation failed: ${result.stdout}${result.stderr}`];

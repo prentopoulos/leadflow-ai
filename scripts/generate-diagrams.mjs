@@ -1321,6 +1321,212 @@ function hostedLifecycle() {
   });
 }
 
+function explodedSystem() {
+  const d = new Diagram({
+    slug: 'exploded-system',
+    width: 960,
+    height: 612,
+    maxNodes: 0,
+    maxArrows: 0,
+  });
+  const origin = { x: 332, y: 408 };
+  const rect = { x0: 0, y0: 0, x1: 176, y1: 120 };
+  const gap = 92;
+  const iso = (x, y, z) => [origin.x + x - y, origin.y + (x + y) / 2 - z];
+  const point = ([x, y]) => `${x},${y}`;
+  const polygon = (points) => points.map(point).join(' ');
+  const layers = [
+    {
+      key: 'evidence',
+      name: 'Evidence foundation',
+      sub: 'stored lead · source records',
+      z: 0,
+      t: 20,
+      focal: false,
+    },
+    {
+      key: 'rules',
+      name: 'Deterministic controls',
+      sub: 'rubric · consent · verifier',
+      z: 112,
+      t: 16,
+      focal: true,
+    },
+    {
+      key: 'workflow',
+      name: 'Bounded workflow',
+      sub: 'qualify · enrich · draft',
+      z: 220,
+      t: 16,
+      focal: false,
+    },
+    {
+      key: 'workspace',
+      name: 'Operator workspace',
+      sub: 'intake · runs · review',
+      z: 328,
+      t: 12,
+      focal: false,
+    },
+  ];
+
+  const [traceLeftX, traceLeftY] = iso(rect.x0, rect.y1, 0);
+  const [traceRightX, traceRightY] = iso(rect.x1, rect.y0, 0);
+  const [, traceTopLeftY] = iso(rect.x0, rect.y1, layers.at(-1).z);
+  const [, traceTopRightY] = iso(rect.x1, rect.y0, layers.at(-1).z);
+  const markup = [
+    `<g data-exploded data-origin="${origin.x} ${origin.y}" data-gap="${gap}">`,
+    `<line data-role="trace" x1="${traceLeftX}" y1="${traceLeftY + 20}" x2="${traceLeftX}" y2="${traceTopLeftY}" stroke="${rgba(tokens.ink, 0.3)}" stroke-width="0.8" stroke-dasharray="4,3"/>`,
+    `<line data-role="trace" x1="${traceRightX}" y1="${traceRightY + 20}" x2="${traceRightX}" y2="${traceTopRightY}" stroke="${rgba(tokens.ink, 0.3)}" stroke-width="0.8" stroke-dasharray="4,3"/>`,
+  ];
+  for (const [level, layer] of layers.entries()) {
+    const a = iso(rect.x0, rect.y0, layer.z);
+    const b = iso(rect.x1, rect.y0, layer.z);
+    const c = iso(rect.x1, rect.y1, layer.z);
+    const e = iso(rect.x0, rect.y1, layer.z);
+    const cb = [c[0], c[1] + layer.t];
+    const eb = [e[0], e[1] + layer.t];
+    const topFill = layer.focal ? rgba(tokens.accent, 0.1) : tokens.white;
+    const leftFill = layer.focal
+      ? rgba(tokens.accent, 0.2)
+      : rgba(tokens.ink, 0.07);
+    const rightFill = layer.focal
+      ? rgba(tokens.accent, 0.32)
+      : rgba(tokens.ink, 0.15);
+    const stroke = layer.focal ? tokens.accent : tokens.ink;
+    const leaderY = b[1] + layer.t / 2;
+    const detailA = iso(36, 36, layer.z - 0.5);
+    const detailB = iso(140, 36, layer.z - 0.5);
+    const detailC = iso(140, 84, layer.z - 0.5);
+    const detailD = iso(36, 84, layer.z - 0.5);
+    markup.push(
+      `<g data-part="${layer.key}" data-name="${layer.name}" data-rect="${rect.x0} ${rect.y0} ${rect.x1} ${rect.y1} 0" data-z="${layer.z}" data-t="${layer.t}" data-level="${level}"${layer.focal ? ' data-focal' : ''}>`,
+      `<path data-role="silhouette" d="M ${point(e)} L ${point(a)} L ${point(b)} L ${point(c)} L ${point(cb)} L ${point(eb)} Z" fill="${tokens.white}"/>`,
+      `<polygon points="${polygon([a, b, c, e])}" fill="${topFill}"/>`,
+      `<polygon points="${polygon([e, c, cb, eb])}" fill="${leftFill}"/>`,
+      `<polygon points="${polygon([b, c, cb])}" fill="${rightFill}"/>`,
+      `<path d="M ${point(e)} L ${point(a)} L ${point(b)} L ${point(c)} L ${point(cb)} L ${point(eb)} Z" fill="none" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/>`,
+      `<polygon points="${polygon([detailA, detailB, detailC, detailD])}" fill="none" stroke="${layer.focal ? rgba(tokens.accent, 0.7) : rgba(tokens.ink, 0.48)}" stroke-width="0.8"/>`,
+      `<g data-role="label"><line data-role="leader" x1="${b[0] + 6}" y1="${leaderY}" x2="568" y2="${leaderY}" stroke="${layer.focal ? rgba(tokens.accent, 0.65) : rgba(tokens.ink, 0.4)}" stroke-width="0.8"/><circle cx="${b[0]}" cy="${leaderY}" r="2" fill="${layer.focal ? tokens.accent : tokens.ink}"/><text data-role="name" x="580" y="${leaderY - 1}" fill="${tokens.ink}" font-size="16" font-weight="600" font-family="${fonts.sans}">${layer.name}</text><text x="580" y="${leaderY + 15}" fill="${layer.focal ? tokens.accent : tokens.muted}" font-size="10" font-family="${fonts.mono}" letter-spacing="0.04em">${layer.sub}</text></g>`,
+      `</g>`,
+    );
+  }
+  markup.push('</g>');
+  d.under(markup.join('\n  '));
+
+  return page({
+    diagram: d,
+    eyebrow: 'Exploded system · product layers',
+    title: 'What makes one LeadFlow run',
+    desc: 'Exploded axonometric view of four LeadFlow AI layers: stored evidence at the base, deterministic scoring consent and verification controls, a bounded qualification enrichment drafting workflow, and the operator workspace for intake runs and review.',
+    intro:
+      'Four layers form one product. Deterministic controls remain between stored evidence and every agent-produced draft.',
+  });
+}
+
+function accessMatrix() {
+  const d = new Diagram({
+    slug: 'access-matrix',
+    width: 960,
+    height: 520,
+    maxNodes: 0,
+    maxArrows: 0,
+  });
+  const roles = [
+    ['Local operator', 'loopback'],
+    ['Hosted owner', 'IAP allowlist'],
+    ['Other account', 'signed in'],
+    ['Public request', 'unauthenticated'],
+  ];
+  const rows = [
+    ['Workspace', ['Use', 'Use', 'Denied', 'Denied']],
+    ['Intake + runs API', ['Use', 'Use', 'Denied', 'Denied']],
+    ['Firestore records', ['Via API', 'Via service', 'No access', 'No access']],
+    [
+      'Public lookups',
+      ['Live / saved', 'Saved only', 'No access', 'No access'],
+    ],
+    ['Draft review', ['Approve', 'Approve', 'No access', 'No access']],
+    [
+      'Message sending',
+      ['Not present', 'Not present', 'Not present', 'Not present'],
+    ],
+    [
+      'Deploy + purge',
+      ['Not applicable', 'Owner action', 'No access', 'No access'],
+    ],
+  ];
+  const left = 12;
+  const labelWidth = 208;
+  const gap = 12;
+  const roleWidth = 164;
+  const roleGap = 8;
+  const roleX = (index) =>
+    left + labelWidth + gap + index * (roleWidth + roleGap);
+  const rowY = (index) => 140 + index * 44;
+  const markup = [
+    `<rect x="${left}" y="72" width="${labelWidth}" height="52" rx="6" fill="${tokens.white}" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<text x="${left + labelWidth / 2}" y="95" fill="${tokens.ink}" font-size="11" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Capability</text>`,
+    `<text x="${left + labelWidth / 2}" y="111" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">by access context</text>`,
+  ];
+  for (const [index, [name, code]] of roles.entries()) {
+    const x = roleX(index);
+    markup.push(
+      `<rect x="${x}" y="72" width="${roleWidth}" height="52" rx="6" fill="${tokens.ink}"/>`,
+      `<text x="${x + roleWidth / 2}" y="94" fill="${tokens.white}" font-size="11" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">${name}</text>`,
+      `<text x="${x + roleWidth / 2}" y="110" fill="${rgba(tokens.white, 0.85)}" font-size="8" font-family="${fonts.mono}" text-anchor="middle">${code}</text>`,
+    );
+  }
+  for (const [rowIndex, [name, values]] of rows.entries()) {
+    const y = rowY(rowIndex);
+    markup.push(
+      `<rect x="${left}" y="${y}" width="${labelWidth}" height="36" rx="4" fill="${tokens.white}" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+      `<text x="${left + 12}" y="${y + 23}" fill="${tokens.ink}" font-size="11" font-weight="600" font-family="${fonts.sans}">${name}</text>`,
+    );
+    for (const [columnIndex, value] of values.entries()) {
+      const x = roleX(columnIndex);
+      const focal = rowIndex === 5 && columnIndex === 1;
+      const denied = /^(Denied|No access)$/u.test(value);
+      const limited = /^(Via API|Via service|Saved only|Not applicable)$/u.test(
+        value,
+      );
+      const fill = focal
+        ? rgba(tokens.accent, 0.08)
+        : denied
+          ? tokens.paper
+          : limited
+            ? rgba(tokens.muted, 0.08)
+            : rgba(tokens.ink, 0.05);
+      const stroke = focal ? tokens.accent : rgba(tokens.ink, 0.16);
+      const textColor = focal
+        ? tokens.accent
+        : denied
+          ? tokens.soft
+          : tokens.ink;
+      markup.push(
+        `<rect x="${x}" y="${y}" width="${roleWidth}" height="36" rx="4" fill="${fill}" stroke="${stroke}" stroke-width="${focal ? 1.4 : 0.6}"/>`,
+        `<text x="${x + roleWidth / 2}" y="${y + 23}" fill="${textColor}" font-size="10" font-weight="${focal ? 600 : 400}" font-family="${fonts.sans}" text-anchor="middle">${value}</text>`,
+      );
+    }
+  }
+  const legendY = 468;
+  markup.push(
+    `<line x1="${left}" y1="${legendY}" x2="948" y2="${legendY}" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<text x="${left}" y="493" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" letter-spacing="0.14em">ENFORCED BOUNDARY</text>`,
+    `<text x="156" y="493" fill="${tokens.muted}" font-size="10" font-family="${fonts.sans}">The browser never talks to Firestore; LeadFlow contains no message-sending capability.</text>`,
+  );
+  d.under(markup.join('\n  '));
+
+  return page({
+    diagram: d,
+    eyebrow: 'Security matrix · local and hosted modes',
+    title: 'Access and authority by mode',
+    desc: 'Security matrix comparing the local operator, the allowlisted hosted owner, another signed-in account and a public unauthenticated request across workspace, API, Firestore, enrichment, draft review, message sending and deployment or purge authority.',
+    intro:
+      'Local access stays on loopback. Hosted access requires IAP and the owner allowlist. The browser has no direct database path, and no mode can send a message.',
+  });
+}
+
 function principles() {
   const d = new Diagram({ slug: 'principles', width: 960, height: 168 });
   const columns = [
@@ -1399,6 +1605,7 @@ function principles() {
 }
 
 export const diagrams = {
+  'exploded-system': explodedSystem,
   architecture,
   'persist-before-processing': persistBeforeProcessing,
   'run-lifecycle': runLifecycle,
@@ -1409,6 +1616,7 @@ export const diagrams = {
   'private-cloud': privateCloud,
   'hosted-execution': hostedExecution,
   'hosted-lifecycle': hostedLifecycle,
+  'access-matrix': accessMatrix,
 };
 
 export const readmeAssets = { principles };

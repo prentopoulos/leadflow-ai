@@ -33,18 +33,31 @@ if (actualPnpm !== expectedPnpm) {
   );
 }
 
+const macArchitecture = process.arch === 'arm64' ? 'arm64' : 'x64';
+const platformMetadata =
+  process.platform === 'darwin'
+    ? phaseOneMetadata.macos[macArchitecture]
+    : null;
+if (!['win32', 'darwin'].includes(process.platform)) {
+  errors.push(`Unsupported development platform ${process.platform}.`);
+}
 const javaRoot = path.join(
   repoRoot,
   '.tools',
   'java',
-  phaseOneMetadata.java.installDirectory,
+  platformMetadata?.java.installDirectory ??
+    phaseOneMetadata.java.installDirectory,
 );
-const javaExecutable = path.join(javaRoot, 'bin', 'java.exe');
+const javaExecutable = path.join(
+  javaRoot,
+  'bin',
+  process.platform === 'win32' ? 'java.exe' : 'java',
+);
 const structurizrExecutable = path.join(
   repoRoot,
   '.tools',
   phaseOneMetadata.structurizr.installDirectory,
-  'structurizr.bat',
+  process.platform === 'win32' ? 'structurizr.bat' : 'structurizr.sh',
 );
 const firebaseEmulatorsPath = path.join(
   repoRoot,
@@ -121,7 +134,9 @@ if (
 if (errors.length > 0) {
   console.error(errors.join('\n'));
   console.error(
-    'Activate the local toolchain with: . .\\scripts\\activate-toolchain.ps1',
+    process.platform === 'win32'
+      ? 'Activate the local toolchain with: . .\\scripts\\activate-toolchain.ps1'
+      : 'Activate the local toolchain with: source ./scripts/activate-toolchain.sh',
   );
   process.exitCode = 1;
 } else {

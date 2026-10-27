@@ -11,10 +11,25 @@ Fictional leads · Firestore Emulator · Public vehicle and ZIP data · No AI mo
 
 </div>
 
-## Start
+## Quick setup
 
-Windows PowerShell, from the repository root. The bootstrap downloads only checksum-verified Java,
-Firestore Emulator and Structurizr artifacts into the ignored `.tools/` folder.
+Clone the public repository, then enter it:
+
+```console
+git clone https://github.com/prentopoulos/leadflow-ai.git
+cd leadflow-ai
+```
+
+On macOS (Apple Silicon or Intel), use the project-local Bash toolchain:
+
+```bash
+bash ./scripts/bootstrap-phase1-tools.sh
+source ./scripts/activate-toolchain.sh
+pnpm install --frozen-lockfile
+pnpm check
+```
+
+On Windows, use PowerShell:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap-phase1-tools.ps1
@@ -23,28 +38,38 @@ pnpm install --frozen-lockfile
 pnpm check
 ```
 
+Both bootstraps download only checksum-verified Node.js, Java, Firestore Emulator and Structurizr
+artifacts into the ignored `.tools/` folder. No system-wide Node or Java installation is required.
 `pnpm check` is the offline gate: formatting, lint, strict TypeScript, tests, builds, the fixed
 evaluation cases, local smoke tests, diagram and docs checks, governance and OpenSpec validation. It
 needs no credentials and makes no outside calls.
 
-To use the app, run each line in its own activated PowerShell window, waiting for each to report
-that it is ready:
+### Run the local demo
 
-```powershell
+Open three activated shells. Start the emulator in the first, the API in the second, and the web app
+in the third. Wait for each long-running process to report that it is ready before starting the next.
+
+```console
+# Shell 1
 pnpm emulator:start
-pnpm build; pnpm api:local -- --enrichment=recorded
+
+# Shell 2
+pnpm build
+pnpm api:local -- --enrichment=recorded
+
+# Shell 3
 pnpm seed:local
 pnpm --filter @leadflow-ai/web exec vite
 ```
 
 Open the URL Vite prints. It opens on the LeadFlow AI cover; `#intake` takes a new fictional lead,
-`#runs` shows leads and the approval queue, and `#metrics` shows the dashboard. The seed adds 40 fictional leads that use saved
-responses. Run `pnpm api:local` without `--enrichment` to look up the real public sources for leads
-you enter. Stopping the emulator discards all state.
+`#runs` shows leads and the approval queue, and `#metrics` shows the dashboard. The seed adds 40
+fictional leads that use saved responses. Run `pnpm api:local` without `--enrichment` to look up the
+real public sources for leads you enter. Stopping the emulator discards all state.
 
 ## How it works
 
-<img src="docs/diagrams/architecture.svg" alt="Local architecture: operator dossier, Fastify API, workflow runtime and domain contracts, Firestore Emulator and offline evaluator inside the workstation boundary; NHTSA vPIC and Zippopotam.us as external sources; model provider, outreach sending and real personal data deferred" width="100%">
+<img src="docs/diagrams/exploded-system.svg" alt="Exploded product view: stored evidence supports deterministic scoring, consent and verification controls; those controls support the bounded qualification, enrichment and drafting workflow; the operator workspace sits above for intake, run monitoring and review" width="100%">
 
 1. An operator enters a fictional inquiry. The API saves the lead and its run in one Firestore
    transaction before any work starts
@@ -59,6 +84,15 @@ you enter. Stopping the emulator discards all state.
 5. Eight checks run before a draft reaches a person: sources are complete, claims are verified,
    consent is recorded, there is no pricing or eligibility language, and none of the lead's own
    free text is copied in.
+
+## Runtime boundary
+
+<img src="docs/diagrams/architecture.svg" alt="Local architecture: operator dossier, Fastify API, workflow runtime and domain contracts, Firestore Emulator and offline evaluator inside the workstation boundary; NHTSA vPIC and Zippopotam.us as external sources; model provider, outreach sending and real personal data deferred" width="100%">
+
+The browser calls a loopback Fastify API and never talks to Firestore directly. The API persists the
+lead, runs the fixed graph and records every step. Only two optional outbound calls exist in local
+mode: read-only requests to NHTSA vPIC and Zippopotam.us. Recorded responses keep the whole demo and
+quality gate offline.
 
 ## Agent orchestration
 
@@ -90,6 +124,15 @@ Every step is saved as it happens. A temporary fault gets one retry, and a run t
 be resumed by the operator. A run stopped by a crash can be picked up again once its lease expires,
 and lookups that were in flight are repeated. Failures stay visible rather than turning into
 success.
+
+## Security boundaries
+
+<img src="docs/diagrams/access-matrix.svg" alt="Access matrix: the local operator uses the loopback workspace and API; the hosted owner uses them only through IAP and an account allowlist; other signed-in accounts and public requests are denied; browsers never access Firestore directly; live lookups are local-only; no mode can send a message" width="100%">
+
+Local mode relies on the workstation boundary and binds services to `127.0.0.1`. Hosted mode checks
+IAP's signed identity and the one-account allowlist before it serves the workspace or API. Firestore
+is server-only. Deployment and purge remain explicit owner actions, and message sending is absent
+from the application.
 
 ## Private hosted demo
 

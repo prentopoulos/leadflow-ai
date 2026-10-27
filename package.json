@@ -11,8 +11,8 @@
   },
   "scripts": {
     "preflight": "node scripts/check-toolchain.mjs",
-    "tools:bootstrap": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap-phase1-tools.ps1",
-    "tools:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap-phase1-tools.ps1 -Offline",
+    "tools:bootstrap": "node scripts/run-tool-bootstrap.mjs",
+    "tools:verify": "node scripts/run-tool-bootstrap.mjs --offline",
     "emulator:start": "node scripts/run-firestore-emulator.mjs start",
     "emulator:exec": "node scripts/run-firestore-emulator.mjs exec",
     "emulator:runtime": "node scripts/run-firestore-emulator.mjs runtime",

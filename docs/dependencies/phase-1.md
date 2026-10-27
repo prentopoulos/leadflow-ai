@@ -16,7 +16,7 @@ exact-pinned so the ordinary quality gate can run from installed dependencies an
 | Firebase Admin SDK | `firebase-admin` `14.5.0` | Apache-2.0 | Requires Node 22+; Node 24.22.1 is supported. It is server-only and will be configured to fail closed unless the local emulator host and synthetic project ID validate. |
 | Firebase CLI | `firebase-tools` `15.34.1` | MIT | Declares Node 20, 22, or 24 support. It owns the local Emulator Suite lifecycle and is a root development dependency, not an application runtime dependency. |
 | Firestore Emulator | `cloud-firestore-emulator-v1.22.0.jar` | Google-owned binary under the Firebase service terms, with bundled third-party notices | Pinned by Firebase CLI 15.34.1. SHA-256 `9b6498b7f62714d67f48f59b3818883cd682dbcd46b9f59511de81c97bb5166c`; cached but never redistributed from `.tools/firebase/emulators`. |
-| Java | Eclipse Temurin JDK `21.0.12.1+1`, Windows x64 HotSpot | GPL-2.0 with Classpath Exception | Java 21 satisfies the current Firestore guidance and Structurizr's Java 17+ minimum. Archive SHA-256 `f9d6e191ab098c0d416e7d588a24420a8621cd2f4720dab2459b8b7b2d2d8b4e`. |
+| Java | Eclipse Temurin JDK `21.0.12.1+1`, Windows x64 and macOS x64/aarch64 HotSpot | GPL-2.0 with Classpath Exception | Java 21 satisfies the current Firestore guidance and Structurizr's Java 17+ minimum. Platform archive names and SHA-256 values are pinned in the toolchain metadata. |
 | Structurizr CLI | `2025.11.09` | Apache-2.0 | The final release from the archived official CLI repository. Runs on Java 17+; Java 21 is selected. Archive SHA-256 `f5365a463fc44d539ed19bec00c48ba1e1ecda0ccfd1ba40d2e7472d264eb79a`. |
 
 Exact download URLs and checksums are machine-readable in
@@ -52,8 +52,8 @@ Exact download URLs and checksums are machine-readable in
   server-owned IDs, idempotency, and the local-only boundary stay enforceable.
 - A system Java installation was rejected. Project-local Temurin activation leaves unrelated
   machine installations unchanged and makes the accepted version explicit.
-- Dockerized emulators and diagram tools were rejected for this local Windows phase because they
-  would add an unselected runtime and do not improve the current single-operator boundary.
+- Dockerized emulators and diagram tools were rejected because they would add an unselected runtime
+  and do not improve the current single-operator boundary on Windows or macOS.
 
 ## Limits and recheck triggers
 

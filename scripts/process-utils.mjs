@@ -8,14 +8,17 @@ export const repoRoot = path.resolve(
 );
 
 export function localPnpmExecutable() {
-  const candidate = path.join(
-    repoRoot,
-    '.tools',
-    'pnpm',
-    'node_modules',
-    'pnpm',
-    'pnpm.exe',
-  );
+  const candidate =
+    process.platform === 'win32'
+      ? path.join(
+          repoRoot,
+          '.tools',
+          'pnpm',
+          'node_modules',
+          'pnpm',
+          'pnpm.exe',
+        )
+      : path.join(repoRoot, '.tools', 'pnpm', 'bin', 'pnpm');
   return existsSync(candidate) ? candidate : 'pnpm';
 }
 

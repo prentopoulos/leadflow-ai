@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 960 612" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="exploded-system-title exploded-system-desc" id="exploded-system-root">
+  <title id="exploded-system-title">What makes one LeadFlow run</title>
+  <desc id="exploded-system-desc">Exploded axonometric view of four LeadFlow AI layers: stored evidence at the base, deterministic scoring consent and verification controls, a bounded qualification enrichment drafting workflow, and the operator workspace for intake runs and review.</desc>
+  <defs>
+      <style>#exploded-system-root { --color-paper: #f4f1e9;
+      --color-ink: #1a211f;
+      --color-muted: #626a66;
+      --color-accent: #075e57;
+      --font-sans: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace; }
+      #exploded-system-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #exploded-system-root .diagram-container { width: 100%; overflow-x: auto; }
+      #exploded-system-root .intro { color: var(--color-muted); max-width: 60ch; margin-bottom: 1.5rem; line-height: 1.5; }
+      @media print {
+#exploded-system-root .diagram-container { overflow-x: visible; }
+}</style>
+      <marker id="exploded-system-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#626a66"/></marker>
+      <marker id="exploded-system-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#075e57"/></marker>
+      <marker id="exploded-system-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3a5a85"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f4f1e9"/>
+  <g data-exploded="" data-origin="332 408" data-gap="92">
+  <line data-role="trace" x1="212" y1="488" x2="212" y2="140" stroke="#1a211f" stroke-width="0.8" stroke-dasharray="4,3" stroke-opacity="0.3"/>
+  <line data-role="trace" x1="508" y1="516" x2="508" y2="168" stroke="#1a211f" stroke-width="0.8" stroke-dasharray="4,3" stroke-opacity="0.3"/>
+  <g data-part="evidence" data-name="Evidence foundation" data-rect="0 0 176 120 0" data-z="0" data-t="20" data-level="0">
+  <path data-role="silhouette" d="M 212,468 L 332,408 L 508,496 L 388,556 L 388,576 L 212,488 Z" fill="#ffffff"/>
+  <polygon points="332,408 508,496 388,556 212,468" fill="#ffffff"/>
+  <polygon points="212,468 388,556 388,576 212,488" fill="#1a211f" fill-opacity="0.07"/>
+  <polygon points="508,496 388,556 388,576" fill="#1a211f" fill-opacity="0.15"/>
+  <path d="M 212,468 L 332,408 L 508,496 L 388,556 L 388,576 L 212,488 Z" fill="none" stroke="#1a211f" stroke-width="1.2" stroke-linejoin="round"/>
+  <polygon points="332,444.5 436,496.5 388,520.5 284,468.5" fill="none" stroke="#1a211f" stroke-width="0.8" stroke-opacity="0.48"/>
+  <g data-role="label"><line data-role="leader" x1="514" y1="506" x2="568" y2="506" stroke="#1a211f" stroke-width="0.8" stroke-opacity="0.4"/><circle cx="508" cy="506" r="2" fill="#1a211f"/><text data-role="name" x="580" y="505" fill="#1a211f" font-size="16" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif">Evidence foundation</text><text x="580" y="521" fill="#626a66" font-size="10" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" letter-spacing="0.04em">stored lead · source records</text></g>
+  </g>
+  <g data-part="rules" data-name="Deterministic controls" data-rect="0 0 176 120 0" data-z="112" data-t="16" data-level="1" data-focal="">
+  <path data-role="silhouette" d="M 212,356 L 332,296 L 508,384 L 388,444 L 388,460 L 212,372 Z" fill="#ffffff"/>
+  <polygon points="332,296 508,384 388,444 212,356" fill="#075e57" fill-opacity="0.1"/>
+  <polygon points="212,356 388,444 388,460 212,372" fill="#075e57" fill-opacity="0.2"/>
+  <polygon points="508,384 388,444 388,460" fill="#075e57" fill-opacity="0.32"/>
+  <path d="M 212,356 L 332,296 L 508,384 L 388,444 L 388,460 L 212,372 Z" fill="none" stroke="#075e57" stroke-width="1.2" stroke-linejoin="round"/>
+  <polygon points="332,332.5 436,384.5 388,408.5 284,356.5" fill="none" stroke="#075e57" stroke-width="0.8" stroke-opacity="0.7"/>
+  <g data-role="label"><line data-role="leader" x1="514" y1="392" x2="568" y2="392" stroke="#075e57" stroke-width="0.8" stroke-opacity="0.65"/><circle cx="508" cy="392" r="2" fill="#075e57"/><text data-role="name" x="580" y="391" fill="#1a211f" font-size="16" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif">Deterministic controls</text><text x="580" y="407" fill="#075e57" font-size="10" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" letter-spacing="0.04em">rubric · consent · verifier</text></g>
+  </g>
+  <g data-part="workflow" data-name="Bounded workflow" data-rect="0 0 176 120 0" data-z="220" data-t="16" data-level="2">
+  <path data-role="silhouette" d="M 212,248 L 332,188 L 508,276 L 388,336 L 388,352 L 212,264 Z" fill="#ffffff"/>
+  <polygon points="332,188 508,276 388,336 212,248" fill="#ffffff"/>
+  <polygon points="212,248 388,336 388,352 212,264" fill="#1a211f" fill-opacity="0.07"/>
+  <polygon points="508,276 388,336 388,352" fill="#1a211f" fill-opacity="0.15"/>
+  <path d="M 212,248 L 332,188 L 508,276 L 388,336 L 388,352 L 212,264 Z" fill="none" stroke="#1a211f" stroke-width="1.2" stroke-linejoin="round"/>
+  <polygon points="332,224.5 436,276.5 388,300.5 284,248.5" fill="none" stroke="#1a211f" stroke-width="0.8" stroke-opacity="0.48"/>
+  <g data-role="label"><line data-role="leader" x1="514" y1="284" x2="568" y2="284" stroke="#1a211f" stroke-width="0.8" stroke-opacity="0.4"/><circle cx="508" cy="284" r="2" fill="#1a211f"/><text data-role="name" x="580" y="283" fill="#1a211f" font-size="16" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif">Bounded workflow</text><text x="580" y="299" fill="#626a66" font-size="10" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" letter-spacing="0.04em">qualify · enrich · draft</text></g>
+  </g>
+  <g data-part="workspace" data-name="Operator workspace" data-rect="0 0 176 120 0" data-z="328" data-t="12" data-level="3">
+  <path data-role="silhouette" d="M 212,140 L 332,80 L 508,168 L 388,228 L 388,240 L 212,152 Z" fill="#ffffff"/>
+  <polygon points="332,80 508,168 388,228 212,140" fill="#ffffff"/>
+  <polygon points="212,140 388,228 388,240 212,152" fill="#1a211f" fill-opacity="0.07"/>
+  <polygon points="508,168 388,228 388,240" fill="#1a211f" fill-opacity="0.15"/>
+  <path d="M 212,140 L 332,80 L 508,168 L 388,228 L 388,240 L 212,152 Z" fill="none" stroke="#1a211f" stroke-width="1.2" stroke-linejoin="round"/>
+  <polygon points="332,116.5 436,168.5 388,192.5 284,140.5" fill="none" stroke="#1a211f" stroke-width="0.8" stroke-opacity="0.48"/>
+  <g data-role="label"><line data-role="leader" x1="514" y1="174" x2="568" y2="174" stroke="#1a211f" stroke-width="0.8" stroke-opacity="0.4"/><circle cx="508" cy="174" r="2" fill="#1a211f"/><text data-role="name" x="580" y="173" fill="#1a211f" font-size="16" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif">Operator workspace</text><text x="580" y="189" fill="#626a66" font-size="10" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" letter-spacing="0.04em">intake · runs · review</text></g>
+  </g>
+  </g>
+</svg>
