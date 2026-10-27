@@ -121,7 +121,7 @@ cloud Firestore, external communication, or other credentialed service.
 - Windows PowerShell 5.1 turns any native stderr line into a `NativeCommandError`, so a passing
   `pnpm exec vitest` can still report failure. To capture a leaf check's output, run the tool's Node
   entry directly through `cmd /c` with a redirect, for example
-  `cmd /c "node node_modulesitestitest.mjs run packages/domain > out.txt 2>&1"`, and read
+  `cmd /c "node node_modules\vitest\vitest.mjs run packages/domain > out.txt 2>&1"`, and read
   `$LASTEXITCODE`. Run `openspec validate` from Git Bash, where its spinner on stderr is harmless.
 - Diagram tooling runs under the Python launcher: `py -3.13` for the diagram-design self-check and
   SVG export, and `py -3.10` where Playwright is installed.
@@ -129,7 +129,10 @@ cloud Firestore, external communication, or other credentialed service.
 ## Phase 3 container and release notes
 
 - The checkout may be owned by the Codex sandbox account. Scripts pass
-  `git -c safe.directory=<repo>` per call; do not change global Git configuration.
+  `git -c safe.directory=<repo>` per call; do not change global Git configuration. `gh` runs Git
+  itself and cannot take `-c`, so give it the same override for one process through the
+  environment: `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=<repo> gh
+  pr create --repo prentopoulos/leadflow-ai ...` (Git Bash).
 - A working tree can hold CRLF bytes for LF-committed files while `git status` is clean. If the
   local bundle's `sourceDigest` differs from the image manifest, compare files against
   `git archive HEAD` and restore any that differ with `git show HEAD:<path> > <path>`.
