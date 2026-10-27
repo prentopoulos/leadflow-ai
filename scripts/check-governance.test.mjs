@@ -89,6 +89,10 @@ describe('no-send boundary', () => {
           'packages/runtime/src/x.ts',
           "fetch('https://api.example-crm.com/leads');",
         ],
+        [
+          'packages/evals/src/fixture.ts',
+          "const url = 'https://ratings.example/camry';",
+        ],
       ]),
     });
     expect(findings).toEqual([

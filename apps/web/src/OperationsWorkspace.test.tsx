@@ -11,6 +11,7 @@ import {
 } from '@testing-library/react';
 import {
   COMPLIANCE_NOTICE,
+  acquisitionReport,
   canonicalDraftContent,
   composeDraft,
   composerInputFrom,
@@ -123,8 +124,8 @@ function metricsResponse(): MetricsResponse {
     definitions: {},
     retrievedAt: timestamp,
     report: {
-      schemaVersion: 'metrics-report-v1',
-      definitionsVersion: 'metrics-definitions-v1',
+      schemaVersion: 'metrics-report-v2',
+      definitionsVersion: 'metrics-definitions-v2',
       generatedAt: timestamp,
       systemBundleId: ids.bundle,
       window: { runsInWindow: 10, activeRuns: 0, otherBundleRuns: 2 },
@@ -171,6 +172,37 @@ function metricsResponse(): MetricsResponse {
         responded: 3,
         appointment: 1,
       },
+      // Ten synthetic leads matching the priority distribution above.
+      acquisition: acquisitionReport(
+        (
+          [
+            'high',
+            'high',
+            'high',
+            'high',
+            'standard',
+            'standard',
+            'standard',
+            'nurture',
+            'nurture',
+            'held',
+          ] as const
+        ).map((priority, index) => ({
+          attribution:
+            index % 2 === 0
+              ? null
+              : {
+                  source: 'google',
+                  medium: 'cpc',
+                  campaign: 'sim-search-auto-insurance-q4',
+                  clickId: null,
+                  clickIdClass: null,
+                },
+          priority,
+          failed: false,
+          consented: index !== 3,
+        })),
+      ),
       evidenceClass: 'synthetic-local',
     },
   };
@@ -178,7 +210,7 @@ function metricsResponse(): MetricsResponse {
 
 function draftView(): DraftView {
   const intake = {
-    schemaVersion: 'intake-v2' as const,
+    schemaVersion: 'intake-v3' as const,
     identityClass: 'fictional' as const,
     givenName: 'Avery',
     familyName: 'Jordan',
@@ -193,6 +225,7 @@ function draftView(): DraftView {
     requestDetails: null,
     emailContactConsent: true,
     consentRecord: currentConsentRecord(),
+    attribution: null,
   };
   const composed = composeDraft(
     composerInputFrom({ intake, priority: 'high', evidence: [] }),
@@ -208,6 +241,7 @@ function draftView(): DraftView {
     createdAt: timestamp,
     origin: 'template' as const,
     composerVersion: 'deterministic-template-v1' as const,
+    agentBriefId: null,
     channel: 'email' as const,
     subject: composed.subject,
     body: composed.body,
@@ -234,6 +268,7 @@ function draftView(): DraftView {
   return {
     revisions: [{ revision, state: 'pending_review', verification }],
     reviews: [],
+    agentBrief: null,
     complianceNotice: COMPLIANCE_NOTICE,
   };
 }

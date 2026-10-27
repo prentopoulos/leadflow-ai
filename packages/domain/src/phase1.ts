@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ACQUISITION_VERSIONS, AttributionSchema } from './acquisition.js';
 import {
   CLOUD_CONFIGURATION_VERSION,
   DeploymentIdentitySchema,
@@ -6,8 +7,8 @@ import {
 } from './phase3.js';
 
 export const CONTRACT_VERSIONS = {
-  intake: 'intake-v2',
-  lead: 'lead-v2',
+  intake: 'intake-v3',
+  lead: 'lead-v3',
   run: 'run-v2',
   event: 'event-v2',
   checkpoint: 'checkpoint-v1',
@@ -18,7 +19,7 @@ export const CONTRACT_VERSIONS = {
   graphState: 'phase-2-graph-state-v1',
   rubric: 'rubric-v1',
   simulator: 'simulator-v1',
-  systemBundle: 'system-bundle-v3',
+  systemBundle: 'system-bundle-v5',
   graph: 'phase-2-graph-v1',
   configuration: 'phase-2-local-v1',
   enrichmentEvidence: 'enrichment-evidence-v1',
@@ -28,10 +29,13 @@ export const CONTRACT_VERSIONS = {
   draftReview: 'draft-review-v1',
   composer: 'deterministic-template-v1',
   verificationResult: 'verification-result-v1',
-  verificationRules: 'verification-rules-v1',
+  verificationRules: 'verification-rules-v2',
   decisionLanguage: 'decision-language-v1',
-  metricsDefinitions: 'metrics-definitions-v1',
-  metricsReport: 'metrics-report-v1',
+  metricsDefinitions: 'metrics-definitions-v2',
+  metricsReport: 'metrics-report-v2',
+  channelRules: ACQUISITION_VERSIONS.channelRules,
+  spendFixture: ACQUISITION_VERSIONS.spendFixture,
+  trafficPlan: ACQUISITION_VERSIONS.trafficPlan,
 } as const;
 
 export const LEADFLOW_LOCAL_PROJECT_ID = 'demo-leadflow-ai-local' as const;
@@ -148,6 +152,8 @@ export const IntakeSubmissionSchema = z
     requestDetails: z.string().trim().max(1_000).nullable().default(null),
     emailContactConsent: z.boolean().default(false),
     consentRecord: ConsentRecordSchema.nullable().default(null),
+    // Synthetic LeadFlow simulation data, never a Military.com field.
+    attribution: AttributionSchema.nullable().default(null),
   })
   .strict()
   .superRefine((value, context) => {
@@ -182,6 +188,7 @@ export const IntakeFieldProvenanceSchema = z
         'emailContactConsent',
       ]),
     ),
+    simulatedFields: z.tuple([z.literal('attribution')]),
     parityVerified: z.literal(false),
   })
   .strict();
@@ -811,6 +818,34 @@ const UnavailableBoundarySchema = z
   .object({ value: z.null(), reason: z.string().min(1).max(160) })
   .strict();
 
+// system-bundle-v5: the owner-resolved Phase 5 agent team (literals kept here
+// so phase1 stays free of the agent module).
+const AgentProviderSchema = z
+  .object({ value: z.literal('anthropic') })
+  .strict();
+const AgentModelsSchema = z
+  .object({
+    value: z
+      .object({
+        lead: z.literal('claude-sonnet-5-5'),
+        writer: z.literal('claude-sonnet-5-5'),
+        critic: z.literal('claude-sonnet-5-5'),
+        worker: z.literal('claude-haiku-5-5'),
+      })
+      .strict(),
+  })
+  .strict();
+const AgentPromptSchema = z
+  .object({
+    value: z
+      .object({
+        version: z.literal('agent-prompts-v1'),
+        sha256: Sha256Schema,
+      })
+      .strict(),
+  })
+  .strict();
+
 export const SystemBundleDocumentSchema = z
   .object({
     schemaVersion: z.literal(CONTRACT_VERSIONS.systemBundle),
@@ -848,6 +883,10 @@ export const SystemBundleDocumentSchema = z
         verificationRules: z.literal(CONTRACT_VERSIONS.verificationRules),
         decisionLanguage: z.literal(CONTRACT_VERSIONS.decisionLanguage),
         metricsDefinitions: z.literal(CONTRACT_VERSIONS.metricsDefinitions),
+        channelRules: z.literal(CONTRACT_VERSIONS.channelRules),
+        spendFixture: z.literal(CONTRACT_VERSIONS.spendFixture),
+        trafficPlan: z.literal(CONTRACT_VERSIONS.trafficPlan),
+        agentTeam: z.literal('agent-team-v1').nullable(),
         evaluator: z.string().min(1),
         configuration: z.enum([
           LOCAL_CONFIGURATION_VERSION,
@@ -867,11 +906,11 @@ export const SystemBundleDocumentSchema = z
         architecture: z.string().min(1),
       })
       .strict(),
-    // system-bundle-v3: local emulator or the exact hosted deployment.
+    // system-bundle-v3+: local emulator or the exact hosted deployment.
     deployment: DeploymentIdentitySchema,
-    provider: UnavailableBoundarySchema,
-    model: UnavailableBoundarySchema,
-    prompt: UnavailableBoundarySchema,
+    provider: z.union([UnavailableBoundarySchema, AgentProviderSchema]),
+    model: z.union([UnavailableBoundarySchema, AgentModelsSchema]),
+    prompt: z.union([UnavailableBoundarySchema, AgentPromptSchema]),
     enrichmentMode: EnrichmentModeSchema,
     liveToolContracts: z
       .object({
@@ -896,6 +935,27 @@ export const SystemBundleDocumentSchema = z
         code: 'custom',
         path: ['versions', 'configuration'],
         message: 'configuration version must match the deployment mode',
+      });
+    }
+    // Provider, model and prompt are named exactly when the agent team runs.
+    const agents = value.versions.agentTeam !== null;
+    if (
+      [value.provider, value.model, value.prompt].some(
+        (boundary) => (boundary.value !== null) !== agents,
+      )
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['provider'],
+        message: 'provider, model and prompt are set only with the agent team',
+      });
+    }
+    // Hosted stays template-only (PROJECT.md § Phase 5 decisions).
+    if (value.deployment.mode === 'cloud' && agents) {
+      context.addIssue({
+        code: 'custom',
+        path: ['versions', 'agentTeam'],
+        message: 'a hosted bundle has no agent team',
       });
     }
     // Hosted demonstrations are recorded-only and built from a clean commit.

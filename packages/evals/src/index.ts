@@ -18,8 +18,10 @@ export {
 export type { EvalCase, EvalResult, SystemBundle } from './schemas.js';
 export {
   DEPLOYED_CHECK_IDS,
+  PHASE_FOUR_DEPLOYED_CHECK_IDS,
   DeploymentEvidenceIndexSchema,
   deploymentReady,
 } from './evidence.js';
 export type { DeploymentEvidenceIndex } from './evidence.js';
 export { PHASE_THREE_CASES } from './phase3.js';
+export { PHASE_FOUR_CASES } from './phase4.js';

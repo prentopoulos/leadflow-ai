@@ -28,7 +28,7 @@ const systemBundleId = randomUUID();
 const boundary = createEmulatorFirestoreBoundary();
 
 const bundle = {
-  schemaVersion: 'system-bundle-v3',
+  schemaVersion: 'system-bundle-v5',
   systemBundleId,
   createdAt: timestamp,
   code: {
@@ -40,8 +40,8 @@ const bundle = {
   lockfileDigest: digest,
   fixtures: { version: 'emulator-contract-probe-v1', digest },
   versions: {
-    intake: 'intake-v2',
-    lead: 'lead-v2',
+    intake: 'intake-v3',
+    lead: 'lead-v3',
     run: 'run-v2',
     event: 'event-v2',
     checkpoint: 'checkpoint-v1',
@@ -52,9 +52,13 @@ const bundle = {
     simulator: 'simulator-v1',
     enrichmentAdapters: 'enrichment-adapters-v1',
     composer: 'deterministic-template-v1',
-    verificationRules: 'verification-rules-v1',
+    verificationRules: 'verification-rules-v2',
     decisionLanguage: 'decision-language-v1',
-    metricsDefinitions: 'metrics-definitions-v1',
+    metricsDefinitions: 'metrics-definitions-v2',
+    channelRules: 'channel-rules-v1',
+    spendFixture: 'synthetic-spend-v1',
+    trafficPlan: 'traffic-plan-v1',
+    agentTeam: null,
     evaluator: 'emulator-contract-probe-v1',
     configuration: 'phase-2-local-v1',
   },
@@ -134,7 +138,7 @@ try {
 
   const intakeService = createIntakePersistenceService(boundary.database);
   const intake = {
-    schemaVersion: 'intake-v2',
+    schemaVersion: 'intake-v3',
     identityClass: 'fictional',
     givenName: 'Avery',
     familyName: 'Example',
@@ -149,6 +153,13 @@ try {
     requestDetails: 'Synthetic emulator transaction probe.',
     emailContactConsent: false,
     consentRecord: null,
+    attribution: {
+      source: 'google',
+      medium: 'cpc',
+      campaign: 'sim-search-auto-insurance-q4',
+      clickId: 'sim-0123456789abcdef0123',
+      clickIdClass: 'synthetic',
+    },
   };
   const first = await intakeService.persist({
     idempotencyKey: 'emulator-intake-probe-v1',
@@ -190,6 +201,13 @@ try {
   const storedRun = await repositories.runs.get(first.runId);
   if (storedLead === null || storedRun?.status !== 'persisted') {
     throw new Error('Emulator atomic intake records were not durable.');
+  }
+  if (
+    storedLead.schemaVersion !== 'lead-v3' ||
+    storedLead.intake.attribution?.clickId !== intake.attribution.clickId ||
+    storedLead.provenance.simulatedFields[0] !== 'attribution'
+  ) {
+    throw new Error('Emulator lead did not keep its synthetic attribution.');
   }
 
   const context = {
@@ -315,7 +333,9 @@ try {
     storedDetail.qualification?.runId !== first.runId ||
     storedDetail.simulation?.runId !== first.runId ||
     JSON.stringify(storedDetail.events).includes(intake.email) ||
-    JSON.stringify(storedDetail.events).includes(intake.requestDetails)
+    JSON.stringify(storedDetail.events).includes(intake.requestDetails) ||
+    JSON.stringify(storedDetail.events).includes(intake.attribution.clickId) ||
+    JSON.stringify(storedDetail.events).includes(intake.attribution.campaign)
   ) {
     throw new Error(
       'Emulator run-detail snapshot was incomplete or crossed its privacy boundary.',
@@ -698,7 +718,7 @@ try {
       !queueResponse.ok ||
       !queue.items?.some((item) => item.runId === consentedAccepted.runId) ||
       !metricsResponse.ok ||
-      metrics.definitions?.version !== 'metrics-definitions-v1' ||
+      metrics.definitions?.version !== 'metrics-definitions-v2' ||
       metrics.report?.approvalQueue < 1 ||
       metrics.report?.window?.runsInWindow < 1
     ) {

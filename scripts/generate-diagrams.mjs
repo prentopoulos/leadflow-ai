@@ -59,10 +59,15 @@ function architecture() {
   ]);
   d.label('RECORDS', 650, 287);
   d.path([
-    [424, 362],
-    [760, 362],
+    [424, 352],
+    [760, 352],
   ]);
-  d.label('READ-ONLY GET', 592, 376);
+  d.label('READ-ONLY GET', 684, 338);
+  d.path([
+    [424, 368],
+    [760, 368],
+  ]);
+  d.label('OPT-IN CALLS', 592, 384);
   d.path(
     [
       [424, 500],
@@ -76,6 +81,14 @@ function architecture() {
     [244, 484],
   ]);
   d.label('CHECKS', 210, 470);
+  d.path([
+    [106, 456],
+    [106, 420],
+    [214, 420],
+    [214, 228],
+    [244, 228],
+  ]);
+  d.label('SIM INTAKE', 150, 406);
 
   d.node({
     x: 36,
@@ -126,11 +139,11 @@ function architecture() {
     x: 760,
     y: 320,
     w: 160,
-    h: 80,
+    h: 112,
     kind: 'input',
     tag: 'EXTERNAL',
-    name: 'Enrichment sources',
-    sub: ['NHTSA vPIC', 'Zippopotam.us', 'owner-authorized'],
+    name: 'External services',
+    sub: ['NHTSA vPIC', 'Zippopotam.us', 'Anthropic API', 'opt-in · capped'],
   });
   d.node({
     x: 760,
@@ -140,16 +153,17 @@ function architecture() {
     kind: 'optional',
     tag: 'DEFERRED',
     name: 'Deferred services',
-    sub: ['model provider', 'outreach sending', 'real personal data'],
+    sub: ['hosted model calls', 'outreach sending', 'real personal data'],
   });
   d.node({
     x: 36,
     y: 456,
     w: 140,
+    h: 80,
     kind: 'store',
     tag: 'CLI',
-    name: 'Offline evaluator',
-    sub: 'phase-3.0 cases',
+    name: 'Local tools',
+    sub: ['Offline evaluator', 'Traffic simulator', 'SIMULATED leads'],
   });
   d.node({
     x: 244,
@@ -158,16 +172,16 @@ function architecture() {
     kind: 'backend',
     tag: 'RULES',
     name: 'Domain contracts',
-    sub: 'rubric · template · rules',
+    sub: 'rubric · rules · spend',
   });
 
   return page({
     diagram: d,
     eyebrow: 'Architecture · local mode',
     title: 'LeadFlow AI local architecture',
-    desc: 'An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while the model provider, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.',
+    desc: 'An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, and, only when started with --agents, calls the Anthropic API for a capped research and drafting agent team, while a traffic simulator feeds fictional leads with simulated attribution through the same intake API, and hosted model calls, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.',
     intro:
-      'Everything inside the boundary runs on one workstation against synthetic data. The only outbound calls are read-only GETs to the two authorized enrichment sources; nothing is ever sent.',
+      'Everything inside the boundary runs on one workstation against synthetic data. Outbound calls are read-only GETs to the two authorized enrichment sources and, when the agent team is switched on, capped calls to the Anthropic API; nothing is ever sent.',
   });
 }
 
@@ -400,6 +414,7 @@ function dataModel() {
     fields: [
       '# leadId',
       'intake · fictional values',
+      'attribution · simulated, optional',
       'provenance · ZIP only exact',
     ],
   });
@@ -646,8 +661,8 @@ function phaseTwoRecords() {
   const d = new Diagram({
     slug: 'data-model-outreach',
     width: 960,
-    height: 560,
-    maxNodes: 6,
+    height: 700,
+    maxNodes: 7,
   });
   const entity = ({ x, y, name, paths, fields, kind = 'backend' }) => {
     const w = 240;
@@ -765,6 +780,20 @@ function phaseTwoRecords() {
     ],
   });
 
+  const brief = entity({
+    x: 360,
+    y: 464,
+    name: 'Agent brief',
+    paths: ['agentBriefs/{briefId}'],
+    fields: [
+      '# briefId · → runId',
+      'drafted | fallback · reason',
+      'claims: url · quote',
+      'paragraph · → claimIds',
+      'calls · totalCostMicros',
+    ],
+  });
+
   const line = (points) => d.path(points, { marker: false });
   line([
     [run.x, 100],
@@ -804,21 +833,28 @@ function phaseTwoRecords() {
   ]);
   d.tag('1', revision.right + 10, 334);
   d.tag('0..1', review.x - 10, 334, { anchor: 'end' });
+  line([
+    [480, revision.bottom],
+    [480, brief.y],
+  ]);
+  d.tag('N', 488, revision.bottom + 16);
+  d.tag('0..1', 488, brief.y - 8);
 
   d.callout(
     [
       'Revisions and reviews are append-only; earlier evidence and revisions stay stored, unlinked.',
       'Fields are structure only; stored fixture values are fictional and never drawn here.',
+      'An agent brief exists only for local --agents runs; a draft revision links it by briefId, and a drafted paragraph also cites it from its slot.',
     ],
     40,
-    524,
+    636,
   );
 
   return page({
     diagram: d,
-    eyebrow: 'Data model · Phase 2',
+    eyebrow: 'Data model · Phase 5',
     title: 'Enrichment, draft and review records',
-    desc: 'A run links up to two enrichment evidence records, one email check, one run-level verification result and one draft whose immutable revisions each carry a content digest, their own verification result and at most one append-only human review.',
+    desc: 'A run links up to two enrichment evidence records, one email check, one run-level verification result and one draft whose immutable revisions each carry a content digest, their own verification result and at most one append-only human review; a local agent run links one stored brief holding its claims, sources and per-call costs even when the draft falls back to the template.',
     intro:
       'Collection paths match the runtime repositories. The run links only the current evidence and draft; superseded records remain for audit.',
   });
@@ -888,6 +924,14 @@ function agentArchitecture() {
     { role: 'link' },
   );
   d.label('READ-ONLY GET', centre(1) + 44, 312);
+  d.path(
+    [
+      [centre(2), agent.y + agent.h],
+      [centre(2), 352],
+    ],
+    { role: 'link' },
+  );
+  d.label('OPT-IN CALLS', centre(2) + 48, 312);
 
   d.node({
     x: 40,
@@ -922,7 +966,7 @@ function agentArchitecture() {
   [
     ['1 · AGENT', 'Qualification agent', 'interpret · rubric-v1 score'],
     ['2 · AGENT', 'Enrichment agent', 'vehicle · ZIP · email tools'],
-    ['3 · AGENT', 'Outreach agent', 'consent-gated draft'],
+    ['3 · AGENT', 'Outreach agent', 'template + agent team'],
     ['4 · GUARD', 'Verifier', '8 rules · block or pass'],
   ].forEach(([tag, name, sub], index) =>
     d.node({ x: col[index], ...agent, kind: 'backend', tag, name, sub }),
@@ -937,13 +981,184 @@ function agentArchitecture() {
     name: 'Public sources',
     sub: 'NHTSA vPIC · Zippopotam.us',
   });
+  d.node({
+    x: 488,
+    y: 352,
+    w: 184,
+    h: 56,
+    kind: 'external',
+    tag: 'EXTERNAL',
+    name: 'Anthropic API',
+    sub: 'research · writer · critic',
+  });
 
   return page({
     diagram: d,
-    eyebrow: 'Agent architecture · Phase 2',
+    eyebrow: 'Agent architecture · Phase 5',
     title: 'Orchestrator and specialist agents',
-    desc: 'After the intake API commits a lead, a LangGraph orchestrator dispatches in order to a qualification agent, an enrichment agent that calls NHTSA vPIC and Zippopotam.us read-only, an outreach agent that writes a consent-gated draft, and a verifier guard; it checkpoints each step in Firestore, sends a passing draft to human review, and resumes a stopped run from its checkpoint.',
+    desc: 'After the intake API commits a lead, a LangGraph orchestrator dispatches in order to a qualification agent, an enrichment agent that calls NHTSA vPIC and Zippopotam.us read-only, an outreach agent that writes a consent-gated template draft and, when switched on, adds a cited paragraph from a capped Anthropic research and drafting team, and a verifier guard; it checkpoints each step in Firestore, sends a passing draft to human review, and resumes a stopped run from its checkpoint.',
     intro: '',
+  });
+}
+
+/** Phase 5 agent team inside compose_draft: research, verify, draft, review. */
+function agentTeam() {
+  const d = new Diagram({ slug: 'agent-team', width: 960, height: 480 });
+  const row = { a: 96, b: 272, h: 64 };
+  const col = [24, 212, 400, 588, 776];
+  const w = 160;
+
+  const step = (from, to, y, label) => {
+    d.path([
+      [col[from] + w, y],
+      [col[to], y],
+    ]);
+    if (label !== undefined) d.label(label, col[to] - 14, 64);
+  };
+  step(0, 1, 128, 'QUESTIONS');
+  step(1, 2, 128, 'CITED ANSWERS');
+  step(2, 3, 128, 'KEPT CLAIMS');
+  step(3, 4, 128, 'BRIEF');
+  d.path([
+    [856, row.a + row.h],
+    [856, row.b],
+  ]);
+  d.label('PARAGRAPH', 900, 216);
+  d.path([
+    [col[4], 304],
+    [col[3] + w, 304],
+  ]);
+  d.path([
+    [col[3], 304],
+    [col[2] + w, 304],
+  ]);
+  d.path(
+    [
+      [col[2], 304],
+      [col[1] + w, 304],
+    ],
+    { role: 'accent' },
+  );
+  d.label('APPROVED', 386, 352, { role: 'accent' });
+  d.path(
+    [
+      [668, row.b + row.h],
+      [668, 384],
+      [948, 384],
+      [948, 128],
+      [936, 128],
+    ],
+    { dashed: true },
+  );
+  d.label('≤ 2 REWRITES', 808, 400);
+
+  d.node({
+    x: col[0],
+    y: row.a,
+    w,
+    h: row.h,
+    kind: 'backend',
+    tag: 'LEAD · SONNET 5.5',
+    name: 'Plan research',
+    sub: '1–3 questions per topic',
+  });
+  d.node({
+    x: col[1],
+    y: 88,
+    w,
+    h: 80,
+    kind: 'backend',
+    tag: '3 WORKERS · HAIKU 5.5',
+    name: 'Web search',
+    sub: ['vehicle · area · coverage', 'in parallel', 'cited answers only'],
+  });
+  d.node({
+    x: col[2],
+    y: row.a,
+    w,
+    h: row.h,
+    kind: 'focal',
+    tag: 'CODE',
+    name: 'Claim verifier',
+    sub: 'quote carries numbers',
+  });
+  d.node({
+    x: col[3],
+    y: row.a,
+    w,
+    h: row.h,
+    kind: 'backend',
+    tag: 'LEAD · SONNET 5.5',
+    name: 'Merge brief',
+    sub: 'kept claims only',
+  });
+  d.node({
+    x: col[4],
+    y: row.a,
+    w,
+    h: row.h,
+    kind: 'backend',
+    tag: 'WRITER · SONNET 5.5',
+    name: 'Draft paragraph',
+    sub: 'cites claim IDs',
+  });
+  d.node({
+    x: col[4],
+    y: row.b,
+    w,
+    h: row.h,
+    kind: 'backend',
+    tag: 'CODE',
+    name: 'Rule checker',
+    sub: 'numbers · words · links',
+  });
+  d.node({
+    x: col[3],
+    y: row.b,
+    w,
+    h: row.h,
+    kind: 'backend',
+    tag: 'CRITIC · SONNET 5.5',
+    name: 'Review paragraph',
+    sub: 'approve or list issues',
+  });
+  d.node({
+    x: col[2],
+    y: row.b,
+    w,
+    h: row.h,
+    kind: 'backend',
+    tag: 'GUARD',
+    name: 'Template + 8 rules',
+    sub: 'agent_brief slot',
+  });
+  d.node({
+    x: col[1],
+    y: row.b,
+    w,
+    h: row.h,
+    kind: 'input',
+    tag: 'PERSON',
+    name: 'Human review',
+    sub: 'nothing is sent',
+  });
+
+  d.callout(
+    [
+      'Models see the vehicle, area and coded answers only: never the name, email, ZIP or request text.',
+      'Spend is reserved before each call ($0.30 per lead, $8 per process); any failure keeps the template draft.',
+    ],
+    24,
+    432,
+  );
+
+  return page({
+    diagram: d,
+    eyebrow: 'Agent team · Phase 5',
+    title: 'Research and drafting agent team',
+    desc: 'Inside the compose step, a Sonnet 5.5 lead plans questions, three Haiku 5.5 workers search the web in parallel, code keeps only claims whose quoted source carries their numbers and words, the lead merges kept claims into a brief, a Sonnet 5.5 writer drafts one cited paragraph that a code rule checker and a Sonnet 5.5 critic review with at most two rewrites, and the approved paragraph joins the template draft that the eight verification rules check before human review.',
+    intro:
+      'Off by default. Every call is capped and recorded; a failed check, model error or spend stop keeps the plain template draft.',
   });
 }
 
@@ -1426,7 +1641,7 @@ function explodedSystem() {
 
 function securityTrifecta() {
   const d = new Diagram({
-    slug: 'access-triangle-matrix',
+    slug: 'security-trifecta',
     width: 1000,
     height: 560,
     maxNodes: 0,
@@ -1477,12 +1692,12 @@ function securityTrifecta() {
       '2 / 3',
     ],
     [
-      'Private hosted',
-      'recorded evidence',
+      'Agent local',
+      'public web only',
       'BOUNDED',
       'ABSENT',
-      'NONE',
-      '1 / 3',
+      'SEARCH / READ',
+      '2 / 3',
     ],
   ];
   for (const [index, row] of rows.entries()) {
@@ -1506,7 +1721,7 @@ function securityTrifecta() {
     `<text x="914" y="423" fill="${tokens.accent}" font-size="8" font-weight="700" font-family="${fonts.sans}" text-anchor="middle">3 / 3 BLOCKED</text>`,
     `<line x1="40" y1="496" x2="960" y2="496" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
     `<text x="40" y="520" fill="${tokens.ink}" font-size="10" font-weight="600" font-family="${fonts.sans}">Current boundary</text>`,
-    `<text x="140" y="520" fill="${tokens.muted}" font-size="10" font-family="${fonts.sans}">Fictional identities and test contact details. No model, insurer integration, quote, or message sending.</text>`,
+    `<text x="140" y="520" fill="${tokens.muted}" font-size="10" font-family="${fonts.sans}">Fictional identities and test contacts. No insurer integration, quote, real personal data, or automatic sending.</text>`,
   );
   d.under(markup.join('\n  '));
 
@@ -1514,7 +1729,7 @@ function securityTrifecta() {
     diagram: d,
     eyebrow: 'Security trifecta · runtime modes',
     title: 'No run gets all three capabilities',
-    desc: 'Three overlapping capability sets show bounded untrusted input, sensitive data and a way out. Their shared center is blocked. The matrix shows recorded local, live local and private hosted modes without real personal data, models or message sending.',
+    desc: 'Three overlapping capability sets show bounded untrusted input, sensitive data and a way out. Their shared center is blocked. The matrix shows recorded local, live local and optional agent-local modes without real personal data or automatic sending.',
     intro:
       'LeadFlow keeps real personal data behind its gate and exposes only two fixed read-only enrichment requests in live local mode. No current mode combines all three capabilities.',
   });
@@ -1597,38 +1812,402 @@ function principles() {
   });
 }
 
-export const diagrams = {
-  'exploded-system': explodedSystem,
+function simplePipeline() {
+  const d = new Diagram({ slug: 'pipeline', width: 960, height: 600 });
+  const xs = [20, 176, 332, 488, 644, 800];
+  const y = 200;
+  for (let index = 0; index < xs.length - 1; index += 1) {
+    d.path(
+      [
+        [xs[index] + 140, 240],
+        [xs[index + 1], 240],
+      ],
+      index === 1 ? { role: 'accent' } : undefined,
+    );
+  }
+  d.path(
+    [
+      [558, 280],
+      [558, 360],
+    ],
+    { dashed: true },
+  );
+  d.path(
+    [
+      [668, 400],
+      [714, 400],
+      [714, 280],
+    ],
+    { dashed: true },
+  );
+
+  const nodes = [
+    [
+      'input',
+      'PERSON',
+      'Fictional inquiry',
+      ['need · timing', 'vehicle · consent'],
+    ],
+    [
+      'focal',
+      'SAVED',
+      'Stored lead',
+      ['lead · run · event', 'before any work'],
+    ],
+    [
+      'backend',
+      'SCORE',
+      'Readiness score',
+      ['100-point rubric', 'marketing readiness'],
+    ],
+    ['backend', 'LOOK UP', 'Public facts', ['vehicle + ZIP', 'live or saved']],
+    ['backend', 'CHECK', 'Draft email', ['consent required', 'eight checks']],
+    ['input', 'PERSON', 'Human review', ['approve · edit', 'reject · no send']],
+  ];
+  for (const [index, [kind, tag, name, sub]] of nodes.entries()) {
+    d.node({ x: xs[index], y, w: 140, h: 80, kind, tag, name, sub });
+  }
+  d.node({
+    x: 488,
+    y: 360,
+    w: 180,
+    h: 80,
+    kind: 'optional',
+    tag: 'OPTIONAL',
+    name: 'Cited research',
+    sub: ['one short paragraph', 'failure keeps template'],
+  });
+  d.callout(
+    [
+      'No consent means no draft. A passing draft still waits for a person.',
+      'LeadFlow never sends email or makes an insurance decision.',
+    ],
+    20,
+    520,
+  );
+  return page({
+    diagram: d,
+    eyebrow: 'Plain-language pipeline',
+    title: 'From inquiry to a reviewed draft',
+    desc: 'A fictional inquiry is stored before processing, scored for marketing readiness, enriched from public sources, optionally given one cited research paragraph, checked and held for human review without sending anything.',
+    intro:
+      'One inquiry moves through six steps. Optional research can add context, but it cannot bypass the checks or human review.',
+  });
+}
+
+function simpleArchitecture() {
+  const d = new Diagram({ slug: 'architecture', width: 960, height: 600 });
+  d.zone({
+    x: 16,
+    y: 96,
+    w: 656,
+    h: 452,
+    label: 'LOCAL WORKSTATION · FICTIONAL DATA',
+    dashed: true,
+    labelX: 212,
+  });
+  d.zone({
+    x: 720,
+    y: 96,
+    w: 224,
+    h: 452,
+    label: 'APPROVED SERVICES',
+    dashed: true,
+    labelX: 760,
+  });
+  d.path(
+    [
+      [200, 200],
+      [240, 200],
+    ],
+    { role: 'link' },
+  );
+  d.path(
+    [
+      [400, 200],
+      [480, 200],
+    ],
+    { role: 'accent' },
+  );
+  d.path([
+    [560, 240],
+    [560, 340],
+  ]);
+  d.path([
+    [400, 380],
+    [480, 380],
+  ]);
+  d.path(
+    [
+      [640, 380],
+      [744, 380],
+    ],
+    { role: 'link' },
+  );
+  d.path(
+    [
+      [640, 404],
+      [692, 404],
+      [692, 496],
+      [744, 496],
+    ],
+    { role: 'link', dashed: true },
+  );
+
+  d.node({
+    x: 40,
+    y: 160,
+    w: 160,
+    h: 80,
+    kind: 'input',
+    tag: 'BROWSER',
+    name: 'Operator workspace',
+    sub: ['intake · runs · metrics', 'review queue'],
+  });
+  d.node({
+    x: 240,
+    y: 160,
+    w: 160,
+    h: 80,
+    kind: 'backend',
+    tag: 'API',
+    name: 'Fastify server',
+    sub: ['Host + Origin checks', 'strict schemas'],
+  });
+  d.node({
+    x: 480,
+    y: 160,
+    w: 160,
+    h: 80,
+    kind: 'focal',
+    tag: 'STORE',
+    name: 'Stored records',
+    sub: ['lead · run · evidence', 'checkpoint · review'],
+  });
+  d.node({
+    x: 240,
+    y: 340,
+    w: 160,
+    h: 80,
+    kind: 'backend',
+    tag: 'CODE',
+    name: 'Domain rules',
+    sub: ['rubric · consent', 'claims · spend caps'],
+  });
+  d.node({
+    x: 480,
+    y: 340,
+    w: 160,
+    h: 80,
+    kind: 'backend',
+    tag: 'WORKFLOW',
+    name: 'LangGraph runtime',
+    sub: ['qualify · enrich · draft', 'verify · resume'],
+  });
+  d.node({
+    x: 744,
+    y: 332,
+    w: 176,
+    h: 96,
+    kind: 'external',
+    tag: 'PUBLIC DATA',
+    name: 'Vehicle + ZIP',
+    sub: ['NHTSA vPIC', 'Zippopotam.us', 'read-only'],
+  });
+  d.node({
+    x: 744,
+    y: 456,
+    w: 176,
+    h: 80,
+    kind: 'optional',
+    tag: 'PAID · LOCAL',
+    name: 'Claude API',
+    sub: ['research + drafting', 'off by default'],
+  });
+  d.callout(
+    ['The browser never connects to stored records or providers directly.'],
+    40,
+    504,
+  );
+  return page({
+    diagram: d,
+    eyebrow: 'Technical system boundary',
+    title: 'Where LeadFlow runs and what it can call',
+    desc: 'The operator workspace calls a loopback Fastify server, which stores the lead before the LangGraph workflow uses deterministic rules, read-only public vehicle and ZIP services, and an optional local-only Claude service.',
+    intro:
+      'The browser, server, stored records, rules and workflow stay inside the local boundary. Only the workflow can reach approved services.',
+  });
+}
+
+function simpleAgentWorkflow() {
+  const d = new Diagram({ slug: 'agent-workflow', width: 960, height: 600 });
+  d.zone({
+    x: 16,
+    y: 104,
+    w: 768,
+    h: 224,
+    label: 'RESEARCH · PUBLIC WEB · BOUNDED QUESTIONS',
+    dashed: true,
+    labelX: 256,
+  });
+  d.path([
+    [184, 208],
+    [208, 208],
+  ]);
+  d.path([
+    [416, 208],
+    [440, 208],
+  ]);
+  d.path([
+    [600, 208],
+    [624, 208],
+  ]);
+  d.path([
+    [784, 208],
+    [800, 208],
+  ]);
+  d.path([
+    [868, 256],
+    [868, 336],
+  ]);
+  d.path([
+    [868, 432],
+    [868, 488],
+  ]);
+  d.path(
+    [
+      [800, 372],
+      [760, 372],
+      [760, 300],
+      [868, 300],
+      [868, 256],
+    ],
+    { dashed: true },
+  );
+
+  d.node({
+    x: 24,
+    y: 160,
+    w: 160,
+    h: 96,
+    kind: 'backend',
+    tag: 'RESEARCH LEAD',
+    name: 'Plan research',
+    sub: ['1–3 questions per topic', 'no tools'],
+  });
+  d.box({
+    x: 208,
+    y: 136,
+    w: 208,
+    h: 144,
+    kind: 'backend',
+    name: 'Three research workers',
+    markup: [
+      `<text x="312" y="172" fill="${tokens.ink}" font-size="14" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Three workers</text>`,
+      `<line x1="224" y1="188" x2="400" y2="188" stroke="${rgba(tokens.ink, 0.14)}" stroke-width="0.8"/>`,
+      `<text x="312" y="216" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Vehicle · area · coverage</text>`,
+      `<text x="312" y="240" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">search in parallel</text>`,
+      `<text x="312" y="258" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">URL + quote + answer</text>`,
+    ],
+  });
+  d.node({
+    x: 440,
+    y: 160,
+    w: 160,
+    h: 96,
+    kind: 'focal',
+    tag: 'CODE',
+    name: 'Check claims',
+    sub: ['quote carries words', 'and every number'],
+  });
+  d.node({
+    x: 624,
+    y: 160,
+    w: 160,
+    h: 96,
+    kind: 'backend',
+    tag: 'RESEARCH LEAD',
+    name: 'Merge brief',
+    sub: ['kept claims only', 'no new facts'],
+  });
+  d.node({
+    x: 800,
+    y: 160,
+    w: 136,
+    h: 96,
+    kind: 'backend',
+    tag: 'WRITER',
+    name: 'Write paragraph',
+    sub: ['claim IDs', '600 chars max'],
+  });
+  d.node({
+    x: 800,
+    y: 336,
+    w: 136,
+    h: 96,
+    kind: 'backend',
+    tag: 'CHECK',
+    name: 'Review draft',
+    sub: ['rules · critic', '≤ 2 rewrites'],
+  });
+  d.node({
+    x: 800,
+    y: 488,
+    w: 136,
+    h: 80,
+    kind: 'input',
+    tag: 'PERSON',
+    name: 'Human review',
+    sub: ['approve · edit', 'reject · no send'],
+  });
+  d.callout(
+    [
+      'Workers never see name, email, ZIP or request text.',
+      'Any failure keeps the plain template draft and records the reason.',
+    ],
+    24,
+    500,
+  );
+  return page({
+    diagram: d,
+    eyebrow: 'Optional research and drafting',
+    title: 'How the team builds one paragraph',
+    desc: 'A research lead assigns bounded vehicle, area and coverage questions to three workers; code checks every cited claim, the lead merges only kept claims, a writer drafts one paragraph, review allows at most two rewrites, and a person reviews the result.',
+    intro:
+      'Research, claim checking, writing and review have separate jobs. A failed step falls back to the normal template.',
+  });
+}
+
+export const legacyDiagramSources = {
   architecture,
-  'persist-before-processing': persistBeforeProcessing,
-  'run-lifecycle': runLifecycle,
-  'data-model': dataModel,
-  'review-flow': reviewFlow,
-  'data-model-outreach': phaseTwoRecords,
-  'agent-architecture': agentArchitecture,
-  'private-cloud': privateCloud,
-  'hosted-execution': hostedExecution,
-  'hosted-lifecycle': hostedLifecycle,
-  'access-triangle-matrix': securityTrifecta,
+  persistBeforeProcessing,
+  runLifecycle,
+  dataModel,
+  reviewFlow,
+  phaseTwoRecords,
+  agentArchitecture,
+  agentTeam,
+  privateCloud,
+  hostedExecution,
+  hostedLifecycle,
+  explodedSystem,
+  principles,
 };
 
-export const readmeAssets = { principles };
+export const diagrams = {
+  pipeline: simplePipeline,
+  architecture: simpleArchitecture,
+  'agent-workflow': simpleAgentWorkflow,
+  'security-trifecta': securityTrifecta,
+};
 
 export function renderDiagrams() {
-  return {
-    ...Object.fromEntries(
-      Object.entries(diagrams).map(([slug, render]) => [
-        `docs/diagrams/${slug}.html`,
-        render(),
-      ]),
-    ),
-    ...Object.fromEntries(
-      Object.entries(readmeAssets).map(([slug, render]) => [
-        `docs/readme/${slug}.html`,
-        render(),
-      ]),
-    ),
-  };
+  return Object.fromEntries(
+    Object.entries(diagrams).map(([slug, render]) => [
+      `docs/diagrams/${slug}.html`,
+      render(),
+    ]),
+  );
 }
 
 /** Export through the diagram-design skill's own helper, offline fonts. */

@@ -34,7 +34,8 @@ const timestamp = '2026-10-24T20:00:00.000Z';
 const digest = 'a'.repeat(64);
 
 const intake = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',
@@ -68,11 +69,12 @@ const provenance = {
     'requestDetails',
     'emailContactConsent',
   ],
+  simulatedFields: ['attribution'],
   parityVerified: false,
 } as const;
 
 const lead = {
-  schemaVersion: 'lead-v2',
+  schemaVersion: 'lead-v3',
   leadId: ids.lead,
   createdAt: timestamp,
   intake,
@@ -166,7 +168,8 @@ describe('Phase 1 and 2 boundary schemas', () => {
 
   it('normalizes omitted consent and optional inputs without accepting extras', () => {
     const parsed = IntakeSubmissionSchema.parse({
-      schemaVersion: 'intake-v2',
+      schemaVersion: 'intake-v3',
+      attribution: null,
       identityClass: 'fictional',
       givenName: 'Avery',
       familyName: 'Example',
@@ -349,7 +352,7 @@ describe('Phase 1 and 2 boundary schemas', () => {
 
   it('validates the complete null-with-reason system bundle boundary', () => {
     const bundle = SystemBundleDocumentSchema.parse({
-      schemaVersion: 'system-bundle-v3',
+      schemaVersion: 'system-bundle-v5',
       systemBundleId: ids.bundle,
       createdAt: timestamp,
       code: {
@@ -361,8 +364,8 @@ describe('Phase 1 and 2 boundary schemas', () => {
       lockfileDigest: digest,
       fixtures: { version: 'phase-0.1', digest },
       versions: {
-        intake: 'intake-v2',
-        lead: 'lead-v2',
+        intake: 'intake-v3',
+        lead: 'lead-v3',
         run: 'run-v2',
         event: 'event-v2',
         checkpoint: 'checkpoint-v1',
@@ -373,9 +376,13 @@ describe('Phase 1 and 2 boundary schemas', () => {
         simulator: 'simulator-v1',
         enrichmentAdapters: 'enrichment-adapters-v1',
         composer: 'deterministic-template-v1',
-        verificationRules: 'verification-rules-v1',
+        verificationRules: 'verification-rules-v2',
         decisionLanguage: 'decision-language-v1',
-        metricsDefinitions: 'metrics-definitions-v1',
+        metricsDefinitions: 'metrics-definitions-v2',
+        channelRules: 'channel-rules-v1',
+        spendFixture: 'synthetic-spend-v1',
+        trafficPlan: 'traffic-plan-v1',
+        agentTeam: null,
         evaluator: 'phase-2.0',
         configuration: 'phase-2-local-v1',
       },

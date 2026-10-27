@@ -1,3 +1,4 @@
+import { acquisitionReport } from '@leadflow-ai/domain';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from './app.js';
 import type { PhaseOneStartup } from './startup.js';
@@ -24,6 +25,7 @@ function startup(): PhaseOneStartup {
       apiHost: 'localhost',
       localResetEnabled: false,
       enrichmentMode: 'recorded',
+      agents: 'off',
       webOrigin: 'http://127.0.0.1:5173',
     },
     firestore: {
@@ -86,8 +88,8 @@ function buildApp() {
     evidenceClass: 'synthetic-local' as const,
   }));
   const metrics = vi.fn(async () => ({
-    schemaVersion: 'metrics-report-v1' as const,
-    definitionsVersion: 'metrics-definitions-v1' as const,
+    schemaVersion: 'metrics-report-v2' as const,
+    definitionsVersion: 'metrics-definitions-v2' as const,
     generatedAt: timestamp,
     systemBundleId: bundleId,
     window: { runsInWindow: 0, activeRuns: 0, otherBundleRuns: 0 },
@@ -128,6 +130,7 @@ function buildApp() {
       responded: 0,
       appointment: 0,
     },
+    acquisition: acquisitionReport([]),
     evidenceClass: 'synthetic-local' as const,
   }));
   const app = createApp({
@@ -166,7 +169,7 @@ describe('Phase 2 operations routes', () => {
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({
       schemaVersion: 'metrics-response-v1',
-      definitions: { version: 'metrics-definitions-v1' },
+      definitions: { version: 'metrics-definitions-v2' },
       report: {
         leadVolume: 0,
         agentFailures: { value: null, reason: 'insufficient_data' },

@@ -20,7 +20,7 @@ const hostedInput = {
 
 function intake(givenName) {
   return {
-    schemaVersion: 'intake-v2',
+    schemaVersion: 'intake-v3',
     identityClass: 'fictional',
     givenName,
     familyName: 'Example',

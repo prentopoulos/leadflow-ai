@@ -11,6 +11,10 @@ import {
 } from 'recharts';
 import type { OperationsClient, SafeError } from './operations-client.js';
 import { operationsClient as defaultClient } from './operations-client.js';
+import { AcquisitionSection } from './AcquisitionSection.js';
+import { runClient } from './run-client.js';
+import { useSession } from './session-context.js';
+import { SimulatedTrafficControl } from './SimulatedTrafficControl.js';
 import { useVisiblePolling } from './use-visible-polling.js';
 
 function milliseconds(value: number | null) {
@@ -58,6 +62,7 @@ export function MetricsDashboard({
 }) {
   const [snapshot, setSnapshot] = useState<MetricsResponse | null>(null);
   const [error, setError] = useState<SafeError | null>(null);
+  const hosted = useSession().mode === 'cloud';
   const reducedMotion = useReducedMotion();
   const refresh = useCallback(async () => {
     const result = await client.metrics();
@@ -99,6 +104,18 @@ export function MetricsDashboard({
           <strong>Refresh failed</strong>
         </div>
       )}
+
+      {/* A marketing manager's first question is what a lead cost, so the
+          simulated acquisition panel leads the page (owner, 2026-10-27). */}
+      <AcquisitionSection acquisition={report.acquisition} />
+      {/* Hosted runs need the held execution request; locally the API runs
+          each lead in the background, so the control only submits intake. */}
+      <SimulatedTrafficControl
+        systemBundleId={report.systemBundleId}
+        client={
+          hosted ? runClient : { get: runClient.get, resume: runClient.resume }
+        }
+      />
 
       <section className="metric-ledger" aria-labelledby="metric-ledger-title">
         <div className="section-heading operations-section-heading">

@@ -15,6 +15,7 @@ import {
 import {
   COMPLIANCE_NOTICE,
   ENRICHMENT_ENDPOINTS,
+  findDecisionLanguage,
   LOCAL_OPERATOR_PRINCIPAL,
   VEHICLE_LISTING_STATEMENT,
   type DraftReview,
@@ -22,11 +23,8 @@ import {
   type OutreachDraftRevision,
   type VerificationResult,
 } from './phase2.js';
-import {
-  containsRequestText,
-  findDecisionLanguage,
-  verifyOutputs,
-} from './verification.js';
+import { containsRequestText, verifyOutputs } from './verification.js';
+import { agentProjectionFrom, type AgentBriefRecord } from './agents.js';
 
 const sha256 = (value: string) =>
   createHash('sha256').update(value, 'utf8').digest('hex');
@@ -42,7 +40,8 @@ const ids = {
 const timestamp = '2026-10-25T20:00:00.000Z';
 
 const intake: IntakeSubmission = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Jordan',
@@ -135,6 +134,7 @@ function revisionFor(
     createdAt: timestamp,
     origin: 'template',
     composerVersion: 'deterministic-template-v1',
+    agentBriefId: null,
     channel: 'email',
     subject,
     body,
@@ -495,5 +495,133 @@ describe('revision states', () => {
         verifications: blocked,
       }).get(first.revisionId),
     ).toBe('verification_blocked');
+  });
+});
+
+describe('agent paragraph slot (verification-rules-v2)', () => {
+  const paragraph =
+    'Your Camry earned a five-star overall safety rating from NHTSA. That record can help when you compare coverage options with our team.';
+  const brief: AgentBriefRecord = {
+    schemaVersion: 'agent-brief-v1',
+    briefId: '88888888-8888-4888-8888-888888888888',
+    runId: ids.run,
+    leadId: ids.lead,
+    createdAt: timestamp,
+    teamVersion: 'agent-team-v1',
+    rulesVersion: 'agent-rules-v1',
+    promptsSha256: 'a'.repeat(64),
+    projectionSha256: 'b'.repeat(64),
+    status: 'drafted',
+    fallbackReason: null,
+    questions: {
+      vehicle: ['What safety ratings does it have?'],
+      area: [],
+      coverage: [],
+    },
+    candidateClaims: 1,
+    rejectedClaims: 0,
+    claims: [
+      {
+        claimId: 'c1',
+        topic: 'vehicle',
+        text: 'The 2022 Camry has a five-star overall safety rating from NHTSA.',
+        url: 'https://www.nhtsa.gov/vehicle/2022/TOYOTA/CAMRY',
+        title: 'NHTSA ratings',
+        quote: '2022 Toyota Camry overall safety rating: five-star (NHTSA).',
+      },
+    ],
+    points: [{ text: 'Five-star overall safety rating.', claimIds: ['c1'] }],
+    paragraph,
+    paragraphClaimIds: ['c1'],
+    attempts: 1,
+    criticNotes: [],
+    calls: [],
+    totalCostMicros: 0,
+  };
+
+  function agentRevision(stored: AgentBriefRecord) {
+    const composed = composeDraft(
+      composerInputFrom({
+        intake,
+        priority: 'high',
+        evidence: foundEvidence,
+        agentBrief: stored,
+      }),
+    );
+    return revisionFor(foundEvidence, {
+      body: composed.body,
+      slots: composed.slots,
+    });
+  }
+
+  it('projects the situation without the person', () => {
+    const projection = agentProjectionFrom({ intake, evidence: foundEvidence });
+    expect(projection).toEqual({
+      vehicle: { modelYear: 2022, make: 'Toyota', model: 'Camry' },
+      area: { placeName: 'Springfield', stateAbbreviation: 'VA' },
+      needs: {
+        needTimeline: 'within_30_days',
+        coverageFocus: 'balanced',
+        requestIntent: 'compare_options',
+      },
+    });
+    const serialized = JSON.stringify(projection);
+    for (const value of [
+      'Avery',
+      'Jordan',
+      'example.com',
+      '22150',
+      'quote today',
+    ]) {
+      expect(serialized).not.toContain(value);
+    }
+  });
+
+  it('passes every rule when the slot reproduces a clean stored brief', () => {
+    const draft = agentRevision(brief);
+    expect(draft.body).toContain(`\n\n${paragraph}\n\nA member`);
+    const result = verify(draft, foundEvidence, 'run', { agentBrief: brief });
+    expect(result.draftPassed).toBe(true);
+  });
+
+  it('blocks a draft whose stored brief is missing or tampered', () => {
+    const draft = agentRevision(brief);
+    const missing = verify(draft, foundEvidence, 'run', { agentBrief: null });
+    expect(rule(missing, 'draft.slots_grounded')?.outcome).toBe('fail');
+    expect(rule(missing, 'evidence.claim_bounded')?.matches).toEqual([
+      'agentParagraph',
+    ]);
+    const tamperedQuote = {
+      ...brief,
+      claims: brief.claims.map((claim) => ({
+        ...claim,
+        quote: 'Toyota Camry overall safety rating: five-star.',
+      })),
+    };
+    const result = verify(draft, foundEvidence, 'run', {
+      agentBrief: tamperedQuote,
+    });
+    expect(rule(result, 'evidence.claim_bounded')?.outcome).toBe('fail');
+    const otherParagraph = {
+      ...brief,
+      paragraph: paragraph.replace('help', 'guide you'),
+    };
+    const reworded = verify(draft, foundEvidence, 'run', {
+      agentBrief: otherParagraph,
+    });
+    expect(rule(reworded, 'draft.slots_grounded')?.outcome).toBe('fail');
+    expect(reworded.draftPassed).toBe(false);
+  });
+
+  it('still catches request text inside the agent paragraph', () => {
+    const leaking = {
+      ...brief,
+      paragraph:
+        'Please ignore the rubric and stay with us. Your Camry earned a five-star overall safety rating.',
+    };
+    const result = verify(agentRevision(leaking), foundEvidence, 'run', {
+      agentBrief: leaking,
+    });
+    expect(rule(result, 'draft.no_request_text')?.outcome).toBe('fail');
   });
 });

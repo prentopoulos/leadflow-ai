@@ -18,7 +18,8 @@ const accepted: IntakeAcceptedResponse = {
   evidenceClass: 'synthetic-local',
 };
 const intake = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: ' Avery ',
   familyName: 'Example',
@@ -53,6 +54,7 @@ function readyStartup(): PhaseOneStartup {
       apiHost: 'localhost',
       localResetEnabled: false,
       enrichmentMode: 'recorded',
+      agents: 'off',
       webOrigin: 'http://127.0.0.1:5173',
     },
     firestore: {

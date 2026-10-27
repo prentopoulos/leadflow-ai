@@ -1,4 +1,5 @@
 import type {
+  AgentBriefRecord,
   DraftView,
   EmailCheck,
   EnrichmentEvidence,
@@ -144,6 +145,94 @@ export function VerificationSection({
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+const fallbackReasons: Record<
+  NonNullable<AgentBriefRecord['fallbackReason']>,
+  string
+> = {
+  no_research_subject: 'nothing verified to research',
+  budget_exceeded: 'the spend cap was reached',
+  model_error: 'a model call failed',
+  no_verified_claims: 'no claim survived source checks',
+  rule_check_failed: 'the paragraph kept breaking a rule',
+  critic_unresolved: 'the critic did not approve it',
+};
+
+const roleNames: Record<AgentBriefRecord['calls'][number]['role'], string> = {
+  lead_plan: 'Lead plan',
+  worker: 'Worker',
+  lead_merge: 'Lead merge',
+  writer: 'Writer',
+  critic: 'Critic',
+};
+
+const dollars = (micros: number) => `$${(micros / 1_000_000).toFixed(4)}`;
+
+function sourceLabel(url: string, title: string | null) {
+  if (title !== null && title.trim() !== '') return title;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
+// The agent team's stored brief: cited sources, cost and any fallback.
+export function AgentResearch({ brief }: { brief: AgentBriefRecord }) {
+  const cited = brief.claims.filter((claim) =>
+    brief.paragraphClaimIds.includes(claim.claimId),
+  );
+  const shown = brief.status === 'drafted' ? cited : brief.claims;
+  return (
+    <section className="agent-research" aria-labelledby="agent-research-title">
+      <div className="draft-heading">
+        <h4 id="agent-research-title">Agent research</h4>
+        <span className="class-tag class-live">Claude</span>
+      </div>
+      <p className="agent-summary">
+        {brief.status === 'drafted'
+          ? `The paragraph after the location sentence was written by the agent team from ${cited.length} cited ${cited.length === 1 ? 'source' : 'sources'}.`
+          : `Template draft used: ${fallbackReasons[brief.fallbackReason ?? 'model_error']}.`}{' '}
+        {brief.claims.length} of {brief.candidateClaims} found claims passed the
+        source check. Cost {dollars(brief.totalCostMicros)}.
+      </p>
+      {shown.length === 0 ? null : (
+        <ol className="agent-sources">
+          {shown.map((claim) => (
+            <li key={claim.claimId}>
+              <p>
+                <span className="mono">{claim.claimId}</span> {claim.text}
+              </p>
+              <blockquote>{claim.quote}</blockquote>
+              {claim.url.startsWith('https://') ? (
+                <a href={claim.url} target="_blank" rel="noopener noreferrer">
+                  {sourceLabel(claim.url, claim.title)}
+                </a>
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      )}
+      <details className="draft-history">
+        <summary>Model calls ({brief.calls.length})</summary>
+        <ul className="agent-calls">
+          {brief.calls.map((call, index) => (
+            <li key={index}>
+              {roleNames[call.role]}
+              {call.topic === null ? '' : ` (${call.topic})`}
+              {call.attempt > 1 ? `, attempt ${call.attempt}` : ''} ·{' '}
+              {call.model} · {readable(call.outcome)}
+              {call.errorCode === null
+                ? ''
+                : ` (${readable(call.errorCode)})`}{' '}
+              · {dollars(call.costMicros)}
+            </li>
+          ))}
+        </ul>
+      </details>
     </section>
   );
 }
@@ -297,6 +386,9 @@ export function DraftSection({
           </p>
           <pre>{revision.body}</pre>
         </article>
+      )}
+      {draft.agentBrief === null ? null : (
+        <AgentResearch brief={draft.agentBrief} />
       )}
       {editing ? null : (
         <div className="draft-actions">

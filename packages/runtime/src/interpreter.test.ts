@@ -8,11 +8,12 @@ import {
 
 const timestamp = '2026-10-25T00:15:00.000Z';
 const lead = {
-  schemaVersion: 'lead-v2',
+  schemaVersion: 'lead-v3',
   leadId: '11111111-1111-4111-8111-111111111111',
   createdAt: timestamp,
   intake: {
-    schemaVersion: 'intake-v2',
+    schemaVersion: 'intake-v3',
+    attribution: null,
     identityClass: 'fictional',
     givenName: 'Avery',
     familyName: 'Example',
@@ -46,6 +47,7 @@ const lead = {
       'requestDetails',
       'emailContactConsent',
     ],
+    simulatedFields: ['attribution'],
     parityVerified: false,
   },
   evidenceClass: 'synthetic',

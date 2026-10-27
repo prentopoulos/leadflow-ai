@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { submitIntake } from './intake-client.js';
 
 const intake: IntakeSubmission = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Jordan',

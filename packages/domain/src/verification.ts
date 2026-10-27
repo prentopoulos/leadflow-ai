@@ -14,9 +14,9 @@ import {
 } from './phase1.js';
 import {
   COMPLIANCE_NOTICE,
-  DECISION_LANGUAGE_TERMS,
   ENRICHMENT_ENDPOINTS,
   EnrichmentEvidenceSchema,
+  findDecisionLanguage,
   VERIFICATION_RULE_IDS,
   VerificationResultSchema,
   type EnrichmentEvidence,
@@ -25,25 +25,9 @@ import {
   type VerificationResult,
   type VerificationRuleId,
 } from './phase2.js';
+import { storedBriefFailures, type AgentBriefRecord } from './agents.js';
 
 export const REQUEST_TEXT_WINDOW = 12;
-
-const escapeRegExp = (value: string) =>
-  value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
-
-const decisionPatterns = DECISION_LANGUAGE_TERMS.map((term) => ({
-  term,
-  pattern: new RegExp(
-    `\\b${escapeRegExp(term).replace(/ /gu, '\\s+')}\\b`,
-    'iu',
-  ),
-}));
-
-export function findDecisionLanguage(text: string): string[] {
-  return decisionPatterns
-    .filter(({ pattern }) => pattern.test(text))
-    .map(({ term }) => term);
-}
 
 const normalizeText = (value: string) =>
   value.toLocaleLowerCase('en-US').replace(/\s+/gu, ' ').trim();
@@ -100,6 +84,8 @@ export interface VerificationInput {
   events: readonly LifecycleEvent[];
   draft: OutreachDraftRevision | null;
   scope: 'run' | 'operator_revision';
+  // The stored brief an agent slot cites; null when agents did not draft.
+  agentBrief?: AgentBriefRecord | null;
 }
 
 type Outcome = Pick<RuleResult, 'outcome' | 'detail'> & { matches?: string[] };
@@ -212,6 +198,7 @@ export function verifyOutputs(input: VerificationInput): VerificationResult {
               intake: input.intake,
               priority: input.priority,
               evidence: input.evidence,
+              agentBrief: input.agentBrief ?? null,
             }),
           )
         : null;
@@ -223,7 +210,21 @@ export function verifyOutputs(input: VerificationInput): VerificationResult {
       const evidenceById = new Map(
         input.evidence.map((record) => [record.evidenceId, record]),
       );
+      const brief = input.agentBrief ?? null;
       const unbounded = draft.slots.filter((slot) => {
+        if (slot.provenance === 'agent_brief') {
+          const expected = recomposed?.slots.find(
+            (candidate) => candidate.key === slot.key,
+          );
+          return (
+            brief === null ||
+            brief.briefId !== slot.evidenceId ||
+            brief.runId !== input.runId ||
+            brief.leadId !== input.leadId ||
+            storedBriefFailures(brief).length > 0 ||
+            expected?.value !== slot.value
+          );
+        }
         if (slot.provenance !== 'verified_evidence') return false;
         const record =
           slot.evidenceId === null
@@ -272,7 +273,10 @@ export function verifyOutputs(input: VerificationInput): VerificationResult {
       'draft.no_request_text',
       containsRequestText(text, input.intake.requestDetails, [
         ...structuredValues(input.intake),
-        ...draft.slots.map((slot) => slot.value),
+        // Model-written text never counts as known wording.
+        ...draft.slots
+          .filter((slot) => slot.provenance !== 'agent_brief')
+          .map((slot) => slot.value),
       ])
         ? fail('request_text_present')
         : pass(),

@@ -1,8 +1,11 @@
-import type {
-  QualificationResult,
-  RunDetailResponse,
-  RunStatus,
-  SafeError,
+import {
+  CHANNEL_LABELS,
+  channelFor,
+  type Attribution,
+  type QualificationResult,
+  type RunDetailResponse,
+  type RunStatus,
+  type SafeError,
 } from '@leadflow-ai/domain';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -109,6 +112,55 @@ export interface RunDossierProps {
   operationsClient?: OperationsClient;
   // Offered after a review so the operator can continue through the queue.
   nextPending?: { label: string; open(): void } | null;
+}
+
+// Synthetic acquisition data from simulated traffic; intake-form leads have
+// none. The click ID appears here and nowhere else.
+function AttributionBlock({
+  attribution,
+}: {
+  attribution: Attribution | null;
+}) {
+  return (
+    <section
+      className="result-section simulation-result"
+      aria-labelledby="attribution-title"
+    >
+      <h3 id="attribution-title">
+        Acquisition <span className="simulated-tag">SIMULATED</span>
+      </h3>
+      <dl>
+        <div>
+          <dt>Channel</dt>
+          <dd>
+            {attribution === null
+              ? 'None: entered through the intake form'
+              : CHANNEL_LABELS[channelFor(attribution)]}
+          </dd>
+        </div>
+        {attribution === null ? null : (
+          <>
+            <div>
+              <dt>Source</dt>
+              <dd>
+                {attribution.source} / {attribution.medium}
+              </dd>
+            </div>
+            <div>
+              <dt>Campaign</dt>
+              <dd>{attribution.campaign}</dd>
+            </div>
+            {attribution.clickId === null ? null : (
+              <div>
+                <dt>Click ID</dt>
+                <dd>{attribution.clickId} (synthetic)</dd>
+              </div>
+            )}
+          </>
+        )}
+      </dl>
+    </section>
+  );
 }
 
 export function RunDossier({
@@ -352,6 +404,8 @@ export function RunDossier({
           </dl>
         </section>
       ) : null}
+
+      <AttributionBlock attribution={detail.lead.intake.attribution} />
     </div>
   );
 }

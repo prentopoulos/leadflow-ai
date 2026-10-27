@@ -220,7 +220,8 @@ export const PHASE_TWO_CASES = [
 ] satisfies EvalCase[];
 
 const intake: IntakeSubmission = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Jordan',
@@ -309,6 +310,7 @@ function template(
     createdAt: timestamp,
     origin: 'template',
     composerVersion: 'deterministic-template-v1',
+    agentBriefId: null,
     channel: 'email',
     subject: composed.subject,
     body: composed.body,

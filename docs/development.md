@@ -124,8 +124,10 @@ cloud Firestore, external communication, or other credentialed service.
 1. `pnpm emulator:start` (ephemeral), then `pnpm build`.
 2. `pnpm api:local` runs live enrichment (owner-authorized reads). Pass `-- --enrichment=recorded`
    for recorded fixtures; set `LEADFLOW_WEB_ORIGIN` when the web app is not on 127.0.0.1:5173.
-3. `pnpm seed:local` adds 40 fixed fictional leads. It refuses unless the running API is in recorded
-   mode. Leads are keyed per system bundle, so after a code change it fills the new metrics window.
+3. `pnpm simulate:traffic` feeds the 60 fixed fictional `traffic-plan-v1` leads, one every 10 s
+   (`-- --interval=0` for an instant fill, `-- --count=N` for fewer). It refuses unless the running API
+   is in recorded mode. Leads are keyed per system bundle, so after a code change it fills the new
+   metrics window. Channels, campaigns, click IDs and spend are simulated.
 4. Start Vite (`node node_modules/vite/bin/vite.js --config apps/web/vite.config.ts --port 5174
    --strictPort` if 5173 is taken) and open `#runs` or `#metrics`.
 
@@ -140,15 +142,23 @@ cloud Firestore, external communication, or other credentialed service.
 - Windows PowerShell 5.1 turns any native stderr line into a `NativeCommandError`, so a passing
   `pnpm exec vitest` can still report failure. To capture a leaf check's output, run the tool's Node
   entry directly through `cmd /c` with a redirect, for example
-  `cmd /c "node node_modulesitestitest.mjs run packages/domain > out.txt 2>&1"`, and read
+  `cmd /c "node node_modules\vitest\vitest.mjs run packages/domain > out.txt 2>&1"`, and read
   `$LASTEXITCODE`. Run `openspec validate` from Git Bash, where its spinner on stderr is harmless.
+- Never round-trip a file through Windows PowerShell 5.1 `Get-Content` and `Set-Content`: it reads
+  UTF-8 as the ANSI code page (so `·` becomes `Â·`) and `-Encoding utf8` adds a byte-order mark.
+  Edit files with Node or the editor.
+- Playwright's bundled Chromium is not installed; rendered checks launch the installed Chrome with
+  `p.chromium.launch(channel="chrome")` under `py -3.10`.
 - Diagram tooling runs under the Python launcher: `py -3.13` for the diagram-design self-check and
   SVG export, and `py -3.10` where Playwright is installed.
 
 ## Phase 3 container and release notes
 
 - The checkout may be owned by the Codex sandbox account. Scripts pass
-  `git -c safe.directory=<repo>` per call; do not change global Git configuration.
+  `git -c safe.directory=<repo>` per call; do not change global Git configuration. `gh` runs Git
+  itself and cannot take `-c`, so give it the same override for one process through the
+  environment: `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=<repo> gh
+  pr create --repo prentopoulos/leadflow-ai ...` (Git Bash).
 - A working tree can hold CRLF bytes for LF-committed files while `git status` is clean. If the
   local bundle's `sourceDigest` differs from the image manifest, compare files against
   `git archive HEAD` and restore any that differ with `git show HEAD:<path> > <path>`.

@@ -45,6 +45,7 @@ describe('API skeleton', () => {
       apiHost: '127.0.0.1',
       localResetEnabled: false,
       enrichmentMode: 'recorded',
+      agents: 'off',
       webOrigin: 'http://127.0.0.1:5173',
     });
   });

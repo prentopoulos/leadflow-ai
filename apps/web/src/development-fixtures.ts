@@ -1,5 +1,12 @@
 import {
+  COMPLIANCE_NOTICE,
+  composeDraft,
+  composerInputFrom,
+  currentConsentRecord,
   RunDetailResponseSchema,
+  verifyOutputs,
+  type AgentBriefRecord,
+  type OutreachDraftRevision,
   type RunDetailResponse,
 } from '@leadflow-ai/domain';
 import type { IntakeClient } from './intake-client.js';
@@ -10,6 +17,7 @@ export const developmentFixtureNames = [
   'progress',
   'failure',
   'complete',
+  'agent',
   'stale',
   'long',
 ] as const;
@@ -23,6 +31,10 @@ const ids = {
   request: '55555555-5555-4555-8555-555555555555',
   bundle: '66666666-6666-4666-8666-666666666666',
   result: '77777777-7777-4777-8777-777777777777',
+  brief: '99999999-9999-4999-8999-999999999999',
+  draft: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  revision: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+  verification: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
 } as const;
 const timestamp = '2026-10-25T18:00:00.000Z';
 
@@ -43,11 +55,12 @@ function completeDetail(): RunDetailResponse {
   return {
     schemaVersion: 'run-detail-response-v2',
     lead: {
-      schemaVersion: 'lead-v2',
+      schemaVersion: 'lead-v3',
       leadId: ids.lead,
       createdAt: timestamp,
       intake: {
-        schemaVersion: 'intake-v2',
+        schemaVersion: 'intake-v3',
+        attribution: null,
         identityClass: 'fictional',
         givenName: 'Avery',
         familyName: 'Jordan',
@@ -81,6 +94,7 @@ function completeDetail(): RunDetailResponse {
           'requestDetails',
           'emailContactConsent',
         ],
+        simulatedFields: ['attribution'],
         parityVerified: false,
       },
       evidenceClass: 'synthetic',
@@ -250,6 +264,131 @@ function completeDetail(): RunDetailResponse {
   };
 }
 
+function addAgentDraft(detail: RunDetailResponse): void {
+  const paragraph =
+    'Comprehensive coverage can help with theft and weather damage. Our team can explain how that protection fits alongside the options you are comparing.';
+  const brief: AgentBriefRecord = {
+    schemaVersion: 'agent-brief-v1',
+    briefId: ids.brief,
+    runId: ids.run,
+    leadId: ids.lead,
+    createdAt: timestamp,
+    teamVersion: 'agent-team-v1',
+    rulesVersion: 'agent-rules-v1',
+    promptsSha256: 'a'.repeat(64),
+    projectionSha256: 'b'.repeat(64),
+    status: 'drafted',
+    fallbackReason: null,
+    questions: {
+      vehicle: ['What safety features are documented for this vehicle?'],
+      area: ['What driving conditions are common in this area?'],
+      coverage: ['What does comprehensive coverage include?'],
+    },
+    candidateClaims: 4,
+    rejectedClaims: 2,
+    claims: [
+      {
+        claimId: 'c1',
+        topic: 'coverage',
+        text: 'Comprehensive coverage can help with theft and weather damage.',
+        url: 'https://coverage.example/guides/auto',
+        title: 'Synthetic auto coverage guide',
+        quote: 'Comprehensive coverage can help with theft and weather damage.',
+      },
+      {
+        claimId: 'c2',
+        topic: 'coverage',
+        text: 'Coverage options can be compared with an insurance professional.',
+        url: 'https://coverage.example/guides/auto',
+        title: 'Synthetic auto coverage guide',
+        quote:
+          'Coverage options can be compared with an insurance professional.',
+      },
+    ],
+    points: [
+      {
+        text: 'Theft and weather are examples of comprehensive protection.',
+        claimIds: ['c1'],
+      },
+    ],
+    paragraph,
+    paragraphClaimIds: ['c1'],
+    attempts: 2,
+    criticNotes: ['Keep the explanation specific and avoid promises.'],
+    calls: [
+      {
+        role: 'worker',
+        topic: 'coverage',
+        attempt: 1,
+        model: 'claude-haiku-5-5',
+        outcome: 'ok',
+        errorCode: null,
+        inputTokens: 12_300,
+        outputTokens: 841,
+        webSearchRequests: 2,
+        reservedMicros: 40_000,
+        costMicros: 21_651,
+        durationMs: 2_340,
+      },
+    ],
+    totalCostMicros: 21_651,
+  };
+  detail.lead.intake.emailContactConsent = true;
+  detail.lead.intake.consentRecord = currentConsentRecord();
+  const composed = composeDraft(
+    composerInputFrom({
+      intake: detail.lead.intake,
+      priority: 'high',
+      evidence: [],
+      agentBrief: brief,
+    }),
+  );
+  const digest = 'd'.repeat(64);
+  const revision: OutreachDraftRevision = {
+    schemaVersion: 'outreach-draft-v1',
+    draftId: ids.draft,
+    revisionId: ids.revision,
+    revisionNumber: 1,
+    previousRevisionId: null,
+    runId: ids.run,
+    leadId: ids.lead,
+    createdAt: timestamp,
+    origin: 'template',
+    composerVersion: 'deterministic-template-v1',
+    agentBriefId: ids.brief,
+    channel: 'email',
+    subject: composed.subject,
+    body: composed.body,
+    slots: composed.slots,
+    followUpAction: composed.followUpAction,
+    contentSha256: digest,
+    verificationResultId: ids.verification,
+  };
+  const verification = verifyOutputs({
+    verificationResultId: ids.verification,
+    runId: ids.run,
+    leadId: ids.lead,
+    verifiedAt: timestamp,
+    intake: detail.lead.intake,
+    priority: 'high',
+    evidence: [],
+    sha256: () => digest,
+    events: detail.events,
+    draft: revision,
+    scope: 'run',
+    agentBrief: brief,
+  });
+  detail.run.draftId = ids.draft;
+  detail.run.verificationResultId = ids.verification;
+  detail.draft = {
+    revisions: [{ revision, state: 'pending_review', verification }],
+    reviews: [],
+    agentBrief: brief,
+    complianceNotice: COMPLIANCE_NOTICE,
+  };
+  detail.verification = verification;
+}
+
 export function createDevelopmentFixture(name: DevelopmentFixtureName): {
   label: string;
   intakeClient: IntakeClient;
@@ -306,6 +445,7 @@ export function createDevelopmentFixture(name: DevelopmentFixtureName): {
           runRevision: index,
         }));
       }
+      if (name === 'agent') addAgentDraft(complete);
       return { status: 'ok', value: RunDetailResponseSchema.parse(complete) };
     },
     async resume() {

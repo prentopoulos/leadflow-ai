@@ -33,6 +33,10 @@ class RunDetailMemoryStore implements FirestoreDocumentStore {
     this.documents.set(path, structuredClone(data));
   }
 
+  async set(path: string, data: DocumentData): Promise<void> {
+    this.documents.set(path, structuredClone(data));
+  }
+
   async get(path: string): Promise<unknown | null> {
     return structuredClone(this.documents.get(path) ?? null);
   }
@@ -52,11 +56,12 @@ class MemoryEventReader implements RunEventReader {
 }
 
 const lead = {
-  schemaVersion: 'lead-v2',
+  schemaVersion: 'lead-v3',
   leadId: ids.lead,
   createdAt: timestamp,
   intake: {
-    schemaVersion: 'intake-v2',
+    schemaVersion: 'intake-v3',
+    attribution: null,
     identityClass: 'fictional',
     givenName: 'Avery',
     familyName: 'Example',
@@ -90,6 +95,7 @@ const lead = {
       'requestDetails',
       'emailContactConsent',
     ],
+    simulatedFields: ['attribution'],
     parityVerified: false,
   },
   evidenceClass: 'synthetic',

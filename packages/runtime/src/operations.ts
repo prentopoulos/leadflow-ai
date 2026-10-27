@@ -4,6 +4,7 @@ import {
   METRICS_WINDOW_LIMIT,
   MetricsReportSchema,
   RunListResponseSchema,
+  acquisitionReport,
   isResumeEligible,
   type EnrichmentEvidence,
   type EnrichmentMetric,
@@ -269,8 +270,9 @@ export class OperationsService {
     const current = runs.filter((run) => run.systemBundleId === systemBundleId);
     const contexts = await Promise.all(
       current.map(async (run) => {
-        const [qualification, evidence, events, history, simulation] =
+        const [lead, qualification, evidence, events, history, simulation] =
           await Promise.all([
+            this.dependencies.repositories.leads.get(run.leadId),
             run.qualificationResultId === null
               ? Promise.resolve(null)
               : this.dependencies.repositories.qualificationResults.get(
@@ -293,6 +295,8 @@ export class OperationsService {
           this.dependencies.repositories.events.parseStored(value),
         );
         if (
+          lead === null ||
+          lead.leadId !== run.leadId ||
           evidence.some(
             (record, index) =>
               record === null ||
@@ -319,6 +323,7 @@ export class OperationsService {
         }
         return {
           run,
+          lead,
           qualification,
           evidence: evidence.filter(
             (record): record is EnrichmentEvidence => record !== null,
@@ -350,11 +355,14 @@ export class OperationsService {
     let responded = 0;
     let appointment = 0;
 
-    for (const context of contexts) {
-      const priority =
-        context.qualification === null
-          ? 'not_scored'
-          : (context.qualification.priority ?? 'held');
+    // One priority per run feeds both the distribution and acquisition.
+    const priorities = contexts.map(({ qualification }) =>
+      qualification === null
+        ? ('not_scored' as const)
+        : (qualification.priority ?? ('held' as const)),
+    );
+    for (const [index, context] of contexts.entries()) {
+      const priority = priorities[index]!;
       priorityDistribution[priority] += 1;
       evidenceRecords.push(...context.evidence);
       const start = context.events.find(
@@ -482,6 +490,16 @@ export class OperationsService {
         responded,
         appointment,
       },
+      acquisition: acquisitionReport(
+        contexts.map(({ run, lead }, index) => ({
+          attribution: lead.intake.attribution,
+          consented: lead.intake.emailContactConsent,
+          priority: priorities[index]!,
+          failed:
+            run.status === 'failed_retryable' ||
+            run.status === 'failed_terminal',
+        })),
+      ),
       evidenceClass: 'synthetic-local',
     });
   }

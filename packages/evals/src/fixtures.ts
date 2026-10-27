@@ -2,6 +2,8 @@ import type { EvalCase } from './schemas.js';
 import { DATASET_VERSION } from './schemas.js';
 import { PHASE_TWO_CASES } from './phase2.js';
 import { PHASE_THREE_CASES } from './phase3.js';
+import { PHASE_FOUR_CASES } from './phase4.js';
+import { PHASE_FIVE_CASES } from './phase5.js';
 
 const criterion = (
   points: number,
@@ -369,7 +371,8 @@ export const PHASE_ONE_CASES = [
     kind: 'phase1-intake-contract',
     candidate: {
       valid: {
-        schemaVersion: 'intake-v2',
+        schemaVersion: 'intake-v3',
+        attribution: null,
         identityClass: 'fictional',
         givenName: 'Avery',
         familyName: 'Jordan',
@@ -392,6 +395,7 @@ export const PHASE_ONE_CASES = [
       ],
       provenance: {
         exactSourceFields: ['zipCode'],
+        simulatedFields: ['attribution'],
         parityVerified: false,
       },
     },
@@ -631,4 +635,6 @@ export const COMBINED_CASES = [
   ...PHASE_ONE_CASES,
   ...PHASE_TWO_CASES,
   ...PHASE_THREE_CASES,
+  ...PHASE_FOUR_CASES,
+  ...PHASE_FIVE_CASES,
 ] satisfies EvalCase[];

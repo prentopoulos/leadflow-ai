@@ -122,7 +122,12 @@ describe('diagram kit rules', () => {
 
   it('renders every diagram deterministically within its rules', () => {
     const first = renderDiagrams();
-    expect(Object.keys(first)).toContain('docs/diagrams/architecture.html');
+    expect(Object.keys(first).sort()).toEqual([
+      'docs/diagrams/agent-workflow.html',
+      'docs/diagrams/architecture.html',
+      'docs/diagrams/pipeline.html',
+      'docs/diagrams/security-trifecta.html',
+    ]);
     expect(renderDiagrams()).toEqual(first);
   });
 });

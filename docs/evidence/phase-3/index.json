@@ -204,11 +204,12 @@
       "scope": "deployed",
       "probe": "runbook smoke 8",
       "expected": "Cloud Run and project spend are recorded, or pending with a reason; never zero by default.",
-      "outcome": "not_run",
-      "recordedAt": null,
-      "observed": null,
-      "reason": "Billing posts within about 24 hours; at setup the project showed $0.00 with both the Cloud Run cap and the project alert budget configured. Recheck before closing.",
-      "pending": true
+      "outcome": "pass",
+      "recordedAt": "2026-10-27T17:03:45.000Z",
+      "observed": "Usage posted at CA$0.00 (free tiers): Cloud Run 32 requests, 25.1 s CPU, 12.55 GiB-s memory; Cloud Build 4.9 min; Firestore Toronto 551 reads, 321 writes. Month to date and forecast CA$0.00; Cloud Run cap ~$0.00 of $10; project alert budget $0.00 of $10. Read-only in the console; an interim 09:45 reading also showed CA$0.00.",
+      "reason": null,
+      "pending": false,
+      "candidateFingerprint": "24b74338f3b8dfa3f033d8ced53635d28d9d77461c4e165b23fcfe456b0a0561"
     },
     {
       "id": "deployed-rollback",

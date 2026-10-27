@@ -262,6 +262,108 @@ single consolidated confirmation:
   (`docs/walkthrough.md`) only. The same night Peter closed Phase 3 before billing posted so Phase 4
   could start; the hosted cost is recorded from the posted bill on 2026-10-27 in the Phase 4 session.
 
+### Phase 4 decisions
+
+Peter set the direction on 2026-10-27 ("keep it simple") and the same day accepted every round-1
+recommendation: nine owner calls and ten settled answers.
+
+Owner calls:
+
+- Phase 4 is simulated acquisition: attributed synthetic traffic, cost per lead and per qualified
+  lead (simulated), a hosted demonstration and the walkthrough recording, in nine tasks. The
+  recording happens at the end of Phase 4, inside the phase. Teardown is an owner action after the
+  archive; its seven-day clock starts at the owner's approval of the Phase 4 demonstration
+  evidence. Non-goals: real Google Ads/GA4 data and real click IDs, intake-page UTM capture,
+  ROAS/revenue/LTV, cost per appointment, multi-touch attribution, budget optimisation, leads-list
+  channel filters, any rubric/draft/verification change, live enrichment in the simulation, and any
+  unattended run.
+- Attribution is stored on the lead: `intake-v3` adds an optional strict `attribution` object
+  (lowercase-slug source, medium, campaign; nullable synthetic click ID) stored as `lead-v3`. The
+  server derives the channel on read; the form sends no attribution; `intake-v2` is rejected;
+  local emulator data is cleared, not migrated.
+- `channel-rules-v1` adapts a subset of GA4's default channel group (Paid Search, Paid Social,
+  Email, Affiliates, Organic Search, Direct, Unassigned, plus LeadFlow's Unattributed), stated as
+  "not GA4 data". Fictional `sim-` campaigns: `sim-search-auto-insurance-q4`,
+  `sim-social-pcs-move`, `sim-email-veterans-day`, `sim-affiliate-partner-guide`, plus organic and
+  direct. Channels are assigned by a seeded permutation independent of lead content.
+- `synthetic-spend-v1` is a checked-in flight-spend fixture in simulated USD (search $1,200, social
+  $800, affiliate $400, email $150, organic and direct $0), labelled illustrative. Blended CPL is
+  total spend over all stored leads in the current-bundle window (unattributed and failed runs
+  included and counted); per-channel and per-campaign CPL use each group's leads; zero-spend groups
+  show "n/a, no spend"; empty denominators are `insufficient_data`; the view shows planned-lead
+  progress.
+- A qualified lead's latest priority is high or standard ("marketing-qualified (high or standard
+  readiness)"); cost per qualified lead uses that denominator.
+- Added during implementation (owner, 2026-10-27): qualified-lead rate per channel and campaign,
+  cost per contactable lead (spend over leads with recorded email consent), and each channel's
+  spend share against its lead share. Click-, revenue- and appointment-based measures (CTR, CPC,
+  conversion rate, ROAS, CPA, LTV, cost per appointment) stay out: the demo stores no clicks or
+  revenue and `simulator-v1` outcomes are score-independent.
+- Before the hosted demonstration (owner, 2026-10-27), so a performance-marketing manager reads it
+  first: the acquisition panel moves to the top of the Metrics view, and its figures use industry
+  terms explained once (CPL, cost per MQL for high or standard readiness, cost per contactable
+  lead, MQL rate) with Spend and Leads tiles beside them.
+- Hosted traffic runs from an owner-triggered "Run simulated traffic" control in the signed-in
+  browser (Stop, pauses when hidden); no OAuth-client allowlisting, service account or unattended
+  run. Locally `pnpm simulate:traffic` is the script.
+- The metrics view gains an "Acquisition — SIMULATED" section (two headline tiles, per-channel
+  table, CPL bar chart, campaign disclosure), not a fourth view; the dossier gains an attribution
+  block. The walkthrough keeps its intake-first opening.
+- Hosted demonstration: only if the posted cost is below the 50% inspection point, one enumerated
+  approval covers the guarded purge, one build and deploy of the exact Phase 4 commit to the
+  existing service under the same cap and budget, smokes 5–6 and rollback, the hosted traffic, the
+  evidence file and the recording. Firestore reads are measured in the cost checks; if they cost
+  money the hosted metrics poll slows to 15 s. Fallback: local-only demonstration.
+- Real advertising or analytics data is a non-goal; connecting it would need the
+  real-personal-information gate, the paid-API gate and a new phase. No constitution amendment.
+
+Settled with a cited basis (round 1, 2026-10-27; full report in the proposal/design):
+1. Synthetic click IDs: `sim-` + 20 hex, `clickIdClass: "synthetic"`, dossier-only (recorded:
+   owner direction, §5; Google documents no GCLID format).
+2. `pnpm simulate:traffic` replaces `seed:local`: 60 leads, 10 s default interval, recorded-only,
+   per-bundle idempotency keys (default).
+3. Version bumps `intake-v3`, `lead-v3`, `metrics-definitions-v2`, `metrics-report-v2`; the bundle
+   records the rules, fixture and plan versions (recorded precedent).
+4. Attribution never reaches the rubric, drafts, verification, events, logs or model inputs
+   (recorded: §5, AI_OPS).
+5. Frozen `phase-4.0` evaluation cases fixed before measuring (recorded: AI_OPS, lead-quality skill).
+6. Strict input validation per the Phase 2 ASVS mapping (default).
+7. C4 model, ERD, AI_OPS, runbook, README and walkthrough updates (recorded: §4, showcase skill).
+8. WCAG 2.2 AA under the existing dashboard requirement, design-eval before UI readiness (recorded).
+9. The cost read runs on or after 2026-10-27 local; only the hosted approval waits for it (fact).
+   The 09:45 reading showed CA$0.00 on the reports and all three budgets, under 24 hours after the
+   last hosted activity, so it stays pending until rechecked.
+10. No new dependencies (fact: recharts 3.10.1 and zod 4.6.7 already pinned).
+
+### Phase 5 decisions
+
+Peter set the Phase 5 direction on 2026-10-27 (HANDOFF.md § Phase 5 direction) and asked for it in
+one run without re-grilling. Owner calls:
+
+- Phase 5 adds an AdScout-style agent team to outreach drafting. A research team (a Claude Sonnet
+  5.5 lead plans questions for three parallel Claude Haiku 5.5 web-search workers on vehicle, area
+  and coverage needs; a code claim verifier keeps only claims whose cited quote supports their text
+  and numbers; the lead merges kept claims into a brief) feeds a draft loop (a Sonnet 5.5 writer, a
+  code rule checker, a Sonnet 5.5 critic, at most two rewrites). A person approves; nothing is sent.
+- Models research the lead's situation, never the person: vehicle, area from the verified ZIP place,
+  and the coded needs. They never receive the name, email or request text; code fills the greeting.
+- Paid-API gate, resolved for this scope only: "use the same API as AdScout and the same spend
+  limit". Provider Anthropic direct; `claude-sonnet-5-5` (lead, writer, critic) and
+  `claude-haiku-5-5` (workers); about $0.30 per lead and $8 per API process, reserved in code at
+  worst case before each call and settled after; a budget stop falls back to the template draft.
+  The key lives in the gitignored `.env` as `ANTHROPIC_API_KEY`.
+- Off by default behind `api:local -- --agents=claude` and `pnpm demo -- --agents`; hosted stays
+  template-only. The agent paragraph is a new slot in the existing template, so the eight
+  verification rules still run; the brief's claims and per-call costs are stored and the dossier
+  shows the cited sources. Offline tests use a fake model; one small live probe runs at the end.
+
+Settled by the agent with a cited basis (design.md): `@anthropic-ai/sdk` 0.79.0, the oldest
+release that types structured outputs, both web-search tools and web-search citations (fact); claims
+taken from the API's citations rather than model-written JSON (§5 "verify external evidence");
+a critic objection unresolved after two rewrites falls back to the template (§5); the $8 cap counts
+per API process, AdScout's per-run equivalent (recorded); `system-bundle-v5` and
+`verification-rules-v2`, local data cleared (recorded precedent).
+
 ## 5. Non-negotiables
 
 These rules and the gates in section 6 are this project's constitution. They override AGENTS.md,
@@ -318,6 +420,8 @@ Milestones are ordered by dependency.
 | 1 | Verified intake, immediate Firestore persistence, LangGraph orchestration, qualification agent, and C4 architecture diagrams as code | Done |
 | 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, responsive live dashboard, and run monitoring (Firebase Auth moved to Phase 3) | Done |
 | 3 | Owner-authorized private Cloud Run deployment with direct IAP access control, evidence bundle, README, and demonstration walkthrough (the repository went public under MIT at the close of Phase 2) | Done |
+| 4 | Simulated acquisition: attributed synthetic traffic, cost per lead and per qualified lead (simulated), hosted demonstration and walkthrough | In progress |
+| 5 | Opt-in research and drafting agent team (Anthropic) with verified, cited claims, spend caps and human approval | Done |
 
 ### Lean task budgets for remaining phases
 
@@ -347,6 +451,26 @@ resolve or waive any gate below.
 4. Define the immutable release, evaluation, evidence, runbook, architecture, README, and walkthrough artifacts.
 5. Verify one exact local candidate through the full gate, reviews, rendered checks, and publication scans.
 6. After enumerated approval, run the hosted proof, verified rollback and teardown, then prepare archive/merge.
+
+**Phase 4 blueprint — at most nine tasks**
+
+1. Record the posted Phase 3 hosted cost.
+2. Add the attribution contract, channel rules and frozen `phase-4.0` cases.
+3. Add the seeded traffic plan, local simulator and hosted traffic control.
+4. Add the spend fixture and acquisition metrics.
+5. Build the simulated acquisition section and dossier block.
+6. Update diagrams, AI operations, runbook, README and walkthrough script.
+7. Verify one exact local candidate through the full gate, reviews and scans.
+8. After enumerated approval, run the hosted demonstration and record the walkthrough.
+9. Record the teardown start, archive and prepare merge.
+
+**Phase 5 blueprint — at most five tasks**
+
+1. Add the agent contracts, claim verifier, rule checker, agent slot and verification rules v2.
+2. Add the model port, Anthropic adapter, spend ledger, agent team and the opt-in switch.
+3. Show the agent status, cost and cited sources in the dossier.
+4. Update AI operations, dependencies, diagrams, README and handoff.
+5. Verify with the gate and one live probe, review, archive and prepare merge.
 
 ### Before paid API or AI quota
 

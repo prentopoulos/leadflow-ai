@@ -1350,6 +1350,133 @@ button:disabled {
   padding-top: 1rem;
 }
 
+.traffic-control {
+  margin: 1.5rem 0 2.5rem;
+}
+
+/* Simulated acquisition: leads the Metrics page, set apart from the
+   operational metrics in the dashed, muted Simulation-panel idiom. */
+.acquisition-section {
+  margin-top: 1rem;
+  border: 1px dashed var(--line-strong);
+  border-top: 1px solid var(--ink);
+  padding: 1rem;
+  background: var(--paper-muted);
+}
+
+.acquisition-heading h2 {
+  margin: 0;
+}
+
+.acquisition-section .acquisition-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.acquisition-section .acquisition-strip > div:nth-child(3n + 1) {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.acquisition-section .acquisition-strip > div:nth-child(n + 4) {
+  border-top: 1px solid var(--line);
+}
+
+.simulated-tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  border: 1px solid var(--ink);
+  padding: 0.1rem 0.4rem;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+}
+
+.chart-caption .simulated-tag,
+.data-table caption .simulated-tag {
+  margin-left: 0;
+}
+
+.acquisition-label,
+.acquisition-note,
+.acquisition-notes p {
+  max-width: 75ch;
+  margin: 0.5rem 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.acquisition-section .chart-caption {
+  max-width: 75ch;
+}
+
+.acquisition-section .metric-strip .metric-detail {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.acquisition-section .data-table td.is-empty {
+  color: var(--muted);
+}
+
+.chart-empty {
+  margin: 1rem 0;
+  color: var(--muted);
+}
+
+.scroll-hint {
+  display: none;
+  font-weight: 400;
+}
+
+/* The channel name stays in view while the wide table scrolls. */
+.acquisition-section .data-table th:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--paper-muted);
+}
+
+.acquisition-section h3 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1rem;
+}
+
+.acquisition-section caption {
+  padding: 0.5rem 0;
+  font-weight: 650;
+  text-align: left;
+}
+
+.acquisition-notes .definition-list dd {
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.campaign-disclosure {
+  margin-top: 1.5rem;
+}
+
+.campaign-disclosure summary {
+  min-height: 24px;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.traffic-control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.traffic-control-actions p {
+  margin: 0;
+}
+
 .metric-table-section {
   margin-top: 2rem;
 }
@@ -1610,6 +1737,57 @@ small {
   white-space: pre-wrap;
 }
 
+.agent-research {
+  margin: 1rem 0;
+  border-top: 1px solid var(--line);
+  padding-top: 0.75rem;
+}
+
+.agent-research h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.agent-summary {
+  margin: 0.5rem 0;
+  font-size: 0.82rem;
+}
+
+.agent-sources {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+  font-size: 0.82rem;
+}
+
+.agent-sources p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.agent-sources blockquote {
+  margin: 0.3rem 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.6rem;
+  color: var(--muted);
+  background: var(--paper-strong);
+  overflow-wrap: anywhere;
+}
+
+.agent-sources a {
+  display: inline-block;
+  min-height: 24px;
+  color: var(--accent-dark);
+  overflow-wrap: anywhere;
+}
+
+.agent-calls li {
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
 .draft-edit {
   display: grid;
   gap: 0.4rem;
@@ -1698,6 +1876,26 @@ small {
     border-top: 1px solid var(--line);
     border-left: 0;
     padding-left: 0;
+  }
+
+  /* Acquisition values are short: keep its tiles two by two. */
+  .acquisition-section .metric-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .acquisition-section .metric-strip > div:nth-child(2n) {
+    border-left: 1px solid var(--line);
+    padding-left: 0.75rem;
+  }
+
+  .acquisition-section .metric-strip > div:nth-child(2) {
+    border-top: 0;
+  }
+}
+
+@media (max-width: 850px) {
+  .scroll-hint {
+    display: inline;
   }
 }
 

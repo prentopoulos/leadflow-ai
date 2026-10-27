@@ -35,7 +35,8 @@ const bundleId = '66666666-6666-4666-8666-666666666666';
 const traceId = '44444444-4444-4444-8444-444444444444';
 const requestId = '55555555-5555-4555-8555-555555555555';
 const intake = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',
@@ -60,6 +61,10 @@ class ResumeMemoryStore
 
   async create(path: string, data: DocumentData): Promise<void> {
     if (this.documents.has(path)) throw new Error('already exists');
+    this.documents.set(path, structuredClone(data));
+  }
+
+  async set(path: string, data: DocumentData): Promise<void> {
     this.documents.set(path, structuredClone(data));
   }
 
