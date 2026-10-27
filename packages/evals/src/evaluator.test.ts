@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { evaluateAll, evaluateCase } from './evaluator.js';
 import { PHASE_TWO_CASES } from './phase2.js';
 import { PHASE_THREE_CASES } from './phase3.js';

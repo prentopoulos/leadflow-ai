@@ -1351,7 +1351,57 @@ button:disabled {
 }
 
 .traffic-control {
-  margin-bottom: 2rem;
+  margin-top: 2.5rem;
+}
+
+/* Simulated acquisition: kept below and apart from operational metrics. */
+.acquisition-section {
+  margin-top: 2.5rem;
+}
+
+.simulated-tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  border: 1px solid var(--ink);
+  padding: 0.1rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+}
+
+.acquisition-label,
+.acquisition-note,
+.acquisition-notes p {
+  margin: 0.5rem 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.acquisition-section h3 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1rem;
+}
+
+.acquisition-section caption {
+  padding: 0.5rem 0;
+  font-weight: 650;
+  text-align: left;
+}
+
+.acquisition-notes .definition-list dd {
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.campaign-disclosure {
+  margin-top: 1.5rem;
+}
+
+.campaign-disclosure summary {
+  min-height: 24px;
+  cursor: pointer;
+  font-weight: 650;
 }
 
 .traffic-control-actions {

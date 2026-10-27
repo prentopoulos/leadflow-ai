@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import type { OperationsClient, SafeError } from './operations-client.js';
 import { operationsClient as defaultClient } from './operations-client.js';
+import { AcquisitionSection } from './AcquisitionSection.js';
 import { useSession } from './session-context.js';
 import { SimulatedTrafficControl } from './SimulatedTrafficControl.js';
 import { useVisiblePolling } from './use-visible-polling.js';
@@ -96,10 +97,6 @@ export function MetricsDashboard({
       <div className="operations-heading">
         <h1>Metrics</h1>
       </div>
-
-      {hosted ? (
-        <SimulatedTrafficControl systemBundleId={report.systemBundleId} />
-      ) : null}
 
       {error === null ? null : (
         <div className="stale-state" role="status">
@@ -316,6 +313,11 @@ export function MetricsDashboard({
           </dl>
         </section>
       </div>
+
+      {hosted ? (
+        <SimulatedTrafficControl systemBundleId={report.systemBundleId} />
+      ) : null}
+      <AcquisitionSection acquisition={report.acquisition} />
     </div>
   );
 }

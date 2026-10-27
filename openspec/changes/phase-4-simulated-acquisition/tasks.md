@@ -16,7 +16,7 @@
 
 ## 5. Acquisition section and dossier block
 
-- [ ] 5.1 Build the "Acquisition — SIMULATED" metrics section (tiles, per-channel table, CPL bar chart, campaign disclosure, definitions and notes) and the dossier attribution block at WCAG 2.2 AA for desktop and 390 px, verified in the running local app after a reset and a simulated flight.
+- [x] 5.1 Build the "Acquisition — SIMULATED" metrics section (tiles, per-channel table, CPL bar chart, campaign disclosure, definitions and notes) and the dossier attribution block at WCAG 2.2 AA for desktop and 390 px, verified in the running local app after a reset and a simulated flight.
 
 ## 6. Documentation and diagrams
 
