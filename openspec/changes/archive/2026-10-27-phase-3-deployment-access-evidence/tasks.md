@@ -20,9 +20,11 @@
 
 ## 6. Run the separately authorized hosted proof and close the phase
 
-- [ ] 6.1 Only after an enumerated owner approval, reverify the private project/billing/IAM boundary; enable only the accepted services; create the budget, identities, Toronto database, Artifact Registry repository and private IAP-protected Cloud Run service; build the exact public commit once; deploy its immutable digest; capture all required access, persistence, execution, privacy, cost, observability and verified-rollback evidence; provide the private walkthrough preview; execute the accepted seven-day/30-day teardown schedule; rerun publication scans; update HANDOFF; and prepare archive/merge while leaving merge and MP4 publication for separate owner decisions.
+- [x] 6.1 Only after an enumerated owner approval, reverify the private project/billing/IAM boundary; enable only the accepted services; create the budget, identities, Toronto database, Artifact Registry repository and private IAP-protected Cloud Run service; build the exact public commit once; deploy its immutable digest; capture all required access, persistence, execution, privacy, cost, observability and verified-rollback evidence; provide the private walkthrough preview; execute the accepted seven-day/30-day teardown schedule; rerun publication scans; update HANDOFF; and prepare archive/merge while leaving merge and MP4 publication for separate owner decisions.
 
 > Owner decisions, 2026-10-27 (PROJECT.md Phase 3 decisions): hosting is extended through Phase 4, so
 > the seven-day/30-day teardown is scheduled from Phase 4's demonstration approval rather than
 > executed in this phase; the walkthrough recording moves to the end of Phase 4, and this phase
-> delivers its timed script. Task 6.1 closes once the posted cost is recorded.
+> delivers its timed script. Later the same night the owner chose to close the phase before billing
+> posted so Phase 4 could start: `deployed-cost-status` stays pending in the archived evidence and is
+> recorded from the posted bill on 2026-10-27 in the Phase 4 session.

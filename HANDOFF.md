@@ -2,6 +2,23 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## Phase 3 closing checkpoint (2026-10-27)
+
+Phase 3 is complete and archived as `openspec/changes/archive/2026-10-27-phase-3-deployment-access-evidence`
+(+26 requirements, 2 modified, none removed); PROJECT.md records Phase 3 `Done`. Peter chose to close
+it the night of the hosted proof so Phase 4 could start, before Google billing posted. The private
+service keeps running through Phase 4 under the same CA$10 Cloud Run cap and project alert budget.
+
+Carried into Phase 4 as its first task: on 2026-10-27, read the posted cost for project LeadFlow AI
+(Billing → Reports, and the two budgets) and record `deployed-cost-status` in
+`docs/evidence/phase-3/index.json` with the observed amount, or pending with a reason if still not
+posted. A one-time reminder routine fires at 09:00 Toronto that day. Also carried: the walkthrough
+recording (end of Phase 4) and the teardown, whose seven-day clock starts at the Phase 4
+demonstration approval.
+
+Phase 4 direction: see "Phase 4 direction" below. No phase is in progress until `/next-phase` proposes
+Phase 4 in a fresh session.
+
 ## Phase 3 hosted proof checkpoint (2026-10-27)
 
 The private hosted proof is live. Peter approved the enumerated task 6.1 actions on 2026-10-26 and

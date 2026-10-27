@@ -259,7 +259,8 @@ single consolidated confirmation:
   live service can be demonstrated, under the same Cloud Run cap, project alert budget and stop
   rules; the seven-day teardown clock starts when Phase 4's demonstration evidence is approved. The
   walkthrough recording moves to the end of Phase 4; Phase 3 delivers its timed script
-  (`docs/walkthrough.md`) only.
+  (`docs/walkthrough.md`) only. The same night Peter closed Phase 3 before billing posted so Phase 4
+  could start; the hosted cost is recorded from the posted bill on 2026-10-27 in the Phase 4 session.
 
 ## 5. Non-negotiables
 
@@ -316,7 +317,7 @@ Milestones are ordered by dependency.
 | 0 | Toolchain, app skeleton, lockfile, quality gate with constitution copy check, smoke checks, and offline AI evaluation scaffold | Done |
 | 1 | Verified intake, immediate Firestore persistence, LangGraph orchestration, qualification agent, and C4 architecture diagrams as code | Done |
 | 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, responsive live dashboard, and run monitoring (Firebase Auth moved to Phase 3) | Done |
-| 3 | Owner-authorized private Cloud Run deployment with direct IAP access control, evidence bundle, README, and demonstration walkthrough (the repository went public under MIT at the close of Phase 2) | In progress |
+| 3 | Owner-authorized private Cloud Run deployment with direct IAP access control, evidence bundle, README, and demonstration walkthrough (the repository went public under MIT at the close of Phase 2) | Done |
 
 ### Lean task budgets for remaining phases
 

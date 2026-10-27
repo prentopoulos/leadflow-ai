@@ -26,7 +26,7 @@ commit it SHALL require an authenticated, idempotent execution request that rema
 workflow runs. In both modes, resume SHALL record `run.resume_requested` transactionally and SHALL
 use the same revision, lease, checkpoint and idempotency controls.
 
-#### Scenario: Local resume is requested
+#### Scenario: Resume is requested
 - **WHEN** an eligible local run is resumed with the correct expected revision
 - **THEN** the API returns 202 with the committed revision and the workflow continues in the local background executor
 
