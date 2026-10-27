@@ -2,11 +2,36 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## Phase 4 local candidate checkpoint (2026-10-27)
+
+Branch `phase-4-simulated-acquisition`, draft PR #9. Tasks 2.1-7.1 are complete; the exact local
+candidate is `8471757` (rebased onto `main` at `ec4fc66`). Open: 1.1 (posted cost, after about
+22:45 Toronto on 2026-10-27), 8.1 (hosted demonstration and walkthrough, after an enumerated owner
+approval and only if the cost is below the 50% inspection point) and 9.1 (close).
+
+Task 7.1 evidence on `8471757`: the full `pnpm check` passed (430 tests; evaluation 59 passed,
+0 failed, 25 not_run; smoke, governance, docs, strict OpenSpec). The first full gate of the phase
+retained 2 failures in `session.test.tsx` (focus asserted before its effect ran under parallel
+load); the test now waits for focus. Code review (`/code-review high`): 10 findings; six fixed in
+`fix: resolve phase four code review findings`, three answered with reasons in the PR, one (a
+checksum bug in the macOS bootstrap script) belongs to the commits below. Design eval (design
+review plus detector, browser and contrast evidence; taste reviewer skipped for app screens):
+26/40 with two P1s; Peter chose P1 + P2, fixed in `fix: resolve phase four design review
+findings` and checked in the running app at 1280 and 390 px for a 20- and a 60-lead flight.
+Publication scan of the branch diff: no private value, key shape or home path.
+
+Branch hygiene: at 09:58 the working tree had been switched to `feat/macos-showcase-readme`, so the
+Phase 4 branch picked up its two commits (`587b1c1` macOS setup, `9204b73` README trifecta). Peter
+chose to move them out: the branch was rebased onto `main` and pushed with `--force-with-lease`; a
+local `backup/phase-4-before-rebase` keeps the pre-rebase state. `feat/macos-showcase-readme` is
+unchanged on GitHub with no PR; before it merges, its bootstrap script must stop installing an
+artifact whose checksum failed (the check runs inside `$(...)`, where `set -e` is off).
+
 ## Phase 4 spec checkpoint (2026-10-27)
 
 Branch `phase-4-simulated-acquisition`, OpenSpec change of the same name. Grilling finished in one
 round: Peter accepted all nine owner calls and ten settled answers (PROJECT.md § Phase 4
-decisions). The spec-only commit and draft PR are the only actions so far; no code has changed.
+decisions). The spec-only commit and draft PR were the first actions.
 
 Interim cost reading (2026-10-27 09:45 Toronto, read-only in Peter's Chrome): billing Overview,
 Reports and all three budgets showed CA$0.00 (the Cloud Run cap "~$0.00 / $10.00"). That was about
@@ -30,14 +55,13 @@ costs); docs check; the emulator probe (stores a paid attribution and proves no 
 Running local app: a 60-lead flight stored 60 leads and a rerun added none; dashboard figures match
 hand calculation ($2,550 / 60 = $42.50 CPL, $51.00 per qualified, $56.67 per contactable);
 Playwright at 1280 and 390 px found no overflow, no target under 24 px, four chart labels and no
-console errors at 390 px. The full `pnpm check` has not run yet (task 7.1).
+console errors at 390 px.
 
 Retained: a frozen case row for GA4's `(not set)` medium was removed before measurement because
 the slug rule refuses its space, which made that Direct branch unreachable.
 
 Not yet verified: the hosted "Run simulated traffic" control renders only in cloud mode and is
-exercised in task 8.1. Next local task: 6.1 (diagrams with diagram-design, README with showcase,
-AI_OPS, runbook, walkthrough script).
+exercised in task 8.1 (its logic is covered by component tests).
 
 ## Phase 3 closing checkpoint (2026-10-27)
 

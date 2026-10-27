@@ -24,7 +24,7 @@
 
 ## 7. Verify the exact local candidate
 
-- [ ] 7.1 On one clean commit, pass the full `pnpm check`, strict OpenSpec validation, rendered desktop/390 px review, design-eval, code review with the lead-quality review of the new metrics, and the publication scans; fix findings in new commits and record the candidate identity.
+- [x] 7.1 On one clean commit, pass the full `pnpm check`, strict OpenSpec validation, rendered desktop/390 px review, design-eval, code review with the lead-quality review of the new metrics, and the publication scans; fix findings in new commits and record the candidate identity.
 
 ## 8. Hosted demonstration and walkthrough
 
