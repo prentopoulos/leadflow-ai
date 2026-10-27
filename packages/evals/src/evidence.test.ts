@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEPLOYED_CHECK_IDS,
   DeploymentEvidenceIndexSchema,
+  PHASE_FOUR_DEPLOYED_CHECK_IDS,
   deploymentCandidateFingerprint,
   deploymentReady,
 } from './evidence.js';
@@ -13,6 +14,24 @@ const indexPath = path.resolve(
   fileURLToPath(new URL('../../..', import.meta.url)),
   'docs/evidence/phase-3/index.json',
 );
+
+describe('phase 4 deployment evidence index', () => {
+  it('lists every Phase 4 check as not run, with cost pending, until the authorized probe', async () => {
+    const index = DeploymentEvidenceIndexSchema.parse(
+      JSON.parse(
+        await readFile(indexPath.replace('phase-3', 'phase-4'), 'utf8'),
+      ),
+    );
+    expect(index.phase).toBe('phase-4');
+    expect(index.checks.map((check) => check.id)).toEqual([
+      ...PHASE_FOUR_DEPLOYED_CHECK_IDS,
+    ]);
+    expect(index.checks.every((check) => check.outcome === 'not_run')).toBe(
+      true,
+    );
+    expect(deploymentReady(index)).toBe(false);
+  });
+});
 
 describe('deployment evidence index', () => {
   it('lists every required deployed check and holds readiness until they pass', async () => {

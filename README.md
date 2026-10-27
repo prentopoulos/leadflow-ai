@@ -181,6 +181,7 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 | [docs/dependencies/phase-3.md](docs/dependencies/phase-3.md) | Phase 3 container base and IAP verification library |
 | [docs/operations/runbook.md](docs/operations/runbook.md) | Hosted setup, release, smoke, rollback, purge and teardown |
 | [docs/evidence/phase-3/index.json](docs/evidence/phase-3/index.json) | Deployment evidence, with checks not yet run marked `not_run` |
+| [docs/evidence/phase-4/index.json](docs/evidence/phase-4/index.json) | Phase 4 hosted demonstration evidence; every check `not_run` until the approved run |
 | [docs/walkthrough.md](docs/walkthrough.md) | Timed script for the two-minute captioned walkthrough |
 | [WORKFLOW.md](WORKFLOW.md) | Phase, review and verification workflow |
 

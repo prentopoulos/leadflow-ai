@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "deployment-evidence-v1",
+  "phase": "phase-4",
+  "candidate": {
+    "sourceCommit": null,
+    "lockfileDigest": null,
+    "systemBundleId": null,
+    "buildId": null,
+    "imageDigest": null,
+    "revision": null,
+    "configuration": "phase-3-cloud-v1",
+    "service": "leadflow-ai-demo",
+    "region": "northamerica-northeast2",
+    "runtimeIdentity": "leadflow-ai-runtime",
+    "firestore": {
+      "database": "(default)",
+      "location": "northamerica-northeast2",
+      "retentionPolicy": "retention-7d-v1"
+    }
+  },
+  "checks": [
+    {
+      "id": "deployed-owner-access",
+      "scope": "deployed",
+      "probe": "runbook smoke 1",
+      "expected": "Owner signs in; /v1/session reports cloud, iap-verified, recorded.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-purge-before-deploy",
+      "scope": "deployed",
+      "probe": "runbook purge",
+      "expected": "Guarded purge removes Phase 3 lead-v2 synthetic data before the lead-v3 revision serves.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-configuration-match",
+      "scope": "deployed",
+      "probe": "runbook deploy comparison",
+      "expected": "Deployed digest, limits, identity, region, IAP and invoker policy match the checked-in template.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-persist-before-202",
+      "scope": "deployed",
+      "probe": "runbook smoke 5",
+      "expected": "Intake answers 202 and the run stays persisted until the execution request.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-request-bound-polling",
+      "scope": "deployed",
+      "probe": "runbook smoke 5",
+      "expected": "Progress appears by polling stored state while the execution request is held.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-duplicate-execution",
+      "scope": "deployed",
+      "probe": "runbook smoke 5",
+      "expected": "A duplicate execution request is a conflict.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-recorded-labels",
+      "scope": "deployed",
+      "probe": "runbook smoke 6",
+      "expected": "Every enrichment record is labelled recorded.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-consent-and-no-send",
+      "scope": "deployed",
+      "probe": "runbook smoke 6",
+      "expected": "Drafts stay consent-gated and unsent.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-simulated-traffic",
+      "scope": "deployed",
+      "probe": "runbook Phase 4 simulated traffic",
+      "expected": "The hosted control sends 60 planned fictional leads; a rerun adds none; drafts wait for approval.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-acquisition-labels",
+      "scope": "deployed",
+      "probe": "runbook Phase 4 simulated traffic",
+      "expected": "Every acquisition figure on the hosted metrics view is labelled SIMULATED and matches the stored leads.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-cost-status",
+      "scope": "deployed",
+      "probe": "runbook smoke 8 and pre/post-demo checks",
+      "expected": "Cloud Run and project spend plus Firestore reads before and after the demo, or pending with a reason; never zero by default.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": true
+    },
+    {
+      "id": "deployed-rollback",
+      "scope": "deployed",
+      "probe": "runbook rollback",
+      "expected": "Traffic moves to the previous revision and back with smoke reruns; a lead-v2 revision is followed by the purge.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Waits for the posted Phase 3 cost (below the 50% inspection point) and an enumerated owner approval (task 8.1).",
+      "candidateFingerprint": null,
+      "pending": false
+    },
+    {
+      "id": "deployed-teardown",
+      "scope": "deployed",
+      "probe": "runbook teardown schedule",
+      "expected": "Seven-day teardown scheduled from the owner's approval of this evidence.",
+      "outcome": "not_run",
+      "recordedAt": null,
+      "observed": null,
+      "reason": "Scheduled only after the owner approves the Phase 4 demonstration evidence.",
+      "candidateFingerprint": null,
+      "pending": false
+    }
+  ]
+}

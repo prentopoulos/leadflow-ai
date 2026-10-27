@@ -2,8 +2,8 @@ import { HOSTED_TARGET } from '@leadflow-ai/domain';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 
-// The sanitized Phase 3 deployment evidence index
-// (docs/evidence/phase-3/index.json). It holds outcomes and immutable
+// The sanitized deployment evidence indexes
+// (docs/evidence/phase-3/index.json and docs/evidence/phase-4/index.json). It holds outcomes and immutable
 // identifiers only; project, account, audience, subject, URL, token and
 // billing values are excluded and the hygiene scan enforces that.
 
@@ -37,6 +37,30 @@ export const DEPLOYED_CHECK_IDS = [
   'deployed-rollback',
   'deployed-teardown',
 ] as const;
+
+// Phase 4 redeploys the same private service: the runbook reruns owner access,
+// smokes 5-6 and rollback for the new revision, plus the purge that the
+// lead-v3 contract needs and the simulated-traffic demonstration.
+export const PHASE_FOUR_DEPLOYED_CHECK_IDS = [
+  'deployed-owner-access',
+  'deployed-purge-before-deploy',
+  'deployed-configuration-match',
+  'deployed-persist-before-202',
+  'deployed-request-bound-polling',
+  'deployed-duplicate-execution',
+  'deployed-recorded-labels',
+  'deployed-consent-and-no-send',
+  'deployed-simulated-traffic',
+  'deployed-acquisition-labels',
+  'deployed-cost-status',
+  'deployed-rollback',
+  'deployed-teardown',
+] as const;
+
+const REQUIRED_CHECKS = {
+  'phase-3': DEPLOYED_CHECK_IDS,
+  'phase-4': PHASE_FOUR_DEPLOYED_CHECK_IDS,
+} as const;
 
 const CheckSchema = z
   .object({
@@ -89,7 +113,7 @@ const CheckSchema = z
 export const DeploymentEvidenceIndexSchema = z
   .object({
     schemaVersion: z.literal('deployment-evidence-v1'),
-    phase: z.literal('phase-3'),
+    phase: z.enum(['phase-3', 'phase-4']),
     candidate: z
       .object({
         sourceCommit: Sha.nullable(),
@@ -128,7 +152,7 @@ export const DeploymentEvidenceIndexSchema = z
     if (new Set(ids).size !== ids.length) {
       context.addIssue({ code: 'custom', message: 'check IDs are unique' });
     }
-    for (const required of DEPLOYED_CHECK_IDS) {
+    for (const required of REQUIRED_CHECKS[value.phase]) {
       if (!ids.includes(required)) {
         context.addIssue({
           code: 'custom',
@@ -217,7 +241,7 @@ export function deploymentCandidateFingerprint(
 export function deploymentReady(index: DeploymentEvidenceIndex): boolean {
   if (!completeCandidate(index.candidate)) return false;
   const fingerprint = deploymentCandidateFingerprint(index.candidate);
-  return DEPLOYED_CHECK_IDS.every((id) => {
+  return REQUIRED_CHECKS[index.phase].every((id) => {
     const check = index.checks.find((candidate) => candidate.id === id);
     return (
       check?.scope === 'deployed' &&
