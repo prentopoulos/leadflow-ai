@@ -335,6 +335,35 @@ Settled with a cited basis (round 1, 2026-10-27; full report in the proposal/des
    last hosted activity, so it stays pending until rechecked.
 10. No new dependencies (fact: recharts 3.10.1 and zod 4.6.7 already pinned).
 
+### Phase 5 decisions
+
+Peter set the Phase 5 direction on 2026-10-27 (HANDOFF.md § Phase 5 direction) and asked for it in
+one run without re-grilling. Owner calls:
+
+- Phase 5 adds an AdScout-style agent team to outreach drafting. A research team (a Claude Sonnet
+  5.5 lead plans questions for three parallel Claude Haiku 5.5 web-search workers on vehicle, area
+  and coverage needs; a code claim verifier keeps only claims whose cited quote supports their text
+  and numbers; the lead merges kept claims into a brief) feeds a draft loop (a Sonnet 5.5 writer, a
+  code rule checker, a Sonnet 5.5 critic, at most two rewrites). A person approves; nothing is sent.
+- Models research the lead's situation, never the person: vehicle, area from the verified ZIP place,
+  and the coded needs. They never receive the name, email or request text; code fills the greeting.
+- Paid-API gate, resolved for this scope only: "use the same API as AdScout and the same spend
+  limit". Provider Anthropic direct; `claude-sonnet-5-5` (lead, writer, critic) and
+  `claude-haiku-5-5` (workers); about $0.30 per lead and $8 per API process, reserved in code at
+  worst case before each call and settled after; a budget stop falls back to the template draft.
+  The key lives in the gitignored `.env` as `ANTHROPIC_API_KEY`.
+- Off by default behind `api:local -- --agents=claude` and `pnpm demo -- --agents`; hosted stays
+  template-only. The agent paragraph is a new slot in the existing template, so the eight
+  verification rules still run; the brief's claims and per-call costs are stored and the dossier
+  shows the cited sources. Offline tests use a fake model; one small live probe runs at the end.
+
+Settled by the agent with a cited basis (design.md): `@anthropic-ai/sdk` 0.79.0, the oldest
+release that types structured outputs, both web-search tools and web-search citations (fact); claims
+taken from the API's citations rather than model-written JSON (§5 "verify external evidence");
+a critic objection unresolved after two rewrites falls back to the template (§5); the $8 cap counts
+per API process, AdScout's per-run equivalent (recorded); `system-bundle-v5` and
+`verification-rules-v2`, local data cleared (recorded precedent).
+
 ## 5. Non-negotiables
 
 These rules and the gates in section 6 are this project's constitution. They override AGENTS.md,
@@ -392,6 +421,7 @@ Milestones are ordered by dependency.
 | 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, responsive live dashboard, and run monitoring (Firebase Auth moved to Phase 3) | Done |
 | 3 | Owner-authorized private Cloud Run deployment with direct IAP access control, evidence bundle, README, and demonstration walkthrough (the repository went public under MIT at the close of Phase 2) | Done |
 | 4 | Simulated acquisition: attributed synthetic traffic, cost per lead and per qualified lead (simulated), hosted demonstration and walkthrough | In progress |
+| 5 | Opt-in research and drafting agent team (Anthropic) with verified, cited claims, spend caps and human approval | Planned |
 
 ### Lean task budgets for remaining phases
 
@@ -433,6 +463,14 @@ resolve or waive any gate below.
 7. Verify one exact local candidate through the full gate, reviews and scans.
 8. After enumerated approval, run the hosted demonstration and record the walkthrough.
 9. Record the teardown start, archive and prepare merge.
+
+**Phase 5 blueprint — at most five tasks**
+
+1. Add the agent contracts, claim verifier, rule checker, agent slot and verification rules v2.
+2. Add the model port, Anthropic adapter, spend ledger, agent team and the opt-in switch.
+3. Show the agent status, cost and cited sources in the dossier.
+4. Update AI operations, dependencies, diagrams, README and handoff.
+5. Verify with the gate and one live probe, review, archive and prepare merge.
 
 ### Before paid API or AI quota
 
