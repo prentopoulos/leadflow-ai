@@ -56,7 +56,21 @@ const escapeXml = (text) =>
 const textWidth = (text, size, em) => text.length * size * em;
 
 const treatments = {
-  focal: { fill: rgba(tokens.accent, 0.08), stroke: tokens.accent },
+  focal: {
+    fill: rgba(tokens.accent, 0.08),
+    stroke: tokens.accent,
+    tag: tokens.accent,
+  },
+  subagent: {
+    fill: rgba(tokens.accent, 0.035),
+    stroke: rgba(tokens.accent, 0.58),
+    tag: tokens.accent,
+  },
+  agent: {
+    fill: rgba(tokens.link, 0.07),
+    stroke: tokens.link,
+    tag: tokens.link,
+  },
   backend: { fill: tokens.white, stroke: tokens.ink },
   store: { fill: rgba(tokens.ink, 0.05), stroke: tokens.muted },
   external: { fill: rgba(tokens.ink, 0.03), stroke: rgba(tokens.ink, 0.3) },
@@ -187,7 +201,7 @@ export class Diagram {
     this.nodes.push(
       `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${tokens.paper}"/>`,
       `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${treatment.fill}" stroke="${treatment.stroke}" stroke-width="1.2"${treatment.dash ? ` stroke-dasharray="${treatment.dash}"` : ''}/>`,
-      `<text x="${cx}" y="${cy - 20}" fill="${tokens.soft}" font-size="7" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">${escapeXml(tag)}</text>`,
+      `<text x="${cx}" y="${cy - 20}" fill="${treatment.tag ?? tokens.soft}" font-size="7" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">${escapeXml(tag)}</text>`,
       `<text x="${cx}" y="${cy + 2}" fill="${tokens.ink}" font-size="13" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">${escapeXml(name)}</text>`,
       `<text x="${cx}" y="${cy + 22}" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">${escapeXml(sub)}</text>`,
     );

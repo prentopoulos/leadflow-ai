@@ -995,7 +995,7 @@ function agentArchitecture() {
   return page({
     diagram: d,
     eyebrow: 'Agent architecture · Phase 5',
-    title: 'Orchestrator and specialist agents',
+    title: 'Orchestrator and sub-agents',
     desc: 'After the intake API commits a lead, a LangGraph orchestrator dispatches in order to a qualification agent, an enrichment agent that calls NHTSA vPIC and Zippopotam.us read-only, an outreach agent that writes a consent-gated template draft and, when switched on, adds a cited paragraph from a capped Anthropic research and drafting team, and a verifier guard; it checkpoints each step in Firestore, sends a passing draft to human review, and resumes a stopped run from its checkpoint.',
     intro: '',
   });
@@ -1810,40 +1810,25 @@ function principles() {
 }
 
 function simplePipeline() {
-  const d = new Diagram({ slug: 'pipeline', width: 960, height: 464 });
-  const xs = [20, 176, 332, 488, 644, 800];
-  const y = 200;
+  const d = new Diagram({ slug: 'pipeline', width: 1120, height: 420 });
+  const xs = [8, 168, 328, 488, 648, 808, 968];
+  const y = 184;
   for (let index = 0; index < xs.length - 1; index += 1) {
     d.path(
       [
-        [xs[index] + 140, 240],
-        [xs[index + 1], 240],
+        [xs[index] + 140, 228],
+        [xs[index + 1], 228],
       ],
       index === 1 ? { role: 'accent' } : undefined,
     );
   }
-  d.path(
-    [
-      [558, 280],
-      [558, 360],
-    ],
-    { dashed: true },
-  );
-  d.path(
-    [
-      [668, 400],
-      [714, 400],
-      [714, 280],
-    ],
-    { dashed: true },
-  );
 
   const nodes = [
     [
       'input',
       'PERSON',
-      'Fictional inquiry',
-      ['need · timing', 'vehicle · consent'],
+      'Form submitted',
+      ['fictional lead', 'consent recorded'],
     ],
     [
       'focal',
@@ -1853,173 +1838,188 @@ function simplePipeline() {
     ],
     [
       'backend',
-      'SCORE',
-      'Readiness score',
-      ['100-point rubric', 'marketing readiness'],
+      'PRIVACY',
+      'Safe facts',
+      ['vehicle · area', 'coded needs only'],
     ],
-    ['backend', 'LOOK UP', 'Public facts', ['vehicle + ZIP', 'live or saved']],
-    ['backend', 'CHECK', 'Draft email', ['consent required', 'eight checks']],
-    ['input', 'PERSON', 'Human review', ['approve · edit', 'reject · no send']],
+    ['backend', 'CODE', 'Score + lookups', ['fixed rubric', 'public sources']],
+    [
+      'agent',
+      'LOCAL MODE',
+      'Research + draft',
+      ['checked context', 'template fallback'],
+    ],
+    ['backend', 'CODE', 'Final checks', ['claims · consent', 'eight rules']],
+    [
+      'input',
+      'DASHBOARD',
+      'Human review',
+      ['approve · edit', 'reject · copy/export'],
+    ],
   ];
   for (const [index, [kind, tag, name, sub]] of nodes.entries()) {
-    d.node({ x: xs[index], y, w: 140, h: 80, kind, tag, name, sub });
+    d.node({ x: xs[index], y, w: 140, h: 88, kind, tag, name, sub });
   }
-  d.node({
-    x: 488,
-    y: 360,
-    w: 180,
-    h: 80,
-    kind: 'optional',
-    tag: 'OPTIONAL',
-    name: 'Cited research',
-    sub: ['one short paragraph', 'failure keeps template'],
-  });
   return page({
     diagram: d,
     eyebrow: 'Plain-language pipeline',
-    title: 'From inquiry to a reviewed draft',
-    desc: 'A fictional inquiry is stored before processing, scored for marketing readiness, enriched from public sources, optionally given one cited research paragraph, checked and held for human review without sending anything.',
+    title: 'From form to a human-reviewed draft',
+    desc: 'A fictional form submission is stored first, reduced to selected facts, scored and checked against public sources, used to prepare a draft, verified and placed in the dashboard for human review and manual use.',
     intro:
-      'One inquiry moves through six steps. Optional research can add context, but it cannot bypass the checks or human review.',
+      'The system stores the form first, limits what moves forward and never sends outreach on its own.',
   });
 }
 
 function simpleArchitecture() {
-  const d = new Diagram({ slug: 'architecture', width: 960, height: 560 });
+  const d = new Diagram({ slug: 'architecture', width: 1040, height: 560 });
   d.zone({
     x: 16,
-    y: 96,
-    w: 656,
-    h: 452,
-    label: 'LOCAL WORKSTATION · FICTIONAL DATA',
+    y: 112,
+    w: 736,
+    h: 432,
+    label: 'LOCAL APP · FICTIONAL DATA',
     dashed: true,
-    labelX: 212,
+    labelX: 256,
   });
   d.zone({
-    x: 720,
-    y: 96,
-    w: 224,
-    h: 452,
+    x: 784,
+    y: 112,
+    w: 240,
+    h: 432,
     label: 'APPROVED SERVICES',
     dashed: true,
-    labelX: 760,
+    labelX: 824,
   });
   d.path(
     [
-      [200, 200],
-      [240, 200],
+      [176, 280],
+      [216, 280],
     ],
     { role: 'link' },
   );
   d.path(
     [
-      [400, 200],
-      [480, 200],
+      [360, 280],
+      [472, 280],
+      [472, 232],
     ],
     { role: 'accent' },
   );
   d.path([
-    [560, 240],
-    [560, 340],
+    [472, 232],
+    [472, 344],
   ]);
   d.path([
-    [400, 380],
-    [480, 380],
+    [544, 388],
+    [656, 388],
+    [656, 232],
   ]);
   d.path(
     [
-      [640, 380],
-      [744, 380],
+      [728, 188],
+      [808, 188],
     ],
     { role: 'link' },
   );
+  d.path([
+    [544, 388],
+    [584, 388],
+  ]);
   d.path(
     [
-      [640, 404],
-      [692, 404],
-      [692, 496],
-      [744, 496],
+      [728, 388],
+      [808, 388],
     ],
     { role: 'link', dashed: true },
   );
 
   d.node({
-    x: 40,
-    y: 160,
-    w: 160,
-    h: 80,
+    x: 32,
+    y: 236,
+    w: 144,
+    h: 88,
     kind: 'input',
-    tag: 'BROWSER',
-    name: 'Operator workspace',
-    sub: ['intake · runs · metrics', 'review queue'],
+    tag: 'DASHBOARD',
+    name: 'React workspace',
+    sub: ['intake · runs', 'review queue'],
   });
   d.node({
-    x: 240,
-    y: 160,
-    w: 160,
-    h: 80,
+    x: 216,
+    y: 236,
+    w: 144,
+    h: 88,
     kind: 'backend',
     tag: 'API',
-    name: 'Fastify server',
-    sub: ['Host + Origin checks', 'strict schemas'],
+    name: 'Fastify API',
+    sub: ['loopback only', 'strict schemas'],
   });
   d.node({
-    x: 480,
-    y: 160,
-    w: 160,
-    h: 80,
+    x: 400,
+    y: 144,
+    w: 144,
+    h: 88,
     kind: 'focal',
-    tag: 'STORE',
-    name: 'Stored records',
-    sub: ['lead · run · evidence', 'checkpoint · review'],
+    tag: 'FIRESTORE',
+    name: 'Stored first',
+    sub: ['lead · run · evidence', 'steps · review'],
   });
   d.node({
-    x: 240,
-    y: 340,
-    w: 160,
-    h: 80,
+    x: 584,
+    y: 144,
+    w: 144,
+    h: 88,
     kind: 'backend',
     tag: 'CODE',
-    name: 'Domain rules',
-    sub: ['rubric · consent', 'claims · spend caps'],
+    name: 'Fixed rules',
+    sub: ['rubric · consent', 'claims · limits'],
   });
   d.node({
-    x: 480,
-    y: 340,
-    w: 160,
-    h: 80,
+    x: 400,
+    y: 344,
+    w: 144,
+    h: 88,
     kind: 'backend',
     tag: 'WORKFLOW',
-    name: 'LangGraph runtime',
-    sub: ['qualify · enrich · draft', 'verify · resume'],
+    name: 'LangGraph',
+    sub: ['qualify · enrich', 'draft · verify', 'resume runs'],
   });
   d.node({
-    x: 744,
-    y: 332,
-    w: 176,
-    h: 96,
+    x: 584,
+    y: 344,
+    w: 144,
+    h: 88,
+    kind: 'agent',
+    tag: 'LOCAL AGENTS',
+    name: 'Agent runtime',
+    sub: ['research · draft', 'critic · spend cap'],
+  });
+  d.node({
+    x: 808,
+    y: 144,
+    w: 192,
+    h: 88,
     kind: 'external',
     tag: 'PUBLIC DATA',
     name: 'Vehicle + ZIP',
-    sub: ['NHTSA vPIC', 'Zippopotam.us', 'read-only'],
+    sub: ['NHTSA · Zippopotam.us', 'read-only'],
   });
   d.node({
-    x: 744,
-    y: 456,
-    w: 176,
-    h: 80,
+    x: 808,
+    y: 344,
+    w: 192,
+    h: 88,
     kind: 'optional',
-    tag: 'PAID · LOCAL',
-    name: 'Claude API',
-    sub: ['research + drafting', 'off by default'],
+    tag: 'MODEL · LOCAL MODE',
+    name: 'Anthropic API',
+    sub: ['capped calls', 'disabled in hosted demo'],
   });
   return page({
     diagram: d,
     eyebrow: 'Technical system boundary',
-    title: 'Where LeadFlow runs and what it can call',
-    desc: 'The operator workspace calls a loopback Fastify server, which stores the lead before the LangGraph workflow uses deterministic rules, read-only public vehicle and ZIP services, and an optional local-only Claude service.',
+    title: 'The system and its approved connections',
+    desc: 'The React dashboard calls a loopback Fastify API, which stores the lead in Firestore before LangGraph runs fixed code, public read-only lookups and, only in local agent mode, a capped Anthropic agent runtime.',
     intro:
-      'The browser, server, stored records, rules and workflow stay inside the local boundary. Only the workflow can reach approved services.',
+      'The local app owns the workflow and records. Only the two approved service paths leave it.',
   });
 }
 
@@ -2027,151 +2027,182 @@ function simpleAgentWorkflow() {
   const d = new Diagram({
     slug: 'agent-workflow',
     width: 960,
-    height: 540,
-    maxNodes: 8,
-    maxArrows: 11,
+    height: 640,
+    maxNodes: 9,
+    maxArrows: 12,
+  });
+
+  d.zone({
+    x: 16,
+    y: 112,
+    w: 520,
+    h: 516,
+    label: 'RESEARCH TEAM · LEADER + THREE SUB-AGENTS',
+    labelX: 112,
+  });
+  d.zone({
+    x: 556,
+    y: 112,
+    w: 388,
+    h: 516,
+    label: 'DRAFTING + REVIEW',
+    labelX: 656,
   });
 
   d.path([
-    [16, 300],
-    [36, 300],
+    [236, 244],
+    [112, 244],
+    [112, 312],
   ]);
   d.path([
-    [160, 276],
-    [192, 276],
-    [192, 140],
-    [216, 140],
+    [276, 260],
+    [276, 312],
   ]);
   d.path([
-    [164, 300],
-    [216, 300],
+    [316, 244],
+    [440, 244],
+    [440, 312],
   ]);
   d.path([
-    [160, 324],
-    [192, 324],
-    [192, 460],
-    [216, 460],
+    [112, 440],
+    [112, 548],
+    [224, 548],
   ]);
   d.path([
-    [344, 140],
-    [376, 140],
-    [376, 276],
-    [408, 276],
+    [276, 440],
+    [276, 496],
   ]);
   d.path([
-    [344, 300],
-    [404, 300],
+    [440, 440],
+    [440, 548],
+    [328, 548],
   ]);
   d.path([
-    [344, 460],
-    [376, 460],
-    [376, 324],
-    [408, 324],
+    [276, 600],
+    [32, 600],
+    [32, 196],
+    [212, 196],
   ]);
   d.path(
     [
-      [540, 300],
-      [564, 300],
-      [564, 196],
+      [340, 196],
       [588, 196],
     ],
     { role: 'accent' },
   );
   d.path([
-    [640, 262],
-    [640, 346],
+    [652, 260],
+    [652, 332],
+  ]);
+  d.path([
+    [708, 388],
+    [788, 388],
+  ]);
+  d.path([
+    [844, 332],
+    [844, 260],
   ]);
   d.path(
     [
-      [672, 346],
-      [672, 262],
+      [844, 444],
+      [844, 552],
+      [744, 552],
+      [744, 196],
+      [716, 196],
     ],
     { dashed: true },
   );
-  d.path([
-    [720, 408],
-    [780, 408],
-  ]);
+  d.label('VERIFIED FACTS', 132, 600);
+  d.label('≤2 REWRITES', 796, 552);
 
   d.bubble({
-    cx: 100,
-    cy: 300,
+    cx: 276,
+    cy: 196,
     r: 64,
     kind: 'focal',
-    tag: 'ORCHESTRATOR',
+    tag: 'LEADER AGENT',
     name: 'Research lead',
     sub: 'plan · delegate',
   });
   d.bubble({
-    cx: 280,
-    cy: 140,
+    cx: 112,
+    cy: 376,
     r: 64,
-    kind: 'backend',
-    tag: 'SPECIALIST',
+    kind: 'subagent',
+    tag: 'SUB-AGENT',
     name: 'Vehicle',
     sub: 'facts',
   });
   d.bubble({
-    cx: 280,
-    cy: 300,
+    cx: 276,
+    cy: 376,
     r: 64,
-    kind: 'backend',
-    tag: 'SPECIALIST',
+    kind: 'subagent',
+    tag: 'SUB-AGENT',
     name: 'Environmental',
     sub: 'facts',
   });
   d.bubble({
-    cx: 280,
-    cy: 460,
+    cx: 440,
+    cy: 376,
     r: 64,
-    kind: 'backend',
-    tag: 'SPECIALIST',
+    kind: 'subagent',
+    tag: 'SUB-AGENT',
     name: 'Coverage',
     sub: 'education',
   });
   d.bubble({
-    cx: 472,
-    cy: 300,
-    r: 68,
+    cx: 276,
+    cy: 548,
+    r: 52,
     kind: 'backend',
     tag: 'CODE',
-    name: 'Evidence check',
-    sub: 'sources · claims',
+    name: 'Evidence',
+    sub: 'claims + links',
   });
   d.bubble({
-    cx: 656,
+    cx: 652,
     cy: 196,
-    r: 68,
-    kind: 'backend',
-    tag: 'AGENT',
-    name: 'Drafting agent',
+    r: 64,
+    kind: 'agent',
+    tag: 'SEPARATE AGENT',
+    name: 'Drafter agent',
     sub: 'one short paragraph',
   });
   d.bubble({
-    cx: 656,
-    cy: 408,
-    r: 64,
+    cx: 652,
+    cy: 388,
+    r: 56,
     kind: 'backend',
-    tag: 'CHECK',
-    name: 'Draft review',
-    sub: 'check · rewrite ≤2',
+    tag: 'CODE',
+    name: 'Rule check',
+    sub: 'claims · consent',
   });
   d.bubble({
-    cx: 856,
-    cy: 408,
-    r: 76,
+    cx: 844,
+    cy: 388,
+    r: 56,
+    kind: 'agent',
+    tag: 'SEPARATE AGENT',
+    name: 'Critic',
+    sub: 'approve · revise',
+  });
+  d.bubble({
+    cx: 844,
+    cy: 196,
+    r: 64,
     kind: 'input',
     tag: 'PERSON',
     name: 'Human review',
-    sub: 'approve · edit · reject',
+    sub: 'approve · edit',
   });
   return page({
     diagram: d,
-    eyebrow: 'Optional agent pipeline',
-    title: 'From research to a reviewed draft',
-    desc: 'A research lead coordinates vehicle facts, environmental facts and coverage education; code checks the evidence before a drafting agent writes one paragraph, draft review permits two rewrites, and a person makes the final decision.',
+    eyebrow: 'Agent pipeline',
+    title: 'Research team, drafting and human review',
+    desc: 'One research leader plans questions for three sub-agents, receives their code-checked vehicle, environmental and coverage findings, merges a research brief for a separate drafting agent, and passes the draft through fixed rules, a separate critic agent and human review with at most two rewrites.',
     intro:
-      'Checked research feeds drafting, review and a final human decision.',
+      'Verified findings return to the research leader before a separate drafting agent writes the outreach paragraph.',
   });
 }
 
