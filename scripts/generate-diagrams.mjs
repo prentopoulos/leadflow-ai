@@ -1536,6 +1536,205 @@ function hostedLifecycle() {
   });
 }
 
+function explodedSystem() {
+  const d = new Diagram({
+    slug: 'exploded-system',
+    width: 960,
+    height: 612,
+    maxNodes: 0,
+    maxArrows: 0,
+  });
+  const origin = { x: 332, y: 408 };
+  const rect = { x0: 0, y0: 0, x1: 176, y1: 120 };
+  const gap = 92;
+  const iso = (x, y, z) => [origin.x + x - y, origin.y + (x + y) / 2 - z];
+  const point = ([x, y]) => `${x},${y}`;
+  const polygon = (points) => points.map(point).join(' ');
+  const layers = [
+    {
+      key: 'evidence',
+      name: 'Evidence foundation',
+      sub: 'stored lead · source records',
+      z: 0,
+      t: 20,
+      focal: false,
+    },
+    {
+      key: 'rules',
+      name: 'Deterministic controls',
+      sub: 'rubric · consent · verifier',
+      z: 112,
+      t: 16,
+      focal: true,
+    },
+    {
+      key: 'workflow',
+      name: 'Bounded workflow',
+      sub: 'qualify · enrich · draft',
+      z: 220,
+      t: 16,
+      focal: false,
+    },
+    {
+      key: 'workspace',
+      name: 'Operator workspace',
+      sub: 'intake · runs · review',
+      z: 328,
+      t: 12,
+      focal: false,
+    },
+  ];
+
+  const [traceLeftX, traceLeftY] = iso(rect.x0, rect.y1, 0);
+  const [traceRightX, traceRightY] = iso(rect.x1, rect.y0, 0);
+  const [, traceTopLeftY] = iso(rect.x0, rect.y1, layers.at(-1).z);
+  const [, traceTopRightY] = iso(rect.x1, rect.y0, layers.at(-1).z);
+  const markup = [
+    `<g data-exploded data-origin="${origin.x} ${origin.y}" data-gap="${gap}">`,
+    `<line data-role="trace" x1="${traceLeftX}" y1="${traceLeftY + 20}" x2="${traceLeftX}" y2="${traceTopLeftY}" stroke="${rgba(tokens.ink, 0.3)}" stroke-width="0.8" stroke-dasharray="4,3"/>`,
+    `<line data-role="trace" x1="${traceRightX}" y1="${traceRightY + 20}" x2="${traceRightX}" y2="${traceTopRightY}" stroke="${rgba(tokens.ink, 0.3)}" stroke-width="0.8" stroke-dasharray="4,3"/>`,
+  ];
+  for (const [level, layer] of layers.entries()) {
+    const a = iso(rect.x0, rect.y0, layer.z);
+    const b = iso(rect.x1, rect.y0, layer.z);
+    const c = iso(rect.x1, rect.y1, layer.z);
+    const e = iso(rect.x0, rect.y1, layer.z);
+    const cb = [c[0], c[1] + layer.t];
+    const eb = [e[0], e[1] + layer.t];
+    const topFill = layer.focal ? rgba(tokens.accent, 0.1) : tokens.white;
+    const leftFill = layer.focal
+      ? rgba(tokens.accent, 0.2)
+      : rgba(tokens.ink, 0.07);
+    const rightFill = layer.focal
+      ? rgba(tokens.accent, 0.32)
+      : rgba(tokens.ink, 0.15);
+    const stroke = layer.focal ? tokens.accent : tokens.ink;
+    const leaderY = b[1] + layer.t / 2;
+    const detailA = iso(36, 36, layer.z - 0.5);
+    const detailB = iso(140, 36, layer.z - 0.5);
+    const detailC = iso(140, 84, layer.z - 0.5);
+    const detailD = iso(36, 84, layer.z - 0.5);
+    markup.push(
+      `<g data-part="${layer.key}" data-name="${layer.name}" data-rect="${rect.x0} ${rect.y0} ${rect.x1} ${rect.y1} 0" data-z="${layer.z}" data-t="${layer.t}" data-level="${level}"${layer.focal ? ' data-focal' : ''}>`,
+      `<path data-role="silhouette" d="M ${point(e)} L ${point(a)} L ${point(b)} L ${point(c)} L ${point(cb)} L ${point(eb)} Z" fill="${tokens.white}"/>`,
+      `<polygon points="${polygon([a, b, c, e])}" fill="${topFill}"/>`,
+      `<polygon points="${polygon([e, c, cb, eb])}" fill="${leftFill}"/>`,
+      `<polygon points="${polygon([b, c, cb])}" fill="${rightFill}"/>`,
+      `<path d="M ${point(e)} L ${point(a)} L ${point(b)} L ${point(c)} L ${point(cb)} L ${point(eb)} Z" fill="none" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/>`,
+      `<polygon points="${polygon([detailA, detailB, detailC, detailD])}" fill="none" stroke="${layer.focal ? rgba(tokens.accent, 0.7) : rgba(tokens.ink, 0.48)}" stroke-width="0.8"/>`,
+      `<g data-role="label"><line data-role="leader" x1="${b[0] + 6}" y1="${leaderY}" x2="568" y2="${leaderY}" stroke="${layer.focal ? rgba(tokens.accent, 0.65) : rgba(tokens.ink, 0.4)}" stroke-width="0.8"/><circle cx="${b[0]}" cy="${leaderY}" r="2" fill="${layer.focal ? tokens.accent : tokens.ink}"/><text data-role="name" x="580" y="${leaderY - 1}" fill="${tokens.ink}" font-size="16" font-weight="600" font-family="${fonts.sans}">${layer.name}</text><text x="580" y="${leaderY + 15}" fill="${layer.focal ? tokens.accent : tokens.muted}" font-size="10" font-family="${fonts.mono}" letter-spacing="0.04em">${layer.sub}</text></g>`,
+      `</g>`,
+    );
+  }
+  markup.push('</g>');
+  d.under(markup.join('\n  '));
+
+  return page({
+    diagram: d,
+    eyebrow: 'Exploded system · product layers',
+    title: 'What makes one LeadFlow run',
+    desc: 'Exploded axonometric view of four LeadFlow AI layers: stored evidence at the base, deterministic scoring consent and verification controls, a bounded qualification enrichment drafting workflow, and the operator workspace for intake runs and review.',
+    intro:
+      'Four layers form one product. Deterministic controls remain between stored evidence and every agent-produced draft.',
+  });
+}
+
+function securityTrifecta() {
+  const d = new Diagram({
+    slug: 'security-trifecta',
+    width: 1000,
+    height: 560,
+    maxNodes: 0,
+    maxArrows: 0,
+  });
+  const markup = [
+    `<text x="40" y="48" fill="${tokens.ink}" font-size="28" font-family="${fonts.title}">No run gets all three capabilities</text>`,
+    `<text x="40" y="72" fill="${tokens.muted}" font-size="12" font-family="${fonts.sans}">Current modes accept bounded fictional input without combining it with real personal data and an outbound channel.</text>`,
+    `<text x="40" y="116" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" letter-spacing="0.14em">SECURITY TRIFECTA / VENN VIEW</text>`,
+    `<circle cx="180" cy="224" r="104" fill="${rgba(tokens.link, 0.08)}" stroke="${tokens.link}" stroke-width="1.2"/>`,
+    `<circle cx="116" cy="324" r="104" fill="${rgba(tokens.muted, 0.05)}" stroke="${rgba(tokens.muted, 0.62)}" stroke-width="1.2"/>`,
+    `<circle cx="244" cy="324" r="104" fill="${rgba(tokens.white, 0.76)}" stroke="${tokens.ink}" stroke-width="1.2"/>`,
+    `<text x="180" y="166" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Untrusted input</text>`,
+    `<text x="180" y="183" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">bounded fictional leads</text>`,
+    `<text x="82" y="352" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Sensitive data</text>`,
+    `<text x="82" y="369" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">real data gated</text>`,
+    `<text x="278" y="352" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Way out</text>`,
+    `<text x="278" y="369" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">approved HTTPS GET</text>`,
+    `<circle cx="180" cy="292" r="42" fill="${tokens.accent}" stroke="${tokens.ink}" stroke-width="1"/>`,
+    `<text x="180" y="288" fill="${tokens.white}" font-size="12" font-weight="700" font-family="${fonts.sans}" text-anchor="middle">3 / 3</text>`,
+    `<text x="180" y="306" fill="${tokens.white}" font-size="9" font-weight="600" font-family="${fonts.sans}" text-anchor="middle" letter-spacing="0.1em">BLOCKED</text>`,
+    `<rect x="116" y="440" width="128" height="40" rx="6" fill="${tokens.white}" stroke="${tokens.ink}" stroke-width="1"/>`,
+    `<text x="180" y="457" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">No 3 / 3 mode</text>`,
+    `<text x="180" y="472" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">tools + config + gates</text>`,
+    `<rect x="380" y="116" width="580" height="336" rx="8" fill="${tokens.white}" stroke="${rgba(tokens.ink, 0.16)}"/>`,
+    `<rect x="380" y="116" width="580" height="64" fill="${rgba(tokens.ink, 0.03)}"/>`,
+    `<line x1="380" y1="180" x2="960" y2="180" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<line x1="540" y1="116" x2="540" y2="452" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<line x1="660" y1="116" x2="660" y2="452" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<line x1="780" y1="116" x2="780" y2="452" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<line x1="880" y1="116" x2="880" y2="452" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<text x="400" y="153" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" letter-spacing="0.14em">MODE</text>`,
+    `<text x="600" y="146" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">UNTRUSTED</text>`,
+    `<text x="600" y="158" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">INPUT</text>`,
+    `<text x="720" y="146" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">SENSITIVE</text>`,
+    `<text x="720" y="158" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">DATA</text>`,
+    `<text x="830" y="146" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">WAY OUT</text>`,
+    `<text x="920" y="146" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.1em">COUNT</text>`,
+  ];
+  const rows = [
+    ['Recorded local', 'saved evidence', 'BOUNDED', 'ABSENT', 'NONE', '1 / 3'],
+    [
+      'Live local',
+      'public enrichment',
+      'BOUNDED',
+      'ABSENT',
+      'HTTPS GET',
+      '2 / 3',
+    ],
+    [
+      'Agent local',
+      'public web only',
+      'BOUNDED',
+      'ABSENT',
+      'SEARCH / READ',
+      '2 / 3',
+    ],
+  ];
+  for (const [index, row] of rows.entries()) {
+    const [name, sub, input, sensitive, wayOut, count] = row;
+    const top = 180 + index * 68;
+    const baseline = 210 + index * 68;
+    markup.push(
+      `<line x1="380" y1="${top + 68}" x2="960" y2="${top + 68}" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+      `<text x="400" y="${baseline}" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}">${name}</text>`,
+      `<text x="400" y="${baseline + 16}" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}">${sub}</text>`,
+      `<text x="600" y="${baseline + 6}" fill="${tokens.ink}" font-size="10" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">${input}</text>`,
+      `<text x="720" y="${baseline + 6}" fill="${tokens.muted}" font-size="10" font-family="${fonts.sans}" text-anchor="middle">${sensitive}</text>`,
+      `<text x="830" y="${baseline + 6}" fill="${wayOut === 'NONE' ? tokens.muted : tokens.ink}" font-size="10" font-weight="${wayOut === 'NONE' ? 400 : 600}" font-family="${fonts.sans}" text-anchor="middle">${wayOut}</text>`,
+      `<text x="920" y="${baseline + 6}" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">${count}</text>`,
+    );
+  }
+  markup.push(
+    `<rect x="388" y="392" width="564" height="52" rx="4" fill="${rgba(tokens.accent, 0.08)}" stroke="${tokens.accent}" stroke-width="1.2"/>`,
+    `<text x="404" y="416" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}">Rejected configuration</text>`,
+    `<text x="404" y="433" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}">Lead input + real personal data + model or sender cannot enter a run.</text>`,
+    `<text x="914" y="423" fill="${tokens.accent}" font-size="8" font-weight="700" font-family="${fonts.sans}" text-anchor="middle">3 / 3 BLOCKED</text>`,
+    `<line x1="40" y1="496" x2="960" y2="496" stroke="${rgba(tokens.ink, 0.16)}" stroke-width="0.8"/>`,
+    `<text x="40" y="520" fill="${tokens.ink}" font-size="10" font-weight="600" font-family="${fonts.sans}">Current boundary</text>`,
+    `<text x="140" y="520" fill="${tokens.muted}" font-size="10" font-family="${fonts.sans}">Fictional identities and test contacts. No insurer integration, quote, real personal data, or automatic sending.</text>`,
+  );
+  d.under(markup.join('\n  '));
+
+  return page({
+    diagram: d,
+    eyebrow: 'Security trifecta · runtime modes',
+    title: 'No run gets all three capabilities',
+    desc: 'Three overlapping capability sets show bounded untrusted input, sensitive data and a way out. Their shared center is blocked. The matrix shows recorded local, live local and optional agent-local modes without real personal data or automatic sending.',
+    intro:
+      'LeadFlow keeps real personal data behind its gate and exposes only two fixed read-only enrichment requests in live local mode. No current mode combines all three capabilities.',
+  });
+}
+
 function principles() {
   const d = new Diagram({ slug: 'principles', width: 960, height: 168 });
   const columns = [
@@ -1613,37 +1812,402 @@ function principles() {
   });
 }
 
-export const diagrams = {
+function simplePipeline() {
+  const d = new Diagram({ slug: 'pipeline', width: 960, height: 600 });
+  const xs = [20, 176, 332, 488, 644, 800];
+  const y = 200;
+  for (let index = 0; index < xs.length - 1; index += 1) {
+    d.path(
+      [
+        [xs[index] + 140, 240],
+        [xs[index + 1], 240],
+      ],
+      index === 1 ? { role: 'accent' } : undefined,
+    );
+  }
+  d.path(
+    [
+      [558, 280],
+      [558, 360],
+    ],
+    { dashed: true },
+  );
+  d.path(
+    [
+      [668, 400],
+      [714, 400],
+      [714, 280],
+    ],
+    { dashed: true },
+  );
+
+  const nodes = [
+    [
+      'input',
+      'PERSON',
+      'Fictional inquiry',
+      ['need · timing', 'vehicle · consent'],
+    ],
+    [
+      'focal',
+      'SAVED',
+      'Stored lead',
+      ['lead · run · event', 'before any work'],
+    ],
+    [
+      'backend',
+      'SCORE',
+      'Readiness score',
+      ['100-point rubric', 'marketing readiness'],
+    ],
+    ['backend', 'LOOK UP', 'Public facts', ['vehicle + ZIP', 'live or saved']],
+    ['backend', 'CHECK', 'Draft email', ['consent required', 'eight checks']],
+    ['input', 'PERSON', 'Human review', ['approve · edit', 'reject · no send']],
+  ];
+  for (const [index, [kind, tag, name, sub]] of nodes.entries()) {
+    d.node({ x: xs[index], y, w: 140, h: 80, kind, tag, name, sub });
+  }
+  d.node({
+    x: 488,
+    y: 360,
+    w: 180,
+    h: 80,
+    kind: 'optional',
+    tag: 'OPTIONAL',
+    name: 'Cited research',
+    sub: ['one short paragraph', 'failure keeps template'],
+  });
+  d.callout(
+    [
+      'No consent means no draft. A passing draft still waits for a person.',
+      'LeadFlow never sends email or makes an insurance decision.',
+    ],
+    20,
+    520,
+  );
+  return page({
+    diagram: d,
+    eyebrow: 'Plain-language pipeline',
+    title: 'From inquiry to a reviewed draft',
+    desc: 'A fictional inquiry is stored before processing, scored for marketing readiness, enriched from public sources, optionally given one cited research paragraph, checked and held for human review without sending anything.',
+    intro:
+      'One inquiry moves through six steps. Optional research can add context, but it cannot bypass the checks or human review.',
+  });
+}
+
+function simpleArchitecture() {
+  const d = new Diagram({ slug: 'architecture', width: 960, height: 600 });
+  d.zone({
+    x: 16,
+    y: 96,
+    w: 656,
+    h: 452,
+    label: 'LOCAL WORKSTATION · FICTIONAL DATA',
+    dashed: true,
+    labelX: 212,
+  });
+  d.zone({
+    x: 720,
+    y: 96,
+    w: 224,
+    h: 452,
+    label: 'APPROVED SERVICES',
+    dashed: true,
+    labelX: 760,
+  });
+  d.path(
+    [
+      [200, 200],
+      [240, 200],
+    ],
+    { role: 'link' },
+  );
+  d.path(
+    [
+      [400, 200],
+      [480, 200],
+    ],
+    { role: 'accent' },
+  );
+  d.path([
+    [560, 240],
+    [560, 340],
+  ]);
+  d.path([
+    [400, 380],
+    [480, 380],
+  ]);
+  d.path(
+    [
+      [640, 380],
+      [744, 380],
+    ],
+    { role: 'link' },
+  );
+  d.path(
+    [
+      [640, 404],
+      [692, 404],
+      [692, 496],
+      [744, 496],
+    ],
+    { role: 'link', dashed: true },
+  );
+
+  d.node({
+    x: 40,
+    y: 160,
+    w: 160,
+    h: 80,
+    kind: 'input',
+    tag: 'BROWSER',
+    name: 'Operator workspace',
+    sub: ['intake · runs · metrics', 'review queue'],
+  });
+  d.node({
+    x: 240,
+    y: 160,
+    w: 160,
+    h: 80,
+    kind: 'backend',
+    tag: 'API',
+    name: 'Fastify server',
+    sub: ['Host + Origin checks', 'strict schemas'],
+  });
+  d.node({
+    x: 480,
+    y: 160,
+    w: 160,
+    h: 80,
+    kind: 'focal',
+    tag: 'STORE',
+    name: 'Stored records',
+    sub: ['lead · run · evidence', 'checkpoint · review'],
+  });
+  d.node({
+    x: 240,
+    y: 340,
+    w: 160,
+    h: 80,
+    kind: 'backend',
+    tag: 'CODE',
+    name: 'Domain rules',
+    sub: ['rubric · consent', 'claims · spend caps'],
+  });
+  d.node({
+    x: 480,
+    y: 340,
+    w: 160,
+    h: 80,
+    kind: 'backend',
+    tag: 'WORKFLOW',
+    name: 'LangGraph runtime',
+    sub: ['qualify · enrich · draft', 'verify · resume'],
+  });
+  d.node({
+    x: 744,
+    y: 332,
+    w: 176,
+    h: 96,
+    kind: 'external',
+    tag: 'PUBLIC DATA',
+    name: 'Vehicle + ZIP',
+    sub: ['NHTSA vPIC', 'Zippopotam.us', 'read-only'],
+  });
+  d.node({
+    x: 744,
+    y: 456,
+    w: 176,
+    h: 80,
+    kind: 'optional',
+    tag: 'PAID · LOCAL',
+    name: 'Claude API',
+    sub: ['research + drafting', 'off by default'],
+  });
+  d.callout(
+    ['The browser never connects to stored records or providers directly.'],
+    40,
+    504,
+  );
+  return page({
+    diagram: d,
+    eyebrow: 'Technical system boundary',
+    title: 'Where LeadFlow runs and what it can call',
+    desc: 'The operator workspace calls a loopback Fastify server, which stores the lead before the LangGraph workflow uses deterministic rules, read-only public vehicle and ZIP services, and an optional local-only Claude service.',
+    intro:
+      'The browser, server, stored records, rules and workflow stay inside the local boundary. Only the workflow can reach approved services.',
+  });
+}
+
+function simpleAgentWorkflow() {
+  const d = new Diagram({ slug: 'agent-workflow', width: 960, height: 600 });
+  d.zone({
+    x: 16,
+    y: 104,
+    w: 768,
+    h: 224,
+    label: 'RESEARCH · PUBLIC WEB · BOUNDED QUESTIONS',
+    dashed: true,
+    labelX: 256,
+  });
+  d.path([
+    [184, 208],
+    [208, 208],
+  ]);
+  d.path([
+    [416, 208],
+    [440, 208],
+  ]);
+  d.path([
+    [600, 208],
+    [624, 208],
+  ]);
+  d.path([
+    [784, 208],
+    [800, 208],
+  ]);
+  d.path([
+    [868, 256],
+    [868, 336],
+  ]);
+  d.path([
+    [868, 432],
+    [868, 488],
+  ]);
+  d.path(
+    [
+      [800, 372],
+      [760, 372],
+      [760, 300],
+      [868, 300],
+      [868, 256],
+    ],
+    { dashed: true },
+  );
+
+  d.node({
+    x: 24,
+    y: 160,
+    w: 160,
+    h: 96,
+    kind: 'backend',
+    tag: 'RESEARCH LEAD',
+    name: 'Plan research',
+    sub: ['1–3 questions per topic', 'no tools'],
+  });
+  d.box({
+    x: 208,
+    y: 136,
+    w: 208,
+    h: 144,
+    kind: 'backend',
+    name: 'Three research workers',
+    markup: [
+      `<text x="312" y="172" fill="${tokens.ink}" font-size="14" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Three workers</text>`,
+      `<line x1="224" y1="188" x2="400" y2="188" stroke="${rgba(tokens.ink, 0.14)}" stroke-width="0.8"/>`,
+      `<text x="312" y="216" fill="${tokens.ink}" font-size="12" font-weight="600" font-family="${fonts.sans}" text-anchor="middle">Vehicle · area · coverage</text>`,
+      `<text x="312" y="240" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">search in parallel</text>`,
+      `<text x="312" y="258" fill="${tokens.muted}" font-size="9" font-family="${fonts.mono}" text-anchor="middle">URL + quote + answer</text>`,
+    ],
+  });
+  d.node({
+    x: 440,
+    y: 160,
+    w: 160,
+    h: 96,
+    kind: 'focal',
+    tag: 'CODE',
+    name: 'Check claims',
+    sub: ['quote carries words', 'and every number'],
+  });
+  d.node({
+    x: 624,
+    y: 160,
+    w: 160,
+    h: 96,
+    kind: 'backend',
+    tag: 'RESEARCH LEAD',
+    name: 'Merge brief',
+    sub: ['kept claims only', 'no new facts'],
+  });
+  d.node({
+    x: 800,
+    y: 160,
+    w: 136,
+    h: 96,
+    kind: 'backend',
+    tag: 'WRITER',
+    name: 'Write paragraph',
+    sub: ['claim IDs', '600 chars max'],
+  });
+  d.node({
+    x: 800,
+    y: 336,
+    w: 136,
+    h: 96,
+    kind: 'backend',
+    tag: 'CHECK',
+    name: 'Review draft',
+    sub: ['rules · critic', '≤ 2 rewrites'],
+  });
+  d.node({
+    x: 800,
+    y: 488,
+    w: 136,
+    h: 80,
+    kind: 'input',
+    tag: 'PERSON',
+    name: 'Human review',
+    sub: ['approve · edit', 'reject · no send'],
+  });
+  d.callout(
+    [
+      'Workers never see name, email, ZIP or request text.',
+      'Any failure keeps the plain template draft and records the reason.',
+    ],
+    24,
+    500,
+  );
+  return page({
+    diagram: d,
+    eyebrow: 'Optional research and drafting',
+    title: 'How the team builds one paragraph',
+    desc: 'A research lead assigns bounded vehicle, area and coverage questions to three workers; code checks every cited claim, the lead merges only kept claims, a writer drafts one paragraph, review allows at most two rewrites, and a person reviews the result.',
+    intro:
+      'Research, claim checking, writing and review have separate jobs. A failed step falls back to the normal template.',
+  });
+}
+
+export const legacyDiagramSources = {
   architecture,
-  'persist-before-processing': persistBeforeProcessing,
-  'run-lifecycle': runLifecycle,
-  'data-model': dataModel,
-  'review-flow': reviewFlow,
-  'data-model-outreach': phaseTwoRecords,
-  'agent-architecture': agentArchitecture,
-  'agent-team': agentTeam,
-  'private-cloud': privateCloud,
-  'hosted-execution': hostedExecution,
-  'hosted-lifecycle': hostedLifecycle,
+  persistBeforeProcessing,
+  runLifecycle,
+  dataModel,
+  reviewFlow,
+  phaseTwoRecords,
+  agentArchitecture,
+  agentTeam,
+  privateCloud,
+  hostedExecution,
+  hostedLifecycle,
+  explodedSystem,
+  principles,
 };
 
-export const readmeAssets = { principles };
+export const diagrams = {
+  pipeline: simplePipeline,
+  architecture: simpleArchitecture,
+  'agent-workflow': simpleAgentWorkflow,
+  'security-trifecta': securityTrifecta,
+};
 
 export function renderDiagrams() {
-  return {
-    ...Object.fromEntries(
-      Object.entries(diagrams).map(([slug, render]) => [
-        `docs/diagrams/${slug}.html`,
-        render(),
-      ]),
-    ),
-    ...Object.fromEntries(
-      Object.entries(readmeAssets).map(([slug, render]) => [
-        `docs/readme/${slug}.html`,
-        render(),
-      ]),
-    ),
-  };
+  return Object.fromEntries(
+    Object.entries(diagrams).map(([slug, render]) => [
+      `docs/diagrams/${slug}.html`,
+      render(),
+    ]),
+  );
 }
 
 /** Export through the diagram-design skill's own helper, offline fonts. */

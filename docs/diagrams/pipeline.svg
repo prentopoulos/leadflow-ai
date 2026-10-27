@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-title pipeline-desc" id="pipeline-root">
+  <title id="pipeline-title">From inquiry to a reviewed draft</title>
+  <desc id="pipeline-desc">A fictional inquiry is stored before processing, scored for marketing readiness, enriched from public sources, optionally given one cited research paragraph, checked and held for human review without sending anything.</desc>
+  <defs>
+      <style>#pipeline-root { --color-paper: #f4f1e9;
+      --color-ink: #1a211f;
+      --color-muted: #626a66;
+      --color-accent: #075e57;
+      --font-sans: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace; }
+      #pipeline-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #pipeline-root .diagram-container { width: 100%; overflow-x: auto; }
+      #pipeline-root .intro { color: var(--color-muted); max-width: 60ch; margin-bottom: 1.5rem; line-height: 1.5; }
+      @media print {
+#pipeline-root .diagram-container { overflow-x: visible; }
+}</style>
+      <marker id="pipeline-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#626a66"/></marker>
+      <marker id="pipeline-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#075e57"/></marker>
+      <marker id="pipeline-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3a5a85"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f4f1e9"/>
+  <path d="M160,240 L176,240" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#pipeline-arrow)"/>
+  <path d="M316,240 L332,240" fill="none" stroke="#075e57" stroke-width="1.2" marker-end="url(#pipeline-arrow-accent)"/>
+  <path d="M472,240 L488,240" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#pipeline-arrow)"/>
+  <path d="M628,240 L644,240" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#pipeline-arrow)"/>
+  <path d="M784,240 L800,240" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#pipeline-arrow)"/>
+  <path d="M558,280 L558,360" fill="none" stroke="#626a66" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#pipeline-arrow)"/>
+  <path d="M668,400 L706,400 Q714,400 714,392 L714,280" fill="none" stroke="#626a66" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#pipeline-arrow)"/>
+  <rect x="20" y="200" width="140" height="80" rx="6" fill="#f4f1e9"/>
+  <rect x="20" y="200" width="140" height="80" rx="6" fill="#626a66" stroke="#56605b" stroke-width="1" fill-opacity="0.1"/>
+  <rect x="28" y="206" width="40" height="12" rx="2" fill="none" stroke="#56605b" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="48" y="215" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PERSON</text>
+  <text x="90" y="232" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Fictional inquiry</text>
+  <text x="90" y="247" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">need · timing</text>
+  <text x="90" y="260" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">vehicle · consent</text>
+  <rect x="176" y="200" width="140" height="80" rx="6" fill="#f4f1e9"/>
+  <rect x="176" y="200" width="140" height="80" rx="6" fill="#075e57" stroke="#075e57" stroke-width="1" fill-opacity="0.08"/>
+  <rect x="184" y="206" width="32" height="12" rx="2" fill="none" stroke="#075e57" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="200" y="215" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">SAVED</text>
+  <text x="246" y="232" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Stored lead</text>
+  <text x="246" y="247" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">lead · run · event</text>
+  <text x="246" y="260" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">before any work</text>
+  <rect x="332" y="200" width="140" height="80" rx="6" fill="#f4f1e9"/>
+  <rect x="332" y="200" width="140" height="80" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
+  <rect x="340" y="206" width="32" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="356" y="215" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">SCORE</text>
+  <text x="402" y="232" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Readiness score</text>
+  <text x="402" y="247" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">100-point rubric</text>
+  <text x="402" y="260" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">marketing readiness</text>
+  <rect x="488" y="200" width="140" height="80" rx="6" fill="#f4f1e9"/>
+  <rect x="488" y="200" width="140" height="80" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
+  <rect x="496" y="206" width="44" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="518" y="215" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">LOOK UP</text>
+  <text x="558" y="232" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Public facts</text>
+  <text x="558" y="247" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">vehicle + ZIP</text>
+  <text x="558" y="260" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">live or saved</text>
+  <rect x="644" y="200" width="140" height="80" rx="6" fill="#f4f1e9"/>
+  <rect x="644" y="200" width="140" height="80" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
+  <rect x="652" y="206" width="32" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="668" y="215" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">CHECK</text>
+  <text x="714" y="232" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Draft email</text>
+  <text x="714" y="247" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">consent required</text>
+  <text x="714" y="260" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">eight checks</text>
+  <rect x="800" y="200" width="140" height="80" rx="6" fill="#f4f1e9"/>
+  <rect x="800" y="200" width="140" height="80" rx="6" fill="#626a66" stroke="#56605b" stroke-width="1" fill-opacity="0.1"/>
+  <rect x="808" y="206" width="40" height="12" rx="2" fill="none" stroke="#56605b" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="828" y="215" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PERSON</text>
+  <text x="870" y="232" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Human review</text>
+  <text x="870" y="247" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">approve · edit</text>
+  <text x="870" y="260" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">reject · no send</text>
+  <rect x="488" y="360" width="180" height="80" rx="6" fill="#f4f1e9"/>
+  <rect x="488" y="360" width="180" height="80" rx="6" fill="#1a211f" stroke="rgba(26,33,31,0.45)" stroke-width="1" stroke-dasharray="4,3" fill-opacity="0.02"/>
+  <rect x="496" y="366" width="48" height="12" rx="2" fill="none" stroke="rgba(26,33,31,0.45)" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="520" y="375" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">OPTIONAL</text>
+  <text x="578" y="392" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Cited research</text>
+  <text x="578" y="407" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">one short paragraph</text>
+  <text x="578" y="420" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">failure keeps template</text>
+  <text x="20" y="520" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">No consent means no draft. A passing draft still waits for a person.</text>
+  <text x="20" y="538" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">LeadFlow never sends email or makes an insurance decision.</text>
+</svg>

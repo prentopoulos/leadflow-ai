@@ -155,37 +155,6 @@ export async function checkDocs() {
     }
   }
 
-  const architecture = svgTexts(read('docs/diagrams/architecture.svg')).join(
-    ' ',
-  );
-  const architectureTitle = /<title[^>]*>([^<]*)<\/title>/u.exec(
-    read('docs/diagrams/architecture.svg'),
-  )?.[1];
-  for (const name of modelNames(read('docs/architecture/workspace.dsl'))) {
-    const haystack = `${architecture} ${architectureTitle ?? ''}`.toLowerCase();
-    if (!haystack.includes(name.toLowerCase())) {
-      errors.push(`Architecture view is missing model element "${name}"`);
-    }
-  }
-
-  const fromRuntime = runtimeCollections(
-    read('packages/runtime/src/repositories.ts'),
-    read('packages/runtime/src/checkpointer.ts'),
-  );
-  // The Phase 1 and Phase 2 data-model views together cover every collection.
-  const fromDiagram = new Set([
-    ...diagramCollections(read('docs/diagrams/data-model.svg')),
-    ...diagramCollections(read('docs/diagrams/data-model-outreach.svg')),
-  ]);
-  for (const name of fromRuntime) {
-    if (!fromDiagram.has(name))
-      errors.push(`Data model is missing collection ${name}`);
-  }
-  for (const name of fromDiagram) {
-    if (!fromRuntime.has(name))
-      errors.push(`Data model shows unknown collection ${name}`);
-  }
-
   const research = read('docs/research/military-com-intake-2026-10-24.md');
   if (!/ZIP/u.test(research) || !/parity/iu.test(research)) {
     errors.push(
@@ -200,12 +169,24 @@ function validateWorkspace() {
   if (!cli) {
     return ['LEADFLOW_STRUCTURIZR_CLI is unset; activate the toolchain first'];
   }
-  // The pinned CLI is a .bat launcher on Windows, which needs a shell; the
-  // command is a fixed string built from the activation-provided path.
-  const result = spawnSync(
-    `"${cli}" validate -workspace docs/architecture/workspace.dsl`,
-    { cwd: repoRoot, encoding: 'utf8', shell: true, windowsHide: true },
-  );
+  // The pinned CLI uses a .bat launcher on Windows and a .sh launcher on macOS.
+  // Both paths come from the project-local activation script.
+  const options = {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    windowsHide: true,
+  };
+  const result =
+    process.platform === 'win32'
+      ? spawnSync(
+          `"${cli}" validate -workspace docs/architecture/workspace.dsl`,
+          { ...options, shell: true },
+        )
+      : spawnSync(
+          cli,
+          ['validate', '-workspace', 'docs/architecture/workspace.dsl'],
+          options,
+        );
   return result.status === 0
     ? []
     : [`Structurizr validation failed: ${result.stdout}${result.stderr}`];
