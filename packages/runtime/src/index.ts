@@ -15,3 +15,5 @@ export * from './repositories.js';
 export * from './resume.js';
 export * from './run-detail.js';
 export * from './workflow.js';
+export * from './release.js';
+export * from './retention.js';

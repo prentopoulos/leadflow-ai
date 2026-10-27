@@ -22,6 +22,7 @@ import type {
   DocumentReference,
   Firestore,
 } from 'firebase-admin/firestore';
+import { stampRetention, withoutRetention } from './retention.js';
 
 export interface FirestoreCheckpointBackend {
   createIfAbsent(path: string, data: DocumentData): Promise<unknown | null>;
@@ -41,24 +42,24 @@ export class AdminFirestoreCheckpointBackend implements FirestoreCheckpointBacke
     return this.database.runTransaction(async (transaction) => {
       const reference = this.database.doc(path);
       const existing = await transaction.get(reference);
-      if (existing.exists) return existing.data() ?? null;
-      transaction.create(reference, data);
+      if (existing.exists) return withoutRetention(existing.data()) ?? null;
+      transaction.create(reference, stampRetention(this.database, data));
       return null;
     });
   }
 
   async set(path: string, data: DocumentData): Promise<void> {
-    await this.database.doc(path).set(data);
+    await this.database.doc(path).set(stampRetention(this.database, data));
   }
 
   async get(path: string): Promise<unknown | null> {
     const snapshot = await this.database.doc(path).get();
-    return snapshot.exists ? snapshot.data() : null;
+    return snapshot.exists ? withoutRetention(snapshot.data()) : null;
   }
 
   async list(collectionPath: string): Promise<unknown[]> {
     const snapshot = await this.database.collection(collectionPath).get();
-    return snapshot.docs.map((document) => document.data());
+    return snapshot.docs.map((document) => withoutRetention(document.data()));
   }
 
   async deleteCollections(collectionPaths: readonly string[]): Promise<void> {

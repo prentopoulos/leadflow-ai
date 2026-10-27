@@ -1,6 +1,10 @@
+import { useSession } from './session-context.js';
+
 export type AppView = 'intake' | 'runs' | 'metrics';
 
 export function SimulationStrip() {
+  const session = useSession();
+  const hosted = session.mode === 'cloud';
   return (
     <div className="simulation-strip" role="note">
       <span className="simulation-mark" aria-hidden="true" />
@@ -8,7 +12,9 @@ export function SimulationStrip() {
       <span aria-hidden="true">·</span>
       <span>Synthetic leads and outcomes</span>
       <span className="simulation-scope">
-        This machine · public lookups read-only
+        {hosted
+          ? 'Private hosted demo · signed in · recorded lookups only'
+          : 'This machine · public lookups read-only'}
       </span>
     </div>
   );

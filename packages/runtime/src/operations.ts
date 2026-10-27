@@ -19,6 +19,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import type { DraftHistory } from './drafts.js';
 import type { FirestoreRepositories } from './repositories.js';
 import type { RunEventReader } from './run-detail.js';
+import { withoutRetention } from './retention.js';
 
 export interface RunReader {
   list(limit: number): Promise<unknown[]>;
@@ -33,7 +34,7 @@ export class AdminRunReader implements RunReader {
       .orderBy('createdAt', 'desc')
       .limit(limit)
       .get();
-    return snapshot.docs.map((document) => document.data());
+    return snapshot.docs.map((document) => withoutRetention(document.data()));
   }
 }
 

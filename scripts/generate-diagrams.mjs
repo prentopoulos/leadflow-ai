@@ -140,7 +140,7 @@ function architecture() {
     kind: 'optional',
     tag: 'DEFERRED',
     name: 'Deferred services',
-    sub: ['model provider', 'Firebase Auth', 'cloud Firestore'],
+    sub: ['model provider', 'outreach sending', 'real personal data'],
   });
   d.node({
     x: 36,
@@ -149,7 +149,7 @@ function architecture() {
     kind: 'store',
     tag: 'CLI',
     name: 'Offline evaluator',
-    sub: 'phase-2.0 cases',
+    sub: 'phase-3.0 cases',
   });
   d.node({
     x: 244,
@@ -163,9 +163,9 @@ function architecture() {
 
   return page({
     diagram: d,
-    eyebrow: 'Architecture · Phase 2',
+    eyebrow: 'Architecture · local mode',
     title: 'LeadFlow AI local architecture',
-    desc: 'An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while the model provider, Firebase Auth and cloud Firestore stay deferred.',
+    desc: 'An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while the model provider, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.',
     intro:
       'Everything inside the boundary runs on one workstation against synthetic data. The only outbound calls are read-only GETs to the two authorized enrichment sources; nothing is ever sent.',
   });
@@ -947,6 +947,380 @@ function agentArchitecture() {
   });
 }
 
+/** Phase 3 deployment view: where the private hosted proof of concept runs. */
+function privateCloud() {
+  const d = new Diagram({ slug: 'private-cloud', width: 960, height: 600 });
+  d.zone({
+    x: 16,
+    y: 112,
+    w: 928,
+    h: 472,
+    label: 'GOOGLE CLOUD PROJECT · OWNER ONLY · NORTHAMERICA-NORTHEAST2',
+    dashed: true,
+    labelX: 236,
+  });
+  d.zone({
+    x: 284,
+    y: 148,
+    w: 256,
+    h: 140,
+    label: 'CLOUD RUN · MAX 1 · MIN 0',
+  });
+
+  d.path(
+    [
+      [126, 80],
+      [126, 184],
+    ],
+    { role: 'link' },
+  );
+  d.label('HTTPS SIGN-IN', 178, 132);
+  d.path(
+    [
+      [216, 224],
+      [304, 224],
+    ],
+    { role: 'accent' },
+  );
+  d.label('SIGNED JWT', 260, 210, { role: 'accent' });
+  d.path([
+    [520, 224],
+    [620, 224],
+  ]);
+  d.label('ADC RUNTIME SA', 570, 210);
+  d.path([
+    [216, 476],
+    [304, 476],
+  ]);
+  d.label('PUSH', 260, 462);
+  d.path([
+    [412, 436],
+    [412, 264],
+  ]);
+  d.label('DEPLOY DIGEST', 464, 356);
+  d.path(
+    [
+      [500, 264],
+      [500, 316],
+      [720, 316],
+      [720, 436],
+    ],
+    { dashed: true },
+  );
+  d.label('REQUEST LOGS', 616, 302);
+
+  d.node({
+    x: 36,
+    y: 24,
+    w: 180,
+    kind: 'input',
+    tag: 'PERSON',
+    name: 'Owner browser',
+    sub: 'Google account sign-in',
+  });
+  d.node({
+    x: 36,
+    y: 184,
+    w: 180,
+    h: 80,
+    kind: 'backend',
+    tag: 'MANAGED',
+    name: 'Identity-Aware Proxy',
+    sub: ['direct IAP on the service', 'sole invoker: IAP agent'],
+  });
+  d.node({
+    x: 304,
+    y: 184,
+    w: 216,
+    h: 80,
+    kind: 'focal',
+    tag: 'CONTAINER',
+    name: 'leadflow-ai-demo',
+    sub: ['web build + /v1 API · :8080', 'JWT + subject allowlist'],
+  });
+  d.node({
+    x: 620,
+    y: 184,
+    w: 204,
+    h: 80,
+    kind: 'store',
+    tag: 'MANAGED',
+    name: 'Firestore (default)',
+    sub: ['Standard · Native', 'deny-all rules · 7-day TTL'],
+  });
+  d.node({
+    x: 36,
+    y: 436,
+    w: 180,
+    h: 80,
+    kind: 'backend',
+    tag: 'BUILD',
+    name: 'Cloud Build',
+    sub: ['source-less · exact SHA', 'Cloud Logging only'],
+  });
+  d.node({
+    x: 304,
+    y: 436,
+    w: 216,
+    h: 80,
+    kind: 'store',
+    tag: 'MANAGED',
+    name: 'Artifact Registry',
+    sub: ['leadflow-ai-demo/app', 'pinned by sha256 digest'],
+  });
+  d.node({
+    x: 620,
+    y: 436,
+    w: 204,
+    h: 80,
+    kind: 'external',
+    tag: 'PLATFORM',
+    name: 'Logging · Monitoring',
+    sub: ['status · latency · revision', 'no contact values'],
+  });
+
+  d.callout(['no public invoker,', 'no key file'], 620, 140);
+  d.callout(['CA$10 cap · alert budget;', 'torn down by day 7'], 620, 548);
+
+  return page({
+    diagram: d,
+    eyebrow: 'Deployment · Phase 3',
+    title: 'LeadFlow AI private cloud',
+    desc: 'The owner signs in through direct Identity-Aware Proxy, which forwards a signed assertion to the single Cloud Run container; the container checks the assertion and subject allowlist, serves the web build and API, and reads and writes the Toronto Firestore Standard database through its runtime identity. Cloud Build builds one exact commit without source upload and pushes it to Artifact Registry, whose digest is deployed; request logs and metrics go to the platform.',
+    intro:
+      'One private service for one owner. The IAP service agent is the only invoker, the runtime uses Application Default Credentials, and enrichment is recorded-only.',
+  });
+}
+
+/** Phase 3 sequence: hosted work happens inside the held execution request. */
+function hostedExecution() {
+  const d = new Diagram({
+    slug: 'hosted-execution',
+    width: 960,
+    height: 700,
+    maxArrows: 12,
+  });
+  const lane = { web: 120, api: 360, store: 600, graph: 840 };
+  const top = 96;
+  const bottom = 672;
+  for (const x of Object.values(lane)) {
+    d.under(
+      `<line x1="${x}" y1="${top}" x2="${x}" y2="${bottom}" stroke="${rgba(tokens.ink, 0.2)}" stroke-width="1" stroke-dasharray="3,3"/>`,
+    );
+  }
+  const frame = { x: 76, y: 424, w: 328, h: 112 };
+  d.under(
+    [
+      `<rect x="${frame.x}" y="${frame.y}" width="${frame.w}" height="${frame.h}" rx="4" fill="${rgba(tokens.ink, 0.02)}" stroke="${rgba(tokens.ink, 0.22)}" stroke-width="1"/>`,
+      `<rect x="${frame.x}" y="${frame.y}" width="40" height="16" rx="2" fill="${tokens.paper}" stroke="${rgba(tokens.ink, 0.22)}" stroke-width="1"/>`,
+      `<text x="${frame.x + 20}" y="${frame.y + 12}" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" text-anchor="middle" letter-spacing="0.12em">PAR</text>`,
+      `<text x="${frame.x + 52}" y="${frame.y + 12}" fill="${tokens.muted}" font-size="8" font-family="${fonts.mono}" letter-spacing="0.04em">[while the request is held]</text>`,
+    ].join('\n  '),
+  );
+  const bar = (x, y1, y2) =>
+    d.under(
+      `<rect x="${x - 4}" y="${y1}" width="8" height="${y2 - y1}" fill="${rgba(tokens.ink, 0.06)}" stroke="${tokens.muted}" stroke-width="0.8"/>`,
+    );
+  bar(lane.api, 132, 220);
+  bar(lane.api, 252, 644);
+  bar(lane.graph, 332, 600);
+
+  const message = (from, to, y, text, options = {}) => {
+    const direction = Math.sign(lane[to] - lane[from]);
+    const start = lane[from] + direction * 4;
+    const end = lane[to] - direction * 4;
+    d.path(
+      [
+        [start, y],
+        [end, y],
+      ],
+      options,
+    );
+    const centre = options.labelX ?? (start + end) / 2;
+    d.label(text, centre, y - 14, {
+      role: options.role === 'accent' ? 'accent' : 'soft',
+    });
+  };
+  message('web', 'api', 136, 'POST INTAKE', { role: 'link' });
+  message('api', 'store', 176, 'COMMIT INTAKE', { role: 'accent' });
+  message('api', 'web', 216, '202 · NO WORK', { dashed: true });
+  message('web', 'api', 256, 'POST EXECUTE', { role: 'link' });
+  message('api', 'store', 296, 'CLAIM 75 S', {});
+  message('api', 'graph', 336, 'INVOKE ≤ 45 S', { labelX: 480 });
+  message('graph', 'store', 400, 'CHECKPOINT');
+  message('web', 'api', 464, 'POLL EVERY 3 S', { role: 'link' });
+  message('api', 'web', 512, 'STORED RUN', { dashed: true });
+  message('graph', 'store', 576, 'RUN RESULT');
+  message('graph', 'api', 600, 'STOPPED', { dashed: true, labelX: 720 });
+  message('api', 'web', 640, '200 · OR 504', { dashed: true });
+
+  d.callout(
+    ['a deadline leaves a leased run;', 'resume reclaims it'],
+    440,
+    680,
+  );
+
+  const actor = (key, tag, name, sub, kind = 'backend') =>
+    d.node({ x: lane[key] - 80, y: 40, w: 160, kind, tag, name, sub });
+  actor('web', 'WEB', 'Owner browser', 'behind IAP');
+  actor('api', 'API', 'Cloud Run API', 'IAP-verified /v1');
+  actor('store', 'STORE', 'Firestore', 'Toronto · TTL', 'store');
+  actor('graph', 'GRAPH', 'Qualification graph', 'recorded lookups');
+
+  return page({
+    diagram: d,
+    eyebrow: 'Sequence · Phase 3',
+    title: 'Request-bound hosted execution',
+    desc: 'The browser posts intake and the API commits it to Firestore and answers 202 without starting work; the browser then posts a separate authenticated execution request, which claims a 75-second lease and invokes the graph under a 45-second deadline while the browser polls stored run state every three seconds; the graph writes checkpoints and results, and the held request answers 200 when it finishes or 504 at the deadline, leaving a leased run that resume later reclaims.',
+    intro:
+      'Cloud Run bills and runs CPU only while a request is open, so hosted work happens inside the execution request; polling only ever reads stored state.',
+  });
+}
+
+/** Phase 3 data lifecycle: expiry, purge and the teardown schedule. */
+function hostedLifecycle() {
+  const d = new Diagram({ slug: 'hosted-lifecycle', width: 960, height: 620 });
+  d.zone({
+    x: 16,
+    y: 64,
+    w: 928,
+    h: 248,
+    label: 'SYNTHETIC HOSTED DATA · SEVEN-DAY RETENTION',
+  });
+  d.zone({
+    x: 16,
+    y: 336,
+    w: 928,
+    h: 268,
+    label: 'TEARDOWN · AFTER THE OWNER APPROVES EVIDENCE',
+  });
+
+  d.path(
+    [
+      [236, 128],
+      [340, 128],
+    ],
+    { role: 'accent' },
+  );
+  d.label('EXPIRESAT +7D', 288, 114, { role: 'accent' });
+  d.path([
+    [540, 128],
+    [644, 128],
+  ]);
+  d.label('≤ 24 H LATER', 592, 114);
+  d.path(
+    [
+      [136, 156],
+      [136, 248],
+      [340, 248],
+    ],
+    { dashed: true },
+  );
+  d.label('OWNER CONFIRMS', 248, 234);
+  d.path([
+    [236, 424],
+    [340, 424],
+  ]);
+  d.label('BY DAY 7', 288, 410);
+  d.path([
+    [540, 424],
+    [644, 424],
+  ]);
+  d.label('DAY 30', 592, 410);
+  d.path([
+    [440, 464],
+    [440, 516],
+  ]);
+  d.label('REMAINS', 488, 490);
+
+  d.node({
+    x: 36,
+    y: 100,
+    w: 200,
+    kind: 'focal',
+    tag: 'WRITE',
+    name: 'Hosted document',
+    sub: 'Timestamp expiresAt',
+  });
+  d.node({
+    x: 340,
+    y: 100,
+    w: 200,
+    kind: 'store',
+    tag: 'TTL',
+    name: 'Firestore TTL policy',
+    sub: 'one per collection group',
+  });
+  d.node({
+    x: 644,
+    y: 100,
+    w: 240,
+    kind: 'external',
+    tag: 'DELETED',
+    name: 'Expired document gone',
+    sub: 'eventual; billed as deletes',
+  });
+  d.node({
+    x: 340,
+    y: 220,
+    w: 200,
+    kind: 'optional',
+    tag: 'PURGE',
+    name: 'Guarded purge',
+    sub: 'exact project · database',
+  });
+  d.node({
+    x: 36,
+    y: 396,
+    w: 200,
+    kind: 'input',
+    tag: 'OWNER',
+    name: 'Evidence approved',
+    sub: 'walkthrough reviewed',
+  });
+  d.node({
+    x: 340,
+    y: 384,
+    w: 200,
+    h: 80,
+    kind: 'backend',
+    tag: 'DAY 7',
+    name: 'Service teardown',
+    sub: ['service · data · IAM', 'non-final images'],
+  });
+  d.node({
+    x: 644,
+    y: 384,
+    w: 240,
+    h: 80,
+    kind: 'backend',
+    tag: 'DAY 30',
+    name: 'Image teardown',
+    sub: ['final image + repository', 'unless the owner extends'],
+  });
+  d.node({
+    x: 340,
+    y: 516,
+    w: 200,
+    h: 68,
+    kind: 'store',
+    tag: 'KEPT',
+    name: 'Empty Toronto database',
+    sub: 'sanitized repo evidence',
+  });
+
+  d.callout(['rebuild, not rollback,', 'after day 30'], 644, 532);
+
+  return page({
+    diagram: d,
+    eyebrow: 'Data lifecycle · Phase 3',
+    title: 'Hosted retention and teardown',
+    desc: 'Every hosted document carries a Timestamp expiresAt seven days ahead; a Firestore TTL policy per collection group removes expired documents eventually, usually within a further 24 hours, and an owner-confirmed purge limited to the exact project and database can remove synthetic data at once. After the owner approves the evidence, the service, data, access and non-final images are removed by day 7, the final image and repository by day 30, and the empty Toronto database and sanitized repository evidence remain; after day 30 the release is rebuilt rather than rolled back.',
+    intro:
+      'Retention is a property of every write, not a cleanup job. Purge is deliberate, guarded and unrecoverable; teardown runs against reverified exact resource names.',
+  });
+}
+
 function principles() {
   const d = new Diagram({ slug: 'principles', width: 960, height: 168 });
   const columns = [
@@ -1032,6 +1406,9 @@ export const diagrams = {
   'review-flow': reviewFlow,
   'data-model-outreach': phaseTwoRecords,
   'agent-architecture': agentArchitecture,
+  'private-cloud': privateCloud,
+  'hosted-execution': hostedExecution,
+  'hosted-lifecycle': hostedLifecycle,
 };
 
 export const readmeAssets = { principles };

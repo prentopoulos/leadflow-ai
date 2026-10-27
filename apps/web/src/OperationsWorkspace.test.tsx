@@ -325,6 +325,77 @@ describe('operations workspace', () => {
   });
 });
 
+describe('Phase 3 accessibility refinements', () => {
+  it('exposes pressed filters, concise card names and the keyboard guide', async () => {
+    render(
+      <OperationsWorkspace
+        view="runs"
+        operationsClient={operationsClient()}
+        runClient={pendingRunClient}
+      />,
+    );
+    const filters = await screen.findByRole('group', { name: 'Run filters' });
+    expect(
+      within(filters).getByRole('button', { name: 'All runs' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      within(filters).getByRole('button', { name: /Approval queue/u }),
+    ).toHaveAttribute('aria-pressed', 'false');
+    expect(
+      await screen.findByRole('button', {
+        name: 'Lead 11111111, Complete, High priority, draft pending review',
+      }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Keyboard shortcuts')).toBeInTheDocument();
+  });
+
+  it('focuses the review confirmation and offers the next pending draft', async () => {
+    const open = vi.fn();
+    render(
+      <DraftSection
+        draft={draftView()}
+        skipReason={null}
+        client={operationsClient()}
+        onChanged={async () => undefined}
+        nextPending={{ label: 'Lead 99999999', open }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Reject/u }));
+    const confirmation = await screen.findByText(
+      'Rejected. The draft stays stored.',
+    );
+    await waitFor(() => expect(confirmation).toHaveFocus());
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Next pending: Lead 99999999' }),
+    );
+    expect(open).toHaveBeenCalled();
+  });
+
+  it('says when no other draft is waiting', async () => {
+    render(
+      <DraftSection
+        draft={draftView()}
+        skipReason={null}
+        client={operationsClient()}
+        onChanged={async () => undefined}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: /Approve for manual use/u }),
+    );
+    expect(
+      await screen.findByText('No other drafts are waiting.'),
+    ).toBeInTheDocument();
+  });
+
+  it('frames the chart with a caption that names its table', async () => {
+    render(<MetricsDashboard client={operationsClient()} />);
+    expect(
+      await screen.findByRole('figure', { name: /Stored runs by priority/u }),
+    ).toBeInTheDocument();
+  });
+});
+
 describe('metrics dashboard', () => {
   it('names denominators, shows insufficient data and keeps synthetic outcomes apart', async () => {
     render(<MetricsDashboard client={operationsClient()} />);

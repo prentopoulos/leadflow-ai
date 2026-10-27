@@ -3,7 +3,7 @@
 # LeadFlow AI
 
 **Turns a fictional auto-insurance inquiry into a stored, scored and enriched lead with an email
-draft a person can approve, running on your own machine.**
+draft a person can approve, on your own machine or as a private one-person cloud demo.**
 
 Fictional leads · Firestore Emulator · Public vehicle and ZIP data · No AI model or paid API
 
@@ -44,7 +44,7 @@ you enter. Stopping the emulator discards all state.
 
 ## How it works
 
-<img src="docs/diagrams/architecture.svg" alt="Local architecture: operator dossier, Fastify API, workflow runtime and domain contracts, Firestore Emulator and offline evaluator inside the workstation boundary; NHTSA vPIC and Zippopotam.us as external sources; model provider, Firebase Auth and cloud Firestore deferred" width="100%">
+<img src="docs/diagrams/architecture.svg" alt="Local architecture: operator dossier, Fastify API, workflow runtime and domain contracts, Firestore Emulator and offline evaluator inside the workstation boundary; NHTSA vPIC and Zippopotam.us as external sources; model provider, outreach sending and real personal data deferred" width="100%">
 
 1. An operator enters a fictional inquiry. The API saves the lead and its run in one Firestore
    transaction before any work starts
@@ -91,6 +91,27 @@ be resumed by the operator. A run stopped by a crash can be picked up again once
 and lookups that were in flight are repeated. Failures stay visible rather than turning into
 success.
 
+## Private hosted demo
+
+<img src="docs/diagrams/private-cloud.svg" alt="Private cloud deployment in Toronto: the owner's browser signs in through Identity-Aware Proxy, which forwards a signed assertion to one Cloud Run container serving the web app and API; the container uses Firestore through its own service identity; Cloud Build builds one exact commit and pushes it to Artifact Registry, whose digest is deployed; logs and metrics go to the platform" width="100%">
+
+The same code also runs as one private Google Cloud Run service in Toronto, for one owner to
+demonstrate with fictional leads. Google's Identity-Aware Proxy asks for a Google sign-in before
+any page loads, and the app checks Google's signed identity header and an allowlist of one account
+on every request. Only the server talks to Firestore; the browser cannot. Saved lookup responses
+are used instead of live ones, and every stored record expires after seven days.
+
+<img src="docs/diagrams/hosted-execution.svg" alt="Hosted sequence: intake is committed and answered with 202 without starting work; the browser then sends a separate execution request that claims a 75-second lease and runs the workflow for at most 45 seconds while the browser polls stored progress every three seconds; the request answers when the run finishes or stops at its limit, and a stopped run is resumed later" width="100%">
+
+Cloud Run gives a service processor time only while a request is open, so the hosted app does not
+work in the background. After the lead is saved, the browser sends a second request that holds
+the run open while it polls for progress. A run stopped at its time limit stays saved and can be
+resumed. Each release is built from one public commit, deployed by its image fingerprint and kept
+for at most seven days ([retention and teardown](docs/diagrams/hosted-lifecycle.svg),
+[runbook](docs/operations/runbook.md)). The hosted mode is built and checked locally; whether it
+has been deployed, and what that deployment showed, is recorded in the
+[evidence index](docs/evidence/phase-3/index.json).
+
 ## Dashboard
 
 The metrics view shows lead volume, priority mix, processing time, lookup success, failed runs and
@@ -101,25 +122,26 @@ outcomes appear only in their own labelled panel. Every chart also has a table o
 ## Evidence
 
 <!-- bottom-line:start -->
-- 51 fixed synthetic evaluation cases
+- 68 fixed synthetic evaluation cases
 - rubric-v1 weights: need timeline 40, request clarity 30, completeness 30
 <!-- bottom-line:end -->
 
 Results are tied to a system bundle that records the code, lockfile, cases and tool versions. Cases
-that need a hosted model, the live sources, cloud Firestore, real personal data or production are
-reported as `not_run`, never as passes. The live lookups were checked once with an authorized
+that need a hosted model, the live sources, the deployed service, real personal data or production
+are reported as `not_run`, never as passes. The live lookups were checked once with an authorized
 probe, and their saved responses are what the offline tests use. See [AI_OPS.md](AI_OPS.md).
 
 ## Limits
 
-- This is a local prototype. Nothing is deployed and there is no sign-in yet.
+- This is a prototype. The hosted mode is a private demonstration for one person, not a
+  production service: one instance, no availability promise and no public access.
 - Every lead, contact and outcome is fictional. Of the demo's fields, ZIP Code, vehicle year, make
   and model, name and email match questions on the public Military.com form
   ([source record](docs/research/military-com-intake-2026-10-26.md)). That form also asks about
   driving record, insurance history and personal details that LeadFlow leaves out, so form parity
   is not claimed.
-- AI models, authentication, cloud storage and any sending of messages stay behind the gates in
-  [PROJECT.md](PROJECT.md).
+- AI models, real personal data, live lookups from the cloud and any sending of messages stay
+  behind the gates in [PROJECT.md](PROJECT.md).
 
 ## Commands
 
@@ -143,6 +165,10 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 | [docs/development.md](docs/development.md) | Toolchain, local session and shell workarounds |
 | [docs/architecture/workspace.dsl](docs/architecture/workspace.dsl) | Structurizr model behind the diagrams |
 | [docs/dependencies/phase-2.md](docs/dependencies/phase-2.md) | Phase 2 dependencies, licences and limits |
+| [docs/dependencies/phase-3.md](docs/dependencies/phase-3.md) | Phase 3 container base and IAP verification library |
+| [docs/operations/runbook.md](docs/operations/runbook.md) | Hosted setup, release, smoke, rollback, purge and teardown |
+| [docs/evidence/phase-3/index.json](docs/evidence/phase-3/index.json) | Deployment evidence, with checks not yet run marked `not_run` |
+| [docs/walkthrough.md](docs/walkthrough.md) | Timed script for the two-minute captioned walkthrough |
 | [WORKFLOW.md](WORKFLOW.md) | Phase, review and verification workflow |
 
 ## Licence and credits
@@ -150,8 +176,9 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 Released under the [MIT License](LICENSE). Vehicle data comes from NHTSA's
 vPIC API, and ZIP data comes from Zippopotam.us, which uses GeoNames data. Diagrams are drawn with
 the MIT-licensed [diagram-design](.agents/skills/diagram-design/SKILL.md) skill. Dependencies and
-their licences are listed in [docs/dependencies/phase-1.md](docs/dependencies/phase-1.md) and
-[docs/dependencies/phase-2.md](docs/dependencies/phase-2.md).
+their licences are listed in [docs/dependencies/phase-1.md](docs/dependencies/phase-1.md),
+[docs/dependencies/phase-2.md](docs/dependencies/phase-2.md) and
+[docs/dependencies/phase-3.md](docs/dependencies/phase-3.md).
 
 LeadFlow AI is an independent portfolio prototype. It is not affiliated with or endorsed by
-Military.com, NHTSA or any insurer.
+Military.com, NHTSA, Google or any insurer.

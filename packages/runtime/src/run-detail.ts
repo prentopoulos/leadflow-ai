@@ -12,6 +12,7 @@ import {
   type FirestoreRepositories,
 } from './repositories.js';
 import { RunNotFoundError } from './lifecycle.js';
+import { withoutRetention } from './retention.js';
 
 export const RUN_DETAIL_EVENT_LIMIT = 200;
 
@@ -46,7 +47,7 @@ export class AdminRunEventReader implements RunEventReader {
       .orderBy('sequence', 'asc')
       .limit(limit)
       .get();
-    return snapshot.docs.map((document) => document.data());
+    return snapshot.docs.map((document) => withoutRetention(document.data()));
   }
 }
 

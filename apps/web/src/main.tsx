@@ -1,12 +1,19 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Root } from './Root.js';
+import { SessionGate } from './session.js';
+import { LOCAL_SESSION } from './session-context.js';
 import './styles.css';
 
 const root = document.querySelector<HTMLElement>('#root');
 if (!root) throw new Error('Application root not found.');
 
-let content = <Root />;
+// The API confirms local or hosted access before any workspace renders.
+let content = (
+  <SessionGate>
+    <Root />
+  </SessionGate>
+);
 if (import.meta.env.DEV) {
   const fixtureName = new URLSearchParams(window.location.search).get(
     'fixture',
@@ -23,7 +30,7 @@ if (import.meta.env.DEV) {
         fixtureName as (typeof developmentFixtureNames)[number],
       );
       content = (
-        <>
+        <SessionGate initial={LOCAL_SESSION}>
           <p className="development-fixture-notice" role="status">
             {fixture.label}
           </p>
@@ -32,7 +39,7 @@ if (import.meta.env.DEV) {
             runClient={fixture.runClient}
             idempotencyKeyFactory={() => `fixture-${fixtureName}`}
           />
-        </>
+        </SessionGate>
       );
     }
   }

@@ -8,6 +8,7 @@ export * from './phase2.js';
 export * from './metrics.js';
 export * from './outreach.js';
 export * from './verification.js';
+export * from './phase3.js';
 
 export const EvidenceClassSchema = z.enum([
   'synthetic',
@@ -21,16 +22,18 @@ export const HealthResponseSchema = z.object({
   status: z.literal('ok'),
   service: z.literal('leadflow-api'),
   scope: z.literal('process'),
-  evidence: z.literal('local-process'),
+  evidence: z.enum(['local-process', 'hosted-process']),
 });
 export type HealthResponse = z.infer<typeof HealthResponseSchema>;
 
-export function createHealthResponse(): HealthResponse {
+export function createHealthResponse(
+  mode: 'local' | 'cloud' = 'local',
+): HealthResponse {
   return {
     status: 'ok',
     service: 'leadflow-api',
     scope: 'process',
-    evidence: 'local-process',
+    evidence: mode === 'cloud' ? 'hosted-process' : 'local-process',
   };
 }
 

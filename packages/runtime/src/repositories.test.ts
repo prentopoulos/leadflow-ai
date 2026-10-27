@@ -135,7 +135,7 @@ const idempotency = {
 } as const;
 
 const bundle = {
-  schemaVersion: 'system-bundle-v2',
+  schemaVersion: 'system-bundle-v3',
   systemBundleId: ids.bundle,
   createdAt: timestamp,
   code: {
@@ -174,7 +174,11 @@ const bundle = {
     structurizrCli: '2025.11.09',
     platform: 'win32',
     architecture: 'x64',
+  },
+  deployment: {
+    mode: 'local',
     projectId: 'demo-leadflow-ai-local',
+    reason: 'local emulator; no hosted deployment',
   },
   provider: { value: null, reason: 'gate unresolved' },
   model: { value: null, reason: 'gate unresolved' },

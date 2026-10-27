@@ -1,4 +1,5 @@
-export { createSystemBundle } from './bundle.js';
+export { createSystemBundle, createSystemBundleBase } from './bundle.js';
+export type { SourceIdentity, SystemBundleOptions } from './bundle.js';
 export { evaluateAll, evaluateCase } from './evaluator.js';
 export {
   COMBINED_CASES,
@@ -15,3 +16,10 @@ export {
   SystemBundleSchema,
 } from './schemas.js';
 export type { EvalCase, EvalResult, SystemBundle } from './schemas.js';
+export {
+  DEPLOYED_CHECK_IDS,
+  DeploymentEvidenceIndexSchema,
+  deploymentReady,
+} from './evidence.js';
+export type { DeploymentEvidenceIndex } from './evidence.js';
+export { PHASE_THREE_CASES } from './phase3.js';

@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import {
+  CLOUD_CONFIGURATION_VERSION,
+  DeploymentIdentitySchema,
+  LOCAL_CONFIGURATION_VERSION,
+} from './phase3.js';
 
 export const CONTRACT_VERSIONS = {
   intake: 'intake-v2',
@@ -13,7 +18,7 @@ export const CONTRACT_VERSIONS = {
   graphState: 'phase-2-graph-state-v1',
   rubric: 'rubric-v1',
   simulator: 'simulator-v1',
-  systemBundle: 'system-bundle-v2',
+  systemBundle: 'system-bundle-v3',
   graph: 'phase-2-graph-v1',
   configuration: 'phase-2-local-v1',
   enrichmentEvidence: 'enrichment-evidence-v1',
@@ -210,12 +215,20 @@ export const SafeErrorSchema = z
       'run_ineligible',
       'reset_denied',
       'access_denied',
+      'authentication_required',
+      'execution_deadline',
       'draft_not_found',
       'draft_conflict',
       'window_exceeded',
       'unknown_failure',
     ]),
-    category: z.enum(['validation', 'storage', 'runtime', 'conflict']),
+    category: z.enum([
+      'validation',
+      'storage',
+      'runtime',
+      'conflict',
+      'access',
+    ]),
     retryable: z.boolean(),
     message: z.string().min(1).max(240),
   })
@@ -836,7 +849,10 @@ export const SystemBundleDocumentSchema = z
         decisionLanguage: z.literal(CONTRACT_VERSIONS.decisionLanguage),
         metricsDefinitions: z.literal(CONTRACT_VERSIONS.metricsDefinitions),
         evaluator: z.string().min(1),
-        configuration: z.literal(CONTRACT_VERSIONS.configuration),
+        configuration: z.enum([
+          LOCAL_CONFIGURATION_VERSION,
+          CLOUD_CONFIGURATION_VERSION,
+        ]),
       })
       .strict(),
     environment: z
@@ -849,9 +865,10 @@ export const SystemBundleDocumentSchema = z
         structurizrCli: z.string().min(1),
         platform: z.string().min(1),
         architecture: z.string().min(1),
-        projectId: z.literal(LEADFLOW_LOCAL_PROJECT_ID),
       })
       .strict(),
+    // system-bundle-v3: local emulator or the exact hosted deployment.
+    deployment: DeploymentIdentitySchema,
     provider: UnavailableBoundarySchema,
     model: UnavailableBoundarySchema,
     prompt: UnavailableBoundarySchema,
@@ -868,7 +885,31 @@ export const SystemBundleDocumentSchema = z
       })
       .strict(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    const expected =
+      value.deployment.mode === 'cloud'
+        ? CLOUD_CONFIGURATION_VERSION
+        : LOCAL_CONFIGURATION_VERSION;
+    if (value.versions.configuration !== expected) {
+      context.addIssue({
+        code: 'custom',
+        path: ['versions', 'configuration'],
+        message: 'configuration version must match the deployment mode',
+      });
+    }
+    // Hosted demonstrations are recorded-only and built from a clean commit.
+    if (
+      value.deployment.mode === 'cloud' &&
+      (value.enrichmentMode !== 'recorded' || value.code.dirty)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['deployment'],
+        message: 'a hosted bundle is clean and recorded-only',
+      });
+    }
+  });
 export type SystemBundleDocument = z.infer<typeof SystemBundleDocumentSchema>;
 
 export const IntakeAcceptedResponseSchema = z
@@ -896,6 +937,19 @@ export const ResumeResponseSchema = z
   })
   .strict();
 export type ResumeResponse = z.infer<typeof ResumeResponseSchema>;
+
+// Hosted request-bound execution. `deadline` means the workflow stopped
+// starting steps at its budget and the stored run explains where it stopped.
+export const ExecuteResponseSchema = z
+  .object({
+    schemaVersion: z.literal('execute-response-v1'),
+    runId: IdentifierSchema,
+    revision: z.number().int().nonnegative(),
+    status: RunStatusSchema,
+    outcome: z.enum(['finished', 'deadline']),
+  })
+  .strict();
+export type ExecuteResponse = z.infer<typeof ExecuteResponseSchema>;
 
 export const LocalResetRequestSchema = z
   .object({

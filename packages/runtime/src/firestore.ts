@@ -5,7 +5,17 @@ import {
   type DocumentData,
   type Firestore,
 } from 'firebase-admin/firestore';
-import { LEADFLOW_LOCAL_PROJECT_ID } from '@leadflow-ai/domain';
+import {
+  GoogleCloudProjectIdSchema,
+  HOSTED_TARGET,
+  LEADFLOW_LOCAL_PROJECT_ID,
+} from '@leadflow-ai/domain';
+import {
+  hostedRetentionPolicy,
+  registerRetentionPolicy,
+  stampRetention,
+  withoutRetention,
+} from './retention.js';
 
 export const LEADFLOW_FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080' as const;
 
@@ -62,6 +72,76 @@ export function createEmulatorFirestoreBoundary(
   };
 }
 
+export interface CloudFirestoreConfiguration {
+  projectId: string;
+  databaseId: typeof HOSTED_TARGET.firestore.database;
+}
+
+export interface CloudFirestoreBoundary {
+  app: App;
+  database: Firestore;
+  configuration: CloudFirestoreConfiguration;
+  close(): Promise<void>;
+}
+
+export type FirestoreBoundary =
+  EmulatorFirestoreBoundary | CloudFirestoreBoundary;
+
+// Hosted state uses Application Default Credentials (the Cloud Run runtime
+// identity) and the exact accepted database. An emulator host or a key file in
+// the environment means the process could reach the wrong store, so startup
+// refuses rather than guessing.
+export function validateCloudFirestoreConfiguration(
+  configuration: { projectId: string; databaseId: string },
+  environment: Readonly<Record<string, string | undefined>>,
+): CloudFirestoreConfiguration {
+  if (environment.FIRESTORE_EMULATOR_HOST !== undefined) {
+    throw new Error('Unsafe Firestore: hosted mode forbids an emulator host.');
+  }
+  if (environment.GOOGLE_APPLICATION_CREDENTIALS !== undefined) {
+    throw new Error('Unsafe Firestore: hosted mode uses ADC, not a key file.');
+  }
+  const projectId = GoogleCloudProjectIdSchema.safeParse(
+    configuration.projectId,
+  );
+  if (!projectId.success) {
+    throw new Error('Unsafe Firestore: hosted project ID is invalid.');
+  }
+  if (configuration.databaseId !== HOSTED_TARGET.firestore.database) {
+    throw new Error('Unsafe Firestore: hosted database is not accepted.');
+  }
+  return {
+    projectId: projectId.data,
+    databaseId: HOSTED_TARGET.firestore.database,
+  };
+}
+
+export function createCloudFirestoreBoundary(
+  configuration: { projectId: string; databaseId: string },
+  environment: NodeJS.ProcessEnv = process.env,
+  now: () => number = Date.now,
+): CloudFirestoreBoundary {
+  const validated = validateCloudFirestoreConfiguration(
+    configuration,
+    environment,
+  );
+  // No credential option: the Admin SDK resolves ADC from the metadata server.
+  const app = initializeApp(
+    { projectId: validated.projectId },
+    `leadflow-ai-cloud-${randomUUID()}`,
+  );
+  const database = initializeFirestore(app, {}, validated.databaseId);
+  registerRetentionPolicy(database, hostedRetentionPolicy(now));
+  return {
+    app,
+    database,
+    configuration: validated,
+    close: async () => {
+      await deleteApp(app);
+    },
+  };
+}
+
 export interface FirestoreDocumentStore {
   create(path: string, data: DocumentData): Promise<void>;
   get(path: string): Promise<unknown | null>;
@@ -83,12 +163,12 @@ export class AdminFirestoreDocumentStore implements FirestoreDocumentStore {
   constructor(private readonly database: Firestore) {}
 
   async create(path: string, data: DocumentData): Promise<void> {
-    await this.database.doc(path).create(data);
+    await this.database.doc(path).create(stampRetention(this.database, data));
   }
 
   async get(path: string): Promise<unknown | null> {
     const snapshot = await this.database.doc(path).get();
-    return snapshot.exists ? snapshot.data() : null;
+    return snapshot.exists ? withoutRetention(snapshot.data()) : null;
   }
 }
 
@@ -102,10 +182,13 @@ export class AdminFirestoreAtomicStore implements FirestoreAtomicStore {
       operation({
         get: async (path) => {
           const snapshot = await transaction.get(this.database.doc(path));
-          return snapshot.exists ? snapshot.data() : null;
+          return snapshot.exists ? withoutRetention(snapshot.data()) : null;
         },
         create: (path, data) => {
-          transaction.create(this.database.doc(path), data);
+          transaction.create(
+            this.database.doc(path),
+            stampRetention(this.database, data),
+          );
         },
         update: (path, data) => {
           transaction.update(this.database.doc(path), data);

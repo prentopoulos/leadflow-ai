@@ -27,8 +27,9 @@ The exact Military.com questions, including whether VIN and renewal timeline are
 TBD until verified. Fields not confirmed from the real funnel must be visibly labeled as demo
 fields, not represented as Military.com fields.
 
-Local implementation and synthetic fixtures come first. GCP deployment, Firebase Auth, live model
-calls, public GitHub publication, and any paid quota remain behind the gates below. Insurer
+Local implementation and synthetic fixtures come first. GCP deployment, live model calls, and any
+paid quota remain behind the gates below; repository publication was resolved at the close of
+Phase 2. Insurer
 integrations, real quotes, automatic email/SMS, a Bayesian engine, fully autonomous self-hosted
 agents, and additional services are out of scope unless the owner amends this project.
 
@@ -59,7 +60,7 @@ agent-runtime, state, monitoring, or provider changes.
 - Backend: Node.js and TypeScript, with the exact HTTP framework selected in Phase 0.
 - Orchestration: LangGraph.js with structured JSON state, bounded retries, and explicit failures.
 - AI: Claude or OpenAI through a backend-only adapter; provider, model, and budget are TBD.
-- Data and auth: Google Firestore and Firebase Auth.
+- Data and auth: Google Firestore and direct Cloud Run IAP for Phase 3 private access.
 - Hosting: Google Cloud Run, subject to account eligibility and the deployment gate.
 - Enrichment: NHTSA vehicle APIs, Zippopotam.us, and a bounded email syntax/domain check.
 - Frontend method: project-local frontend-product workflow coordinated with Impeccable,
@@ -199,6 +200,68 @@ verification rules derived from section 5 and mapped to OWASP LLM Top 10 2025 an
 OpenTelemetry HTTP attribute names and no SDK (default); diagram and README rendering per the
 owner's 2026-10-25 feedback.
 
+### Phase 3 decisions
+
+Accepted by Peter on 2026-10-26 for the Phase 3 proposal after two informed-answer rounds and a
+single consolidated confirmation:
+
+- The hosted target is a private, single-owner, pilot-grade proof of concept, not production or an
+  SLA/load claim. Direct Cloud Run IAP replaces the earlier Firebase Auth plan. The service has no
+  `allUsers` or `allAuthenticatedUsers` binding, and Fastify validates the signed IAP assertion plus
+  a private stable-subject allowlist before application or API access.
+- One Cloud Run service serves the built web app and API. Intake still commits before returning
+  `202`; cloud execution then runs in a separate authenticated, idempotent request held open while
+  the browser polls stored progress. Local mode may retain the background executor. Initial limits
+  are request-based billing, minimum zero, maximum one, one vCPU, 512 MiB, concurrency eight, a
+  60-second request timeout, and an approximately 45-second workflow deadline.
+- Firestore is Standard edition, Native mode, in Toronto (`northamerica-northeast2`), accessed only
+  by the backend through ADC with deny-all client rules. Hosted synthetic records receive seven-day
+  TTL metadata plus an explicit project/database-guarded recursive purge. No backup or PITR is
+  enabled for this seedable synthetic data.
+- Releases are owner-triggered from Cloud Shell through a checked-in, source-less Cloud Build
+  definition that clones and verifies one exact public commit, reports an immutable Artifact
+  Registry digest, and deploys that digest through checked-in configuration. GitHub Actions,
+  mutable-tag promotion, long-lived service-account keys, and implicit Cloud Storage are excluded.
+- The minimum planned services are Cloud Run, Artifact Registry, Firestore, IAP, Cloud Build, IAM,
+  and Service Usage; Logging and Monitoring are verified. Firebase Auth/Identity Platform, Cloud
+  Tasks, Firebase Hosting, a load balancer, Secret Manager without a real consumer, Cloud Storage,
+  and a custom domain are excluded.
+- The existing CA$10 Cloud Run control remains, and a project-wide CA$10 alert budget is planned
+  with actual-spend alerts at 50%, 80%, and 100% plus a 100% forecast alert. At 50% the owner
+  inspects attribution before another build/demo; at 80% new builds/demos stop; at 100% or on an
+  unexpected charge deployment work stops and teardown begins. These are delayed controls, not an
+  absolute whole-project cap.
+- Deployed demonstrations use recorded enrichment only. The qualification rubric, metric
+  definitions, evidence semantics, consent and human-review rules, no-send boundary, and intake-
+  parity boundary do not change. Hosted data, screenshots, and walkthrough content remain
+  fictional and visibly labelled.
+- Evidence binds the exact source/lock/gate/review/scan result, build ID, image digest, revision,
+  configuration and runtime identity. Authorized probes cover owner access and unauthenticated
+  denial, signed-claim failures, Firestore denial/success, persist-before-`202`, request execution
+  and polling, idempotency/recovery/conflict, labels/no-send/log privacy/cost, and verified rollback.
+  The offline gate remains credential-free; deployed probes are separately named and authorized.
+- Phase 3 includes the deferred accessibility refinements and minimal signing-in, signed-in,
+  denied, expired, and retry states without redesigning the product. It produces a roughly
+  two-minute captioned walkthrough plus `docs/walkthrough.md`; preview is private, while MP4
+  publication needs a separate owner decision.
+- Public-safe resource labels are fixed as service/repository `leadflow-ai-demo`, image `app`,
+  runtime service account `leadflow-ai-runtime`, and IAP display name `LeadFlow AI Demo`. Exact
+  project, account, principal, subject, audience, URL, IAM, and billing values remain private
+  deployment parameters.
+- After evidence and walkthrough approval, the service may remain for at most seven days before
+  synthetic data, service access, the service, and non-final images are removed. The final image
+  and empty repository may remain until day 30, then are deleted unless extended; the empty Toronto
+  database and sanitized repository evidence remain.
+- This confirmation authorizes the branch, OpenSpec artifacts, local planning checks, publication
+  scans, spec-only commit, push, and draft PR. It does not authorize API enablement, resource
+  creation, a build, deployment, merge, or MP4 publication; those actions remain gated.
+- Owner decisions after the hosted proof (2026-10-27): hosting is extended through Phase 4 so the
+  live service can be demonstrated, under the same Cloud Run cap, project alert budget and stop
+  rules; the seven-day teardown clock starts when Phase 4's demonstration evidence is approved. The
+  walkthrough recording moves to the end of Phase 4; Phase 3 delivers its timed script
+  (`docs/walkthrough.md`) only. The same night Peter closed Phase 3 before billing posted so Phase 4
+  could start; the hosted cost is recorded from the posted bill on 2026-10-27 in the Phase 4 session.
+
 ## 5. Non-negotiables
 
 These rules and the gates in section 6 are this project's constitution. They override AGENTS.md,
@@ -254,7 +317,7 @@ Milestones are ordered by dependency.
 | 0 | Toolchain, app skeleton, lockfile, quality gate with constitution copy check, smoke checks, and offline AI evaluation scaffold | Done |
 | 1 | Verified intake, immediate Firestore persistence, LangGraph orchestration, qualification agent, and C4 architecture diagrams as code | Done |
 | 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, responsive live dashboard, and run monitoring (Firebase Auth moved to Phase 3) | Done |
-| 3 | Owner-authorized Cloud Run deployment with Firebase Auth access control, evidence bundle, README, and demonstration walkthrough (the repository went public under MIT at the close of Phase 2) | Planned |
+| 3 | Owner-authorized private Cloud Run deployment with direct IAP access control, evidence bundle, README, and demonstration walkthrough (the repository went public under MIT at the close of Phase 2) | Done |
 
 ### Lean task budgets for remaining phases
 
@@ -278,12 +341,12 @@ resolve or waive any gate below.
 
 **Phase 3 blueprint — at most six tasks**
 
-1. Resolve the deployment gate without broadening product scope (publication was resolved in Phase 2).
-2. Implement the approved Cloud Run/GCP configuration with secrets, budget, rollback, and access controls.
-3. Keep the public repository and README current, and rerun the secret/private-data scans before each push of new material.
-4. Produce the evidence bundle and demonstration walkthrough from verified stored results.
-5. Run authorized deployment smoke, security, cost, observability, and rollback checks.
-6. Run one consolidated review, fix findings, update final handoff evidence, and prepare archive/merge.
+1. Package one strict local/cloud runtime and production container without weakening the offline path.
+2. Enforce private IAP identity, backend-only Firestore access, retention, and guarded purge.
+3. Add request-bound hosted execution, stored polling, session states, and deferred accessibility work.
+4. Define the immutable release, evaluation, evidence, runbook, architecture, README, and walkthrough artifacts.
+5. Verify one exact local candidate through the full gate, reviews, rendered checks, and publication scans.
+6. After enumerated approval, run the hosted proof, verified rollback and teardown, then prepare archive/merge.
 
 ### Before paid API or AI quota
 
@@ -294,6 +357,10 @@ resolve or waive any gate below.
 
 - [ ] Owner selects the GCP project, region, account/billing path, budget, secrets path, and access
   policy; security, privacy, rollback, and cost checks pass.
+
+  The owner selected the private Phase 3 parameters on 2026-10-26. The gate remains unchecked until
+  the exact candidate passes its required checks and the owner separately authorizes the enumerated
+  cloud mutations.
 
 ### Before using real personal information
 

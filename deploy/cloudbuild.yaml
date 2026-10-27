@@ -1,0 +1,50 @@
+# LeadFlow AI release build. Submitted source-less from Cloud Shell:
+#
+#   gcloud builds submit --no-source --region=northamerica-northeast2 \
+#     --config=deploy/cloudbuild.yaml \
+#     --substitutions=_COMMIT_SHA=<40-char sha>
+#
+# It clones the public repository, verifies the exact clean commit, builds the
+# digest-pinned Dockerfile, and pushes one immutable image. Logs go to Cloud
+# Logging only, so no Cloud Storage bucket is used; if a build ever reports a
+# bucket, stop (docs/operations/runbook.md, "Build").
+substitutions:
+  _COMMIT_SHA: ''
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  dynamicSubstitutions: true
+  substitutionOption: MUST_MATCH
+
+steps:
+  - id: clone-and-verify
+    name: gcr.io/cloud-builders/git@sha256:68bbb0c02d8bac5339f74a5587d685d1e631e8a0437ab5d02991fbbf9c738012
+    entrypoint: bash
+    args:
+      - -euo
+      - pipefail
+      - -c
+      - |
+        [[ "${_COMMIT_SHA}" =~ ^[0-9a-f]{40}$ ]] || { echo "A full commit SHA is required."; exit 1; }
+        git clone --no-checkout "https://github.com/prentopoulos/leadflow-ai.git" source
+        cd source
+        git checkout --detach "${_COMMIT_SHA}"
+        [ "$(git rev-parse HEAD)" = "${_COMMIT_SHA}" ] || { echo "Cloned revision differs."; exit 1; }
+        [ -z "$(git status --porcelain --untracked-files=all)" ] || { echo "Clone is not clean."; exit 1; }
+        git log -1 --format='Building %H (%cI)'
+
+  - id: build
+    name: gcr.io/cloud-builders/docker@sha256:0aca0f95e1ba8f9107263d3e9782d5ce99a5b60d35b3f8985e4534b65552636f
+    dir: source
+    args:
+      - build
+      - --build-arg
+      - SOURCE_COMMIT=${_COMMIT_SHA}
+      - --tag
+      - northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/leadflow-ai-demo/app:${_COMMIT_SHA}
+      - .
+
+# Pushing through `images` records the resolved digest in the build result;
+# deployment always uses that digest, never this commit tag.
+images:
+  - northamerica-northeast2-docker.pkg.dev/${PROJECT_ID}/leadflow-ai-demo/app:${_COMMIT_SHA}

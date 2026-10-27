@@ -284,6 +284,22 @@ export const LocalOperatorPrincipalSchema = z
   })
   .strict();
 
+// Hosted reviews bind to a private identifier derived from the verified IAP
+// subject; the owner's email, subject and audience never enter a record.
+export const HOSTED_OPERATOR_LABEL = 'Private owner (IAP verified)' as const;
+export const HostedOperatorPrincipalSchema = z
+  .object({
+    id: z.string().regex(/^owner-[a-f0-9]{24}$/u),
+    label: z.literal(HOSTED_OPERATOR_LABEL),
+    authenticated: z.literal(true),
+  })
+  .strict();
+export const OperatorPrincipalSchema = z.union([
+  LocalOperatorPrincipalSchema,
+  HostedOperatorPrincipalSchema,
+]);
+export type OperatorPrincipal = z.infer<typeof OperatorPrincipalSchema>;
+
 export const SlotProvenanceSchema = z.enum([
   'intake',
   'verified_evidence',
@@ -367,7 +383,7 @@ export const DraftReviewSchema = z
     leadId: IdentifierSchema,
     contentSha256: Sha256Schema,
     decision: z.enum(['approved', 'rejected']),
-    principal: LocalOperatorPrincipalSchema,
+    principal: OperatorPrincipalSchema,
     decidedAt: UtcTimestampSchema,
     meaning: z.literal('approved for manual use only; nothing is sent'),
   })

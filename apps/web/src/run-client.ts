@@ -1,11 +1,14 @@
 import {
   ErrorResponseSchema,
+  ExecuteResponseSchema,
   ResumeResponseSchema,
   RunDetailResponseSchema,
+  type ExecuteResponse,
   type ResumeResponse,
   type RunDetailResponse,
   type SafeError,
 } from '@leadflow-ai/domain';
+import { apiFetch } from './session-context.js';
 
 export type RunResult<T> =
   { status: 'ok'; value: T } | { status: 'error'; error: SafeError };
@@ -16,6 +19,11 @@ export interface RunClient {
     runId: string,
     expectedRevision: number,
   ): Promise<RunResult<ResumeResponse>>;
+  // Hosted only: holds the request while the stored run executes.
+  execute?(
+    runId: string,
+    expectedRevision: number,
+  ): Promise<RunResult<ExecuteResponse>>;
 }
 
 type Fetcher = typeof fetch;
@@ -56,7 +64,7 @@ async function parseResponse<T>(
     : unavailable('The local run request could not be completed.');
 }
 
-export function createRunClient(fetcher: Fetcher = fetch): RunClient {
+export function createRunClient(fetcher: Fetcher = apiFetch): RunClient {
   return {
     async get(runId) {
       try {
@@ -86,9 +94,10 @@ export function createRunClient(fetcher: Fetcher = fetch): RunClient {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ expectedRevision }),
-            // The route runs the resumed workflow before answering; polling
-            // still reflects committed state if this request gives up.
-            signal: AbortSignal.timeout(30_000),
+            // Hosted resume answers after its bounded continuation stops
+            // (under 60 s); polling still reflects committed state if this
+            // request gives up.
+            signal: AbortSignal.timeout(65_000),
           },
         );
         return await parseResponse(response, (payload) => {
@@ -99,6 +108,30 @@ export function createRunClient(fetcher: Fetcher = fetch): RunClient {
         });
       } catch {
         return unavailable('The resume request could not be completed.');
+      }
+    },
+    async execute(runId, expectedRevision) {
+      try {
+        const response = await fetcher(
+          `/v1/runs/${encodeURIComponent(runId)}/execute`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ expectedRevision }),
+            // The platform deadline is 60 s; stored state stays authoritative.
+            signal: AbortSignal.timeout(65_000),
+          },
+        );
+        return await parseResponse(response, (payload) => {
+          const parsed = ExecuteResponseSchema.safeParse(payload);
+          return parsed.success
+            ? { success: true, data: parsed.data }
+            : { success: false };
+        });
+      } catch {
+        return unavailable(
+          'The execution request ended early; stored progress is still shown.',
+        );
       }
     },
   };

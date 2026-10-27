@@ -2,6 +2,153 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## Phase 3 closing checkpoint (2026-10-27)
+
+Phase 3 is complete and archived as `openspec/changes/archive/2026-10-27-phase-3-deployment-access-evidence`
+(+26 requirements, 2 modified, none removed); PROJECT.md records Phase 3 `Done`. Peter chose to close
+it the night of the hosted proof so Phase 4 could start, before Google billing posted. The private
+service keeps running through Phase 4 under the same CA$10 Cloud Run cap and project alert budget.
+
+Carried into Phase 4 as its first task: on 2026-10-27, read the posted cost for project LeadFlow AI
+(Billing → Reports, and the two budgets) and record `deployed-cost-status` in
+`docs/evidence/phase-3/index.json` with the observed amount, or pending with a reason if still not
+posted. A one-time reminder routine fires at 09:00 Toronto that day. Also carried: the walkthrough
+recording (end of Phase 4) and the teardown, whose seven-day clock starts at the Phase 4
+demonstration approval.
+
+Phase 4 direction: see "Phase 4 direction" below. No phase is in progress until `/next-phase` proposes
+Phase 4 in a fresh session.
+
+## Phase 3 hosted proof checkpoint (2026-10-27)
+
+The private hosted proof is live. Peter approved the enumerated task 6.1 actions on 2026-10-26 and
+let Claude drive Cloud Shell and the console in his signed-in Chrome. Done: branch pushed (draft PR
+#7); billing/IAM/cap rechecked; six services enabled (Logging, Monitoring and Service Usage were
+already on, alongside Google's default new-project services, untouched); project alert budget
+`LeadFlow AI project CA$10 alert budget` (50/80/100% actual, 100% forecast); Firestore
+`(default)` Standard/Native in Toronto with deny-all rules, 15 ACTIVE TTL policies and 15 index
+exemptions; repository `leadflow-ai-demo`; identities `leadflow-ai-runtime` (datastore.user) and
+`leadflow-ai-build` (repository writer, log writer); two source-less builds; revision A
+`leadflow-ai-demo-95b6c04eda59` (build `7a4e502d-e957-498f-95fa-18331984640f`) serving 100% and
+revision B `leadflow-ai-demo-d6ded3f29172` (build `ca7688ad-e0eb-44ed-932c-ec86e0f53c71`) kept at
+0% after the rollback exercise. IAP uses a custom OAuth client (External, Testing, owner as the only
+test user); the auto-generated secret was not downloaded. No storage bucket exists.
+
+Evidence (`docs/evidence/phase-3/index.json`, bound to revision A): 14 deployed checks pass,
+including verified rollback. `allowlist-denial` (no second Google account) and
+`resume-retry-conflict` (no hosted interruption; emulator-proven) are `not_run` with reasons;
+cost is pending until billing posts; teardown is scheduled.
+
+Retained failures and deviations: the console budget form and typed console input misfired until
+driven through page controls; IAP needed a custom OAuth client the design had not planned (runbook
+updated); `gcloud iap` asked for the unapproved Cloud Resource Manager API and was declined (the
+Owner role already grants IAP access); commit `2f75efa` was pushed with one failing evaluation
+case, fixed in `d6ded3f`.
+
+Owner decisions (2026-10-27): hosting is extended through Phase 4 (same cap, budget and stop rules;
+the teardown clock starts at Phase 4's demonstration approval), and the walkthrough recording moves
+to the end of Phase 4.
+
+Next actions, in order: (1) on 2026-10-27 or later, recheck the posted cost and record
+`deployed-cost-status`; (2) mark 6.1 complete, archive the OpenSpec change, sync specs, set Phase 3
+Done, rerun the gate and push; (3) merge PR #7 only on the owner's go-ahead; (4) clear the context
+and run `/next-phase` for Phase 4.
+
+Phase 4 direction (owner, 2026-10-27), to be grilled and proposed in a fresh session: keep it simple.
+One small simulation script feeds fictional leads through the real API at a steady pace with
+recorded enrichment, each carrying a synthetic source, campaign and click ID; drafts still wait for
+human approval. The dashboard adds attribution by channel and campaign and a headline
+**cost-per-lead** metric (synthetic channel spend divided by stored leads, overall and per channel,
+plus cost per qualified lead), labelled simulated. Real Google Ads or Analytics data stays behind
+its gate. The owner prefers to record the walkthrough after Phase 4.
+
+## Phase 3 local candidate checkpoint (2026-10-26)
+
+Branch `phase-3-deployment-access-evidence`, OpenSpec change of the same name. Tasks 1.1-5.1 are
+complete; 6.1 (the hosted proof) is the only open task and waits for an enumerated owner approval.
+PROJECT.md shows Phase 3 `In progress`. Nothing has been pushed since the spec-only draft PR #7,
+and no cloud API, resource, build or deployment exists.
+
+Implemented and locally verified: strict local/cloud configuration; one digest-pinned container
+serving the web build and API; direct-IAP assertion verification with a private subject allowlist;
+ADC Firestore with seven-day Timestamp retention, deny-all rules and a guarded purge; request-bound
+hosted execution (45 s deadline, 75 s lease) and request-bound resume; session states and the seven
+accessibility refinements; Cloud Build and Cloud Run templates, TTL commands, owner-subject capture
+and Cloud Shell purge entry point; runbook; `system-bundle-v3`; the `phase-3.0` corpus (68
+cases); `deployment-evidence-v1` index with every deployed check `not_run`; three new
+diagrams; README, AI_OPS and walkthrough script. Codex's consolidated review and its fixes are in
+`docs/reviews/phase-3-local-candidate-review.md`, which also records every check, failure and
+identity for the selected candidate `b45328604ac78442a6cc9e8b76965418e7667cd7`.
+
+Retained failures: one intermittent App intake-focus test failure under parallel load (passed on
+three reruns, not reproduced since); the emulator probe's first run exposed a fail-open loopback
+guard for configurations without `mode` (fixed); inspector and `find -delete` defects recorded in
+the review file.
+
+Next action (6.1): the owner gives one enumerated approval (APIs, resources, identities, budget,
+commands, the push of this branch to the public repository, and the private parameters he will
+supply). Before acting, recheck billing, IAM and the spend cap; create `.local/private-values.txt`;
+rerun `pnpm container:inspect` and the pre-publication scans on the exact commit being pushed and
+built (documentation commits after `b453286` change the source digest, so the built commit is
+the one recorded); then follow `docs/operations/runbook.md` and fill the evidence index. The
+walkthrough video is recorded only after hosted evidence passes, and goes to the owner privately.
+
+## Phase 3 proposal checkpoint (2026-10-26)
+
+Peter accepted the consolidated Phase 3 decisions. Branch
+`phase-3-deployment-access-evidence` contains the OpenSpec change of the same name; it plans a
+private single-owner Cloud Run proof using direct IAP, backend-only Toronto Firestore,
+request-bound cloud execution, immutable Cloud Build output, recorded enrichment, bounded cost,
+verified rollback, evidence, walkthrough, and teardown. No API, cloud resource, build, deployment,
+merge, or MP4 publication is authorized by this checkpoint.
+
+The spec-only candidate is published as draft PR #7. The proposal review (2026-10-26) found five
+technical corrections, folded in by `docs: fold proposal review findings into phase three`:
+- the intake default must be a recorded vehicle and ZIP, because the 2021 Subaru Outback default has
+  no recording;
+- hosted demo data is entered through the authenticated UI with recorded subjects;
+- IAP verification uses an exact-pinned direct `google-auth-library`;
+- TTL expiry is a Firestore timestamp with one policy per collection group;
+- the first IAP enable happens once in the Cloud Run console (no-organization project).
+
+Peter accepted the reviewed proposal and authorized local implementation. He also approved
+downloading the official `node:24.22.1-slim` container base image, to be pinned by digest and
+recorded in `docs/dependencies/phase-3.md` before use.
+
+Next action: start a fresh session with `/next-phase` and implement task 1.1 on this branch. Before any
+cloud mutation, enumerate the exact APIs, resources, identities, budget controls, and commands for a
+new owner approval; recheck live account, billing, IAM, and service state at that time.
+
+## Phase 3 deployment gate resolution (2026-10-26)
+
+Peter resolved the deployment gate and authorized setup through his existing Google account. The
+following live Google Cloud state was created and verified in the console; no application service,
+API, secret, model provider, or deployment was enabled:
+
+- Google Cloud project: an owner-selected dedicated project, identified only in the owner's private
+  deployment record, attached to the owner's existing active billing account.
+- Deployment region decision: Toronto, `northamerica-northeast2`.
+- Access policy: private; the IAM page showed only the owner principal. No public or anonymous
+  principal was present. Direct IAP is the accepted application-access boundary, with no
+  `allUsers` or `allAuthenticatedUsers` binding.
+- Secret path decision: no Phase 3 runtime secret currently has a consumer. Use ADC and managed IAP
+  credentials; do not enable Secret Manager or add a secret unless a later design and approval name
+  an actual need.
+- Data boundary: fictional identities and test contact details only. Real personal data remains
+  gated.
+- External-action boundary: no paid model call and no automatic outreach sending.
+- Cost control: an enforced monthly spend cap named `LeadFlow AI CA$10 monthly cap` is configured
+  for this project's Cloud Run service, with 50%, 80%, and 100% notifications. The console showed
+  `Configured` and approximately `CA$0.00 / CA$10.00` after creation. Google warns that enforcement
+  is delayed, so a small overage can still be billed; treat CA$10 as a control target, not a
+  bank-style absolute ceiling. Stop before adding another billable service unless its separate cost
+  control is explicitly resolved.
+
+The pre-Phase-3 setup itself incurred no displayed charge. The next session must recheck current
+billing/IAM state before deployment and must keep Cloud Run authenticated; do not add `allUsers` or
+`allAuthenticatedUsers`. The first budget form load failed and was retried successfully; preserve
+that setup failure in the evidence record rather than claiming a single clean attempt.
+
 ## Phase 2 closing checkpoint (2026-10-26)
 
 Phase 2 is complete and merged into `main` with a merge commit. All nine tasks passed, and the
@@ -763,13 +910,15 @@ The dated Military.com research record is `docs/research/military-com-intake-202
 Official LangGraph, Firebase, Structurizr, Adoptium, npm, and release metadata supported the
 dependency record. Approved artifacts are installed only in local workspace/ignored caches.
 
-No GitHub remote, hosted CI, GCP resource, real personal data, provider credential, paid/model call,
-live enrichment call, external communication, or public publication was created. All PROJECT.md
-gates remain unresolved.
+The public GitHub remote and the empty Google Cloud project described above now exist. Hosted CI,
+deployed Cloud Run service, cloud application data, real personal data, provider credential,
+paid/model call, automatic outreach, and production traffic do not exist. Gates not explicitly
+resolved in the Phase 3 deployment-gate record above remain unresolved.
 
 ## Next action
 
-Start Phase 3 in a fresh session with `/next-phase` (see the Phase 2 closing checkpoint above). The
-public remote exists, so Phase 3 follows WORKFLOW.md's pull-request steps: push the phase branch and
-open a draft PR after the spec-only commit. Rerun the secret and private-data scans before pushing
-new material. Hosted CI is not configured yet.
+Review the Phase 3 OpenSpec proposal and draft PR. Once the owner approves the proposal,
+implementation can proceed locally on `phase-3-deployment-access-evidence` under the six outcomes in
+`openspec/changes/phase-3-deployment-access-evidence/tasks.md`. Cloud actions remain blocked until a
+later enumerated approval. Rerun the secret and private-data scans before every push of new material;
+hosted CI is not configured.

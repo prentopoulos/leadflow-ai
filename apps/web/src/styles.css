@@ -1868,3 +1868,172 @@ small {
     transform: none;
   }
 }
+
+/* Phase 3: session states and deferred accessibility refinements. */
+.session-gate {
+  display: grid;
+  min-height: 70vh;
+  place-items: center;
+}
+
+.session-panel {
+  max-width: 34rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-strong);
+  padding: 2rem;
+}
+
+.session-panel h1 {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.session-panel p {
+  color: var(--muted);
+}
+
+.session-icon {
+  color: var(--accent-dark);
+}
+
+.session-action {
+  min-height: 44px;
+  margin-top: 1rem;
+  border: 1px solid var(--accent-dark);
+  border-radius: var(--radius);
+  background: var(--accent-dark);
+  color: var(--paper-strong);
+  padding: 0 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.session-loading {
+  color: var(--muted);
+}
+
+/* One visible disclosure marker for every summary, rotated when open. */
+details > summary {
+  list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+details > summary::before {
+  display: inline-block;
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.55rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  content: '';
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+  vertical-align: 0.1em;
+}
+
+details[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.criteria-list summary::before {
+  margin-right: 0;
+}
+
+summary:focus-visible,
+.chart-frame:focus-within,
+[tabindex='0']:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.chart-frame:focus-within {
+  border-radius: var(--radius);
+}
+
+.chart-caption {
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.action-notice p:focus {
+  outline: none;
+}
+
+.action-notice p:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.next-pending {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.keyboard-guide {
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 0.8rem;
+}
+
+.keyboard-guide summary {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.keyboard-guide dl {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+}
+
+.keyboard-guide dl > div {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: 1rem;
+}
+
+.keyboard-guide dd {
+  margin: 0;
+}
+
+kbd {
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--paper-strong);
+  padding: 0 0.3rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .keyboard-guide dl > div {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  details > summary::before {
+    transition: none;
+  }
+}
+
+/* The marker is a third flex item in criteria rows; keep the label left and
+   the points right. */
+.criteria-list summary {
+  justify-content: flex-start;
+}
+
+.criteria-list summary > strong {
+  margin-left: auto;
+}

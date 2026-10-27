@@ -1,4 +1,4 @@
-workspace "LeadFlow AI" "Phase 2 local intake, enrichment, draft-review and metrics prototype. Unrendered source of truth for component names; rendered views live in docs/diagrams." {
+workspace "LeadFlow AI" "Phase 3 local prototype and private hosted proof of concept. Unrendered source of truth for component names; rendered views live in docs/diagrams." {
 
     !identifiers hierarchical
 
@@ -7,18 +7,18 @@ workspace "LeadFlow AI" "Phase 2 local intake, enrichment, draft-review and metr
 
         leadflow = softwareSystem "LeadFlow AI" "Local synthetic intake, durable workflow, consent-gated drafts, human review and metrics." {
             web = container "Operator dossier" "Intake, runs and approval queue, run dossier with evidence and draft review, and metrics." "React, Vite, Recharts" "Web"
-            api = container "API process" "Loopback Node process that persists intake before any workflow step." "Node 24" {
-                routes = component "Fastify API" "Host/Origin-checked intake, runs, metrics, draft review, resume and guarded reset routes." "Fastify"
-                runtime = component "Workflow runtime" "Seven-node LangGraph workflow in a background executor: qualify, enrich, compose, verify, simulate, finalize." "LangGraph.js"
+            api = container "API process" "Node process that persists intake before any workflow step; loopback locally, one Cloud Run container when hosted." "Node 24" {
+                routes = component "Fastify API" "Host/Origin-checked locally, IAP-assertion and allowlist-checked when hosted: intake, execution, runs, metrics, draft review and resume routes; serves the web build when hosted." "Fastify"
+                runtime = component "Workflow runtime" "Seven-node LangGraph workflow: qualify, enrich, compose, verify, simulate, finalize. Background executor locally; held inside the execution request (45 s deadline) when hosted." "LangGraph.js"
                 domain = component "Domain contracts" "Strict schemas, rubric-v1, the deterministic interpreter, the draft template, verification rules and metric definitions." "Zod"
             }
-            firestore = container "Firestore Emulator" "Sole durable store for leads, runs, events, checkpoints, evidence, drafts, reviews, verification and results." "Firestore Emulator 1.22.0, 127.0.0.1:8080" "Database"
+            firestore = container "Firestore" "Sole durable store for leads, runs, events, checkpoints, evidence, drafts, reviews, verification and results. Emulator locally; the Toronto Standard database with seven-day TTL when hosted." "Firestore Emulator 1.22.0 locally; Firestore Standard, Native, northamerica-northeast2 hosted" "Database"
             evaluator = container "Offline evaluator" "Runs the fixed synthetic case corpus against the system bundle." "Node CLI" "Tool"
         }
 
         vpic = softwareSystem "NHTSA vPIC" "Public vehicle API; GetModelsForMakeYear only." "External"
         zippopotam = softwareSystem "Zippopotam.us" "Public ZIP lookup (GeoNames data); /us/{zip} only." "External"
-        deferred = softwareSystem "Deferred services" "Model provider, Firebase Auth and cloud Firestore. Not enabled." "Deferred"
+        deferred = softwareSystem "Deferred services" "Model provider, outreach sending and real personal data. Not enabled." "Deferred"
 
         operator -> leadflow.web "Submits synthetic intake and reviews runs"
         leadflow.web -> leadflow.api.routes "Calls /v1 routes" "HTTP, loopback"
@@ -30,6 +30,43 @@ workspace "LeadFlow AI" "Phase 2 local intake, enrichment, draft-review and metr
         leadflow.api.runtime -> zippopotam "Reads places for a ZIP Code" "HTTPS GET, owner-authorized"
         leadflow.evaluator -> leadflow.api.domain "Checks fixed synthetic cases against"
         leadflow.api.runtime -> deferred "Not enabled; gated by PROJECT.md" "" "Deferred"
+
+        local = deploymentEnvironment "Local" {
+            workstation = deploymentNode "Owner workstation" "Loopback only; synthetic data." "Windows 11" {
+                vite = deploymentNode "Vite dev server" "127.0.0.1:5173" "Vite" {
+                    containerInstance leadflow.web
+                }
+                node = deploymentNode "Node process" "127.0.0.1:3001" "Node 24" {
+                    containerInstance leadflow.api
+                }
+                emulator = deploymentNode "Firestore Emulator" "127.0.0.1:8080" "Java 21" {
+                    containerInstance leadflow.firestore
+                }
+            }
+        }
+
+        cloud = deploymentEnvironment "Private cloud" {
+            project = deploymentNode "Google Cloud project" "Owner-only; no public principal; CA$10 Cloud Run cap and project alert budget." "Google Cloud" {
+                region = deploymentNode "northamerica-northeast2" "Toronto." "Region" {
+                    iap = infrastructureNode "Identity-Aware Proxy" "Direct IAP on the service; signs x-goog-iap-jwt-assertion; the IAP service agent is the only invoker." "Google IAP"
+                    service = deploymentNode "Cloud Run service leadflow-ai-demo" "1 vCPU, 512 MiB, min 0, max 1, concurrency 8, 60 s, request-based billing; runtime identity leadflow-ai-runtime." "Cloud Run" {
+                        containerInstance leadflow.web
+                        containerInstance leadflow.api
+                    }
+                    database = deploymentNode "Firestore (default)" "Standard, Native; deny-all client rules; seven-day TTL; no backup or PITR." "Firestore" {
+                        containerInstance leadflow.firestore
+                    }
+                    registry = infrastructureNode "Artifact Registry" "Repository leadflow-ai-demo; image app pinned by digest." "Artifact Registry"
+                    build = infrastructureNode "Cloud Build" "Source-less build of one verified public commit; Cloud Logging only." "Cloud Build"
+                    logs = infrastructureNode "Logging and Monitoring" "Platform request logs and metrics; no contact values or identities." "Google Cloud"
+
+                    iap -> service "Forwards owner requests with a signed assertion" "HTTPS"
+                    build -> registry "Pushes the image and records its digest"
+                    registry -> service "Supplies the deployed digest"
+                    service -> logs "Writes request status and latency"
+                }
+            }
+        }
     }
 
     views {
@@ -44,6 +81,16 @@ workspace "LeadFlow AI" "Phase 2 local intake, enrichment, draft-review and metr
         }
 
         component leadflow.api "api-components" "Inside the loopback API process." {
+            include *
+            autoLayout lr
+        }
+
+        deployment leadflow cloud "private-cloud" "The private hosted proof of concept in Toronto." {
+            include *
+            autoLayout lr
+        }
+
+        deployment leadflow local "local-deployment" "The credential-free local topology." {
             include *
             autoLayout lr
         }

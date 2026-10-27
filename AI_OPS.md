@@ -15,7 +15,8 @@ maps AI capabilities to current evidence. Read
 | Model training / feature pipelines | deferred | No training is planned; rubric scoring is deterministic | Scope adds training or feature serving |
 | Tool actions / external adapters | implemented-local | Read-only HTTPS GETs to exactly `vpic.nhtsa.dot.gov` (`GetModelsForMakeYear`) and `api.zippopotam.us` (`/us/{zip}`), owner-authorized 2026-10-25: host/path allowlist, 5 s timeout, one jittered retry on network/timeout/429/5xx, explicit `live`/`recorded`/`mock` evidence class, bounded raw body plus SHA-256. Email check is local only. No model, auth or outbound-message adapter | Any new host, endpoint, payload field, retry budget or evidence-class change |
 | Persistent state / replay | implemented-local | Versioned Firestore leads/runs/events/results, LangGraph checkpoints, bounded retry history, explicit compatible-state resume, ambiguous-write reconciliation, and process-restart reconstruction are exercised locally | State schema, checkpointer, retry, resume, or reconstruction change |
-| Multiple users / tenants | deferred | Firebase Auth moved to Phase 3. Phase 2 records the labelled unauthenticated `local-operator` principal and rejects foreign Host or state-changing Origin headers | Phase 3 deployment and access design |
+| Hosted operator identity | implemented-local | Direct Cloud Run IAP for one private owner: every hosted route except process health verifies the signed `x-goog-iap-jwt-assertion` (ES256 only, issuer, exact Toronto service audience, at most 900 s lifetime) with exact-pinned `google-auth-library` 11.3.1, then a private stable-subject allowlist; reviews bind to `owner-<digest>`. Proved with synthetic keys and in an offline container; deployed IAP behavior is `not_run` | IAP policy, audience, allowlist, key handling or operator-count change |
+| Multiple users / tenants | deferred | Phase 3 is explicitly single-owner; no tenant or role model is planned | Scope adds another operator or tenant |
 | Generated code execution | deferred | Not part of the MVP | A code-execution tool is proposed |
 | MCP / external tool servers | deferred | Not part of the runtime design | An MCP/runtime tool server is proposed |
 | Messages sent to people | deferred | Consent-gated email drafts with content-bound human review; "approved" means approved for manual use. A governance check fails on any delivery package, send route, mail transport or unauthorized outbound host | Any outbound channel is proposed |
@@ -26,13 +27,13 @@ maps AI capabilities to current evidence. Read
 | Record | Location / current status |
 |---|---|
 | Design choices: autonomy, pattern, framework, model tiers, hosting, fallback | Phase 0 foundation design records the local-only boundary; runtime/model choices remain Phase 1 work |
-| System bundle and last known-good version | `system-bundle-v1` is persisted with code/tool/schema identity; latest verified workflow checkpoint is recorded in `HANDOFF.md` |
-| Evaluation plan, held-out cases and evaluator | `packages/evals`; combined `phase-2.0` corpus retains all Phase 0 and 1 IDs, adds 13 fixed Phase 2 contracts, validates bundle freshness, and preserves explicit `not_run` outcomes |
+| System bundle and last known-good version | `system-bundle-v3` adds the deployment binding: local emulator, or hosted project digest, Cloud Run revision, image digest, IAP policy, Firestore location and retention policy; latest verified checkpoint is in `HANDOFF.md` |
+| Evaluation plan, held-out cases and evaluator | `packages/evals`; combined `phase-3.0` corpus retains all Phase 0–2 IDs, adds 17 fixed Phase 3 cases (8 runnable, 2 emulator-measured, 7 deployed `not_run`), validates bundle freshness, and preserves explicit `not_run` outcomes |
 | Offline deterministic check command | Activate with `. .\scripts\activate-toolchain.ps1`, then run `pnpm check` |
 | Authorized provider-evaluation command and budget | Not authorized; paid API gate unresolved |
 | Run records / metrics / alerts | Local run/event/result records plus `lifecycle-report-v1` privacy-aware summaries are implemented; dashboard queries, alert thresholds, retention, and production telemetry remain deferred |
-| Release evidence and stop/recovery runbook | Phase 3; not created yet |
-| Operational owner and maintenance/recheck cadence | Peter; cadence TBD before deployment |
+| Release evidence and stop/recovery runbook | [docs/operations/runbook.md](docs/operations/runbook.md) and [docs/evidence/phase-3/index.json](docs/evidence/phase-3/index.json) (`deployment-evidence-v1`; every deployed check `not_run` until the owner-authorized probe) |
+| Operational owner and maintenance/recheck cadence | Peter; accepted cadence is pre-deploy, pre-demo, post-demo, and monthly only while hosted |
 
 ## Current operational limits
 
@@ -40,6 +41,12 @@ maps AI capabilities to current evidence. Read
   verify, simulate, finalize) run by an in-process background executor; resume returns 202 after
   its durable commit. Tool authority is limited to the two read-only enrichment endpoints.
   Enrichment never changes `rubric-v1` points or priority. No autonomous sending.
+- Hosted runtime (implemented, not yet deployed): the intake commit still precedes `202` and starts
+  no work; `POST /v1/runs/{id}/execute` claims a 75-second lease and runs the graph under a
+  45-second deadline inside the held request while the browser polls stored state; hosted resume is
+  held the same way. A deadline leaves a leased, non-complete run that lease reclaim completes
+  (proved on the emulator). Local mode keeps its background executor. Hosted enrichment is
+  recorded-only by configuration.
 - Verification: eight deterministic rules (`verification-rules-v1`, `decision-language-v1`). An
   unavailable source leaves the run `complete` with `evidenceCompleteness: partial`; a failing
   draft is `verification_blocked` and held out of the approval queue; an evidence-digest or event-
@@ -64,10 +71,44 @@ maps AI capabilities to current evidence. Read
   exclusions. Empty denominators are `null` with `insufficient_data`. Duration and usage coverage
   retain unavailable counts rather than filling values. This is a synthetic local prototype summary,
   not a service-level objective, production reliability measure, or conversion metric.
-- Retention, deletion, telemetry sampling, model fallback, and production incident limits remain TBD
-  for the phases that introduce them.
+- Hosted synthetic retention: every hosted write carries a Firestore Timestamp `expiresAt` seven
+  days ahead (text or other values are refused; reads remove only a Timestamp), one TTL policy per
+  collection group (`RETAINED_COLLECTION_GROUPS`, kept equal to the repository paths by a test),
+  and a guarded recursive purge. Teardown at day seven and final-image cleanup at day 30 follow the
+  runbook. Hosted logs are platform request logs only; the application logs nothing. Telemetry
+  sampling, model fallback, and production incident limits remain deferred.
 
 ## Latest scoped evidence
+
+### Phase 3 local implementation (2026-10-26, branch `phase-3-deployment-access-evidence`)
+
+- Tasks 1.1–4.1 are implemented and checked locally: strict local/cloud configuration, the
+  digest-pinned container, IAP verification, ADC Firestore with timestamp retention and guarded
+  purge, request-bound execution, session states and accessibility refinements, release templates,
+  runbook, `system-bundle-v3`, the `phase-3.0` corpus and the evidence index.
+- Evidence classes: synthetic unit and contract tests; the isolated emulator probe (hosted
+  retention, deny-all client rules, purge guard, held execution, deadline and reclaim); an offline
+  container probe with synthetic configuration (process health 200, every other route 401
+  including a forged assertion and an unsigned email header). The dedicated project and its Cloud
+  Run spend cap exist, but no application API, service, database, repository, build, image or
+  deployment exists; every deployed check remains `not_run`.
+- Stored lead, run and event records keep the `synthetic-local` data-class literal in hosted mode;
+  the hosted environment of each run is identified by its system bundle's `deployment.mode`, and the
+  interface labels hosted runs as private hosted synthetic data.
+
+### Phase 3 planning (2026-10-26, branch `phase-3-deployment-access-evidence`)
+
+- Peter accepted a private, single-owner, pilot-grade Cloud Run proof with direct IAP, backend-only
+  Toronto Firestore, one scale-to-zero service, recorded-only deployed enrichment, request-bound
+  cloud execution, an immutable Cloud Build/Artifact Registry release, bounded cost controls,
+  verified rollback, evidence, walkthrough, and teardown.
+- At proposal time `system-bundle-v3` and `phase-3.0` were planned; both are now implemented and
+  measured by the local deterministic suite. Hosted IAP, cloud Firestore, build, revision, cost,
+  log, rollback and teardown cases remain `not_run` until their separately authorized deployed
+  probes execute.
+- Planning, validation, scans, the spec-only commit, push, and draft PR are authorized. No cloud API
+  enablement, resource creation, build, deployment, merge, model call, message send, or MP4
+  publication is authorized by this record.
 
 ### Phase 2 (2026-10-25/26, branch `phase-2-enrichment-outreach-dashboard`)
 

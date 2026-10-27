@@ -55,13 +55,13 @@
 </head>
 <body>
   <div class="frame">
-    <p class="eyebrow">Architecture · Phase 2</p>
+    <p class="eyebrow">Architecture · local mode</p>
     <h1>LeadFlow AI local architecture</h1>
     <p class="intro">Everything inside the boundary runs on one workstation against synthetic data. The only outbound calls are read-only GETs to the two authorized enrichment sources; nothing is ever sent.</p>
     <div class="diagram-container">
 <svg viewBox="0 0 960 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
   <title id="architecture-title">LeadFlow AI local architecture</title>
-  <desc id="architecture-desc">An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while the model provider, Firebase Auth and cloud Firestore stay deferred.</desc>
+  <desc id="architecture-desc">An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, while the model provider, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.</desc>
   <defs>
       <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#626a66"/></marker>
       <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#075e57"/></marker>
@@ -143,14 +143,14 @@
   <text x="792" y="475" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">DEFERRED</text>
   <text x="840" y="492" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Deferred services</text>
   <text x="840" y="507" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">model provider</text>
-  <text x="840" y="520" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">Firebase Auth</text>
-  <text x="840" y="533" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">cloud Firestore</text>
+  <text x="840" y="520" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">outreach sending</text>
+  <text x="840" y="533" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">real personal data</text>
   <rect x="36" y="456" width="140" height="56" rx="6" fill="#f4f1e9"/>
   <rect x="36" y="456" width="140" height="56" rx="6" fill="rgba(26,33,31,0.05)" stroke="#626a66" stroke-width="1"/>
   <rect x="44" y="462" width="24" height="12" rx="2" fill="none" stroke="#626a66" stroke-opacity="0.5" stroke-width="0.8"/>
   <text x="56" y="471" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">CLI</text>
   <text x="106" y="488" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Offline evaluator</text>
-  <text x="106" y="503" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">phase-2.0 cases</text>
+  <text x="106" y="503" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">phase-3.0 cases</text>
   <rect x="244" y="456" width="180" height="56" rx="6" fill="#f4f1e9"/>
   <rect x="244" y="456" width="180" height="56" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
   <rect x="252" y="462" width="32" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>

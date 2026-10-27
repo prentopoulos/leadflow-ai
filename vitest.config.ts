@@ -18,6 +18,7 @@ export default defineConfig({
       'apps/**/*.test.{ts,tsx}',
       'packages/**/*.test.ts',
       'scripts/**/*.test.mjs',
+      'deploy/**/*.test.mjs',
     ],
   },
 });
