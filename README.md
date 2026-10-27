@@ -54,34 +54,31 @@ at $0.30 per lead and $8 per session.
 
 ## How it works
 
-<img src="docs/diagrams/pipeline.svg" alt="LeadFlow pipeline: a fictional inquiry is stored before processing, scored for marketing readiness, enriched from public sources, optionally given one cited research paragraph, checked and held for human review; nothing is sent" width="100%">
+<img src="docs/diagrams/pipeline.svg" alt="LeadFlow pipeline: a fictional form submission is stored first, reduced to selected facts, scored and checked against public sources, used to prepare and verify a draft, then placed in the dashboard for human review and manual copy or export" width="100%">
 
-1. Save the fictional lead before processing.
-2. Score marketing readiness with a fixed 100-point rubric.
-3. Verify the vehicle and ZIP Code against public sources.
-4. Draft only when contact consent is recorded.
-5. Check every claim before placing the draft in the approval queue.
+The form is stored first. Only selected facts move into scoring, public lookups, research and
+drafting; every draft is checked and held in the dashboard for a person to approve, edit or reject.
 
 The score is for marketing follow-up, never eligibility, underwriting, risk or price. Missing
 evidence stays visibly unavailable.
 
 ## Technical system
 
-<img src="docs/diagrams/architecture.svg" alt="Technical boundary: the browser calls a loopback Fastify server, which stores the lead before the LangGraph workflow uses deterministic rules, read-only vehicle and ZIP sources, and an optional local-only Claude service" width="100%">
+<img src="docs/diagrams/architecture.svg" alt="Technical system: the React dashboard calls a loopback Fastify API, which stores the lead in Firestore before LangGraph runs fixed rules, read-only vehicle and ZIP lookups and, in local agent mode, a capped Anthropic agent runtime" width="100%">
 
-React calls a loopback Fastify API. The API stores the run in Firestore, executes the fixed
-LangGraph workflow and records every step. Recorded NHTSA and Zippopotam.us responses keep the demo
-and quality gate offline.
+React calls a loopback Fastify API. Firestore stores the lead before LangGraph runs fixed rules,
+read-only public lookups and, in local agent mode, the capped Anthropic agent runtime.
 
-## Optional research team
+## Agent pipeline
 
-<img src="docs/diagrams/agent-workflow.svg" alt="Optional agent pipeline: a research lead coordinates vehicle facts, environmental facts and coverage education; evidence is checked before a drafting agent writes one paragraph, draft review permits two rewrites, and a person makes the final decision" width="100%">
+<img src="docs/diagrams/agent-workflow.svg" alt="Agent pipeline: one research leader plans questions for three sub-agents covering vehicle facts, environmental facts and coverage education; verified findings return to the leader and then pass to separate drafting and critic agents before human review, with no more than two rewrites" width="100%">
 
-With `--agents`, one research lead coordinates vehicle facts, environmental facts and coverage
-education. Checked citations feed a drafting agent, then draft review and human review.
+With `--agents`, one research leader delegates to three sub-agents, merges their checked findings and
+hands one brief to a separate drafting agent. Fixed rules and a separate critic allow at most two
+rewrites before human review.
 
-The team receives no name, email, ZIP Code or free-text message. Failed evidence, model errors or a
-spend cap leave the plain template draft. The hosted demo never enables this team.
+The agents receive vehicle, area and coded needs only. Any failure keeps the template draft; the
+hosted demo stays template-only.
 
 ## Human review
 

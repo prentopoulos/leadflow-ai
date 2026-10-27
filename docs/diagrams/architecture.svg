@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc" id="architecture-root">
-  <title id="architecture-title">Where LeadFlow runs and what it can call</title>
-  <desc id="architecture-desc">The operator workspace calls a loopback Fastify server, which stores the lead before the LangGraph workflow uses deterministic rules, read-only public vehicle and ZIP services, and an optional local-only Claude service.</desc>
+<svg viewBox="0 0 1040 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc" id="architecture-root">
+  <title id="architecture-title">The system and its approved connections</title>
+  <desc id="architecture-desc">The React dashboard calls a loopback Fastify API, which stores the lead in Firestore before LangGraph runs fixed code, public read-only lookups and, only in local agent mode, a capped Anthropic agent runtime.</desc>
   <defs>
       <style>#architecture-root { --color-paper: #f4f1e9;
       --color-ink: #1a211f;
@@ -21,66 +21,74 @@
       <marker id="architecture-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3a5a85"/></marker>
   </defs>
   <rect width="100%" height="100%" fill="#f4f1e9"/>
-  <rect x="16" y="96" width="656" height="452" rx="8" fill="#1a211f" stroke="rgba(26,33,31,0.3)" stroke-width="0.8" stroke-dasharray="5,4" fill-opacity="0.02"/>
-  <rect x="212" y="100" width="164" height="12" rx="2" fill="#f4f1e9"/>
-  <text x="294" y="109" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">LOCAL WORKSTATION · FICTIONAL DATA</text>
-  <rect x="720" y="96" width="224" height="452" rx="8" fill="#1a211f" stroke="rgba(26,33,31,0.3)" stroke-width="0.8" stroke-dasharray="5,4" fill-opacity="0.02"/>
-  <rect x="760" y="100" width="92" height="12" rx="2" fill="#f4f1e9"/>
-  <text x="806" y="109" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">APPROVED SERVICES</text>
-  <path d="M200,200 L240,200" fill="none" stroke="#3a5a85" stroke-width="1.2" marker-end="url(#architecture-arrow-link)"/>
-  <path d="M400,200 L480,200" fill="none" stroke="#075e57" stroke-width="1.2" marker-end="url(#architecture-arrow-accent)"/>
-  <path d="M560,240 L560,340" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#architecture-arrow)"/>
-  <path d="M400,380 L480,380" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#architecture-arrow)"/>
-  <path d="M640,380 L744,380" fill="none" stroke="#3a5a85" stroke-width="1.2" marker-end="url(#architecture-arrow-link)"/>
-  <path d="M640,404 L684,404 Q692,404 692,412 L692,488 Q692,496 700,496 L744,496" fill="none" stroke="#3a5a85" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#architecture-arrow-link)"/>
-  <rect x="40" y="160" width="160" height="80" rx="6" fill="#f4f1e9"/>
-  <rect x="40" y="160" width="160" height="80" rx="6" fill="#626a66" stroke="#56605b" stroke-width="1" fill-opacity="0.1"/>
-  <rect x="48" y="166" width="44" height="12" rx="2" fill="none" stroke="#56605b" stroke-opacity="0.5" stroke-width="0.8"/>
-  <text x="70" y="175" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">BROWSER</text>
-  <text x="120" y="192" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Operator workspace</text>
-  <text x="120" y="207" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">intake · runs · metrics</text>
-  <text x="120" y="220" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">review queue</text>
-  <rect x="240" y="160" width="160" height="80" rx="6" fill="#f4f1e9"/>
-  <rect x="240" y="160" width="160" height="80" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
-  <rect x="248" y="166" width="24" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
-  <text x="260" y="175" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
-  <text x="320" y="192" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Fastify server</text>
-  <text x="320" y="207" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">Host + Origin checks</text>
-  <text x="320" y="220" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">strict schemas</text>
-  <rect x="480" y="160" width="160" height="80" rx="6" fill="#f4f1e9"/>
-  <rect x="480" y="160" width="160" height="80" rx="6" fill="#075e57" stroke="#075e57" stroke-width="1" fill-opacity="0.08"/>
-  <rect x="488" y="166" width="32" height="12" rx="2" fill="none" stroke="#075e57" stroke-opacity="0.5" stroke-width="0.8"/>
-  <text x="504" y="175" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STORE</text>
-  <text x="560" y="192" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Stored records</text>
-  <text x="560" y="207" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">lead · run · evidence</text>
-  <text x="560" y="220" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">checkpoint · review</text>
-  <rect x="240" y="340" width="160" height="80" rx="6" fill="#f4f1e9"/>
-  <rect x="240" y="340" width="160" height="80" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
-  <rect x="248" y="346" width="28" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
-  <text x="262" y="355" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">CODE</text>
-  <text x="320" y="372" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Domain rules</text>
-  <text x="320" y="387" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">rubric · consent</text>
-  <text x="320" y="400" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">claims · spend caps</text>
-  <rect x="480" y="340" width="160" height="80" rx="6" fill="#f4f1e9"/>
-  <rect x="480" y="340" width="160" height="80" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
-  <rect x="488" y="346" width="48" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
-  <text x="512" y="355" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">WORKFLOW</text>
-  <text x="560" y="372" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">LangGraph runtime</text>
-  <text x="560" y="387" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">qualify · enrich · draft</text>
-  <text x="560" y="400" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">verify · resume</text>
-  <rect x="744" y="332" width="176" height="96" rx="6" fill="#f4f1e9"/>
-  <rect x="744" y="332" width="176" height="96" rx="6" fill="#1a211f" stroke="rgba(26,33,31,0.3)" stroke-width="1" fill-opacity="0.03"/>
-  <rect x="752" y="338" width="60" height="12" rx="2" fill="none" stroke="rgba(26,33,31,0.3)" stroke-opacity="0.5" stroke-width="0.8"/>
-  <text x="782" y="347" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PUBLIC DATA</text>
-  <text x="832" y="364" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Vehicle + ZIP</text>
-  <text x="832" y="379" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">NHTSA vPIC</text>
-  <text x="832" y="392" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">Zippopotam.us</text>
-  <text x="832" y="405" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">read-only</text>
-  <rect x="744" y="456" width="176" height="80" rx="6" fill="#f4f1e9"/>
-  <rect x="744" y="456" width="176" height="80" rx="6" fill="#1a211f" stroke="rgba(26,33,31,0.45)" stroke-width="1" stroke-dasharray="4,3" fill-opacity="0.02"/>
-  <rect x="752" y="462" width="64" height="12" rx="2" fill="none" stroke="rgba(26,33,31,0.45)" stroke-opacity="0.5" stroke-width="0.8"/>
-  <text x="784" y="471" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PAID · LOCAL</text>
-  <text x="832" y="488" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Claude API</text>
-  <text x="832" y="503" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">research + drafting</text>
-  <text x="832" y="516" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">off by default</text>
+  <rect x="16" y="112" width="736" height="432" rx="8" fill="#1a211f" stroke="rgba(26,33,31,0.3)" stroke-width="0.8" stroke-dasharray="5,4" fill-opacity="0.02"/>
+  <rect x="256" y="116" width="132" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="322" y="125" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">LOCAL APP · FICTIONAL DATA</text>
+  <rect x="784" y="112" width="240" height="432" rx="8" fill="#1a211f" stroke="rgba(26,33,31,0.3)" stroke-width="0.8" stroke-dasharray="5,4" fill-opacity="0.02"/>
+  <rect x="824" y="116" width="92" height="12" rx="2" fill="#f4f1e9"/>
+  <text x="870" y="125" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">APPROVED SERVICES</text>
+  <path d="M176,280 L216,280" fill="none" stroke="#3a5a85" stroke-width="1.2" marker-end="url(#architecture-arrow-link)"/>
+  <path d="M360,280 L464,280 Q472,280 472,272 L472,232" fill="none" stroke="#075e57" stroke-width="1.2" marker-end="url(#architecture-arrow-accent)"/>
+  <path d="M472,232 L472,344" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#architecture-arrow)"/>
+  <path d="M544,388 L648,388 Q656,388 656,380 L656,232" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#architecture-arrow)"/>
+  <path d="M728,188 L808,188" fill="none" stroke="#3a5a85" stroke-width="1.2" marker-end="url(#architecture-arrow-link)"/>
+  <path d="M544,388 L584,388" fill="none" stroke="#626a66" stroke-width="1.2" marker-end="url(#architecture-arrow)"/>
+  <path d="M728,388 L808,388" fill="none" stroke="#3a5a85" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#architecture-arrow-link)"/>
+  <rect x="32" y="236" width="144" height="88" rx="6" fill="#f4f1e9"/>
+  <rect x="32" y="236" width="144" height="88" rx="6" fill="#626a66" stroke="#56605b" stroke-width="1" fill-opacity="0.1"/>
+  <rect x="40" y="242" width="52" height="12" rx="2" fill="none" stroke="#56605b" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="66" y="251" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">DASHBOARD</text>
+  <text x="104" y="268" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">React workspace</text>
+  <text x="104" y="283" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">intake · runs</text>
+  <text x="104" y="296" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">review queue</text>
+  <rect x="216" y="236" width="144" height="88" rx="6" fill="#f4f1e9"/>
+  <rect x="216" y="236" width="144" height="88" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
+  <rect x="224" y="242" width="24" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="236" y="251" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
+  <text x="288" y="268" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Fastify API</text>
+  <text x="288" y="283" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">loopback only</text>
+  <text x="288" y="296" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">strict schemas</text>
+  <rect x="400" y="144" width="144" height="88" rx="6" fill="#f4f1e9"/>
+  <rect x="400" y="144" width="144" height="88" rx="6" fill="#075e57" stroke="#075e57" stroke-width="1" fill-opacity="0.08"/>
+  <rect x="408" y="150" width="52" height="12" rx="2" fill="none" stroke="#075e57" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="434" y="159" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">FIRESTORE</text>
+  <text x="472" y="176" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Stored first</text>
+  <text x="472" y="191" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">lead · run · evidence</text>
+  <text x="472" y="204" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">steps · review</text>
+  <rect x="584" y="144" width="144" height="88" rx="6" fill="#f4f1e9"/>
+  <rect x="584" y="144" width="144" height="88" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
+  <rect x="592" y="150" width="28" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="606" y="159" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">CODE</text>
+  <text x="656" y="176" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Fixed rules</text>
+  <text x="656" y="191" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">rubric · consent</text>
+  <text x="656" y="204" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">claims · limits</text>
+  <rect x="400" y="344" width="144" height="88" rx="6" fill="#f4f1e9"/>
+  <rect x="400" y="344" width="144" height="88" rx="6" fill="#ffffff" stroke="#1a211f" stroke-width="1"/>
+  <rect x="408" y="350" width="48" height="12" rx="2" fill="none" stroke="#1a211f" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="432" y="359" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">WORKFLOW</text>
+  <text x="472" y="376" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">LangGraph</text>
+  <text x="472" y="391" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">qualify · enrich</text>
+  <text x="472" y="404" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">draft · verify</text>
+  <text x="472" y="417" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">resume runs</text>
+  <rect x="584" y="344" width="144" height="88" rx="6" fill="#f4f1e9"/>
+  <rect x="584" y="344" width="144" height="88" rx="6" fill="#3a5a85" stroke="#3a5a85" stroke-width="1" fill-opacity="0.07"/>
+  <rect x="592" y="350" width="64" height="12" rx="2" fill="none" stroke="#3a5a85" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="624" y="359" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">LOCAL AGENTS</text>
+  <text x="656" y="376" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Agent runtime</text>
+  <text x="656" y="391" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">research · draft</text>
+  <text x="656" y="404" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">critic · spend cap</text>
+  <rect x="808" y="144" width="192" height="88" rx="6" fill="#f4f1e9"/>
+  <rect x="808" y="144" width="192" height="88" rx="6" fill="#1a211f" stroke="rgba(26,33,31,0.3)" stroke-width="1" fill-opacity="0.03"/>
+  <rect x="816" y="150" width="60" height="12" rx="2" fill="none" stroke="rgba(26,33,31,0.3)" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="846" y="159" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PUBLIC DATA</text>
+  <text x="904" y="176" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Vehicle + ZIP</text>
+  <text x="904" y="191" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">NHTSA · Zippopotam.us</text>
+  <text x="904" y="204" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">read-only</text>
+  <rect x="808" y="344" width="192" height="88" rx="6" fill="#f4f1e9"/>
+  <rect x="808" y="344" width="192" height="88" rx="6" fill="#1a211f" stroke="rgba(26,33,31,0.45)" stroke-width="1" stroke-dasharray="4,3" fill-opacity="0.02"/>
+  <rect x="816" y="350" width="92" height="12" rx="2" fill="none" stroke="rgba(26,33,31,0.45)" stroke-opacity="0.5" stroke-width="0.8"/>
+  <text x="862" y="359" fill="#56605b" font-size="7" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">MODEL · LOCAL MODE</text>
+  <text x="904" y="376" fill="#1a211f" font-size="12" font-weight="600" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" text-anchor="middle">Anthropic API</text>
+  <text x="904" y="391" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">capped calls</text>
+  <text x="904" y="404" fill="#626a66" font-size="9" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="middle">disabled in hosted demo</text>
 </svg>
