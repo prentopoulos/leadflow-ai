@@ -5,7 +5,8 @@ Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state
 ## Phase 4 local candidate checkpoint (2026-10-27)
 
 Branch `phase-4-simulated-acquisition`, draft PR #9. Tasks 2.1-7.1 are complete; the exact local
-candidate is `8471757` (rebased onto `main` at `ec4fc66`). Open: 1.1 (posted cost, after about
+candidate is `2da8a5d` (rebased onto `main` at `ec4fc66`; it adds the Phase 4 evidence index to the
+reviewed `8471757`, and the full gate passed on it with 431 tests). Open: 1.1 (posted cost, after about
 22:45 Toronto on 2026-10-27), 8.1 (hosted demonstration and walkthrough, after an enumerated owner
 approval and only if the cost is below the 50% inspection point) and 9.1 (close).
 
