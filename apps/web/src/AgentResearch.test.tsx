@@ -14,15 +14,7 @@ const brief: AgentBriefRecord = {
   teamVersion: 'agent-team-v1',
   rulesVersion: 'agent-rules-v1',
   promptsSha256: 'a'.repeat(64),
-  projection: {
-    vehicle: null,
-    area: null,
-    needs: {
-      needTimeline: null,
-      coverageFocus: 'stronger_protection',
-      requestIntent: null,
-    },
-  },
+  projectionSha256: 'b'.repeat(64),
   status: 'drafted',
   fallbackReason: null,
   questions: { vehicle: [], area: [], coverage: ['What is comprehensive?'] },

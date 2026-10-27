@@ -421,7 +421,7 @@ Milestones are ordered by dependency.
 | 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, responsive live dashboard, and run monitoring (Firebase Auth moved to Phase 3) | Done |
 | 3 | Owner-authorized private Cloud Run deployment with direct IAP access control, evidence bundle, README, and demonstration walkthrough (the repository went public under MIT at the close of Phase 2) | Done |
 | 4 | Simulated acquisition: attributed synthetic traffic, cost per lead and per qualified lead (simulated), hosted demonstration and walkthrough | In progress |
-| 5 | Opt-in research and drafting agent team (Anthropic) with verified, cited claims, spend caps and human approval | In progress |
+| 5 | Opt-in research and drafting agent team (Anthropic) with verified, cited claims, spend caps and human approval | Done |
 
 ### Lean task budgets for remaining phases
 

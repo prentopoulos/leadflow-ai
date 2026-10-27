@@ -61,7 +61,7 @@
     <div class="diagram-container">
 <svg viewBox="0 0 960 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="data-model-outreach-title data-model-outreach-desc">
   <title id="data-model-outreach-title">Enrichment, draft and review records</title>
-  <desc id="data-model-outreach-desc">A run links up to two enrichment evidence records, one email check, one run-level verification result and one draft whose immutable revisions each carry a content digest, their own verification result and at most one append-only human review; a draft written with the agent team cites one stored agent brief holding its claims, sources and per-call costs.</desc>
+  <desc id="data-model-outreach-desc">A run links up to two enrichment evidence records, one email check, one run-level verification result and one draft whose immutable revisions each carry a content digest, their own verification result and at most one append-only human review; a local agent run links one stored brief holding its claims, sources and per-call costs even when the draft falls back to the template.</desc>
   <defs>
       <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#626a66"/></marker>
       <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#075e57"/></marker>
@@ -172,7 +172,7 @@
   <text x="372" y="584" fill="#1a211f" font-size="9" font-weight="400" font-family="'SFMono-Regular', Consolas, 'Liberation Mono', ui-monospace, monospace" text-anchor="start">calls · totalCostMicros</text>
   <text x="40" y="636" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">Revisions and reviews are append-only; earlier evidence and revisions stay stored, unlinked.</text>
   <text x="40" y="654" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">Fields are structure only; stored fixture values are fictional and never drawn here.</text>
-  <text x="40" y="672" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">An agent brief exists only for local --agents runs; its slot cites it by briefId.</text>
+  <text x="40" y="672" fill="#626a66" font-size="14" font-style="italic" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif">An agent brief exists only for local --agents runs; a draft revision links it by briefId, and a drafted paragraph also cites it from its slot.</text>
 </svg>
     </div>
   </div>

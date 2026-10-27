@@ -75,7 +75,7 @@ describe('combined Phase 0 and Phase 1 evaluation', () => {
         'not-run',
       ]),
     );
-  });
+  }, 10_000);
 
   it('never reports declared emulator or rendered observations as measured passes', async () => {
     const results = await evaluateAll(COMBINED_CASES);

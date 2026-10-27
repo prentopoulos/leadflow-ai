@@ -16,4 +16,4 @@
 
 ## 5. Verify and close
 
-- [ ] 5.1 Run the full gate, one owner-authorized live probe within the caps, a code review, then archive, sync specs, set Phase 5 Done and prepare the merge.
+- [x] 5.1 Run the full gate, one owner-authorized live probe within the caps, a code review, then archive, sync specs, set Phase 5 Done and prepare the merge.

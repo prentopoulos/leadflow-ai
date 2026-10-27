@@ -378,6 +378,79 @@ describe('agent team', () => {
     expect(outcome.calls[0]?.costMicros).toBeGreaterThan(0);
   });
 
+  it('persists a conservative reservation before an ambiguous provider call', async () => {
+    const progress: Awaited<ReturnType<typeof runAgentTeam>>[] = [];
+    const { port } = fakePort({
+      lead_plan: () => {
+        throw new ModelCallError('timeout');
+      },
+    });
+    const outcome = await runAgentTeam({
+      projection,
+      port,
+      budget: new SpendLedger().forLead(),
+      onProgress: async (snapshot) => {
+        progress.push(structuredClone(snapshot));
+      },
+    });
+    expect(progress[0]?.calls[0]).toMatchObject({
+      outcome: 'reserved',
+      errorCode: 'call_pending',
+      inputTokens: null,
+      outputTokens: null,
+      webSearchRequests: null,
+    });
+    expect(progress[0]?.calls[0]?.costMicros).toBe(
+      progress[0]?.calls[0]?.reservedMicros,
+    );
+    expect(outcome).toMatchObject({
+      status: 'fallback',
+      fallbackReason: 'model_error',
+    });
+    expect(outcome.calls[0]).toMatchObject({
+      outcome: 'error',
+      errorCode: 'timeout',
+      inputTokens: null,
+      outputTokens: null,
+      webSearchRequests: null,
+    });
+    expect(outcome.calls[0]?.costMicros).toBe(outcome.calls[0]?.reservedMicros);
+  });
+
+  it('falls back when any worker call fails', async () => {
+    const { port } = fakePort({
+      worker: (request) => {
+        if (request.topic === 'area') throw new ModelCallError('timeout');
+        return workerClaims[request.topic ?? 'coverage']!;
+      },
+    });
+    const outcome = await run(port);
+    expect(outcome).toMatchObject({
+      status: 'fallback',
+      fallbackReason: 'model_error',
+    });
+    expect(outcome.calls).not.toContainEqual(
+      expect.objectContaining({ role: 'lead_merge' }),
+    );
+  });
+
+  it('rejects a plan that omits questions for an available topic', async () => {
+    const { port } = fakePort({
+      lead_plan: () =>
+        json({
+          vehicle: [],
+          area: ['What winter conditions are common?'],
+          coverage: ['What does comprehensive coverage include?'],
+        }),
+    });
+    const outcome = await run(port);
+    expect(outcome).toMatchObject({
+      status: 'fallback',
+      fallbackReason: 'model_error',
+    });
+    expect(outcome.calls).toHaveLength(1);
+  });
+
   it('treats unparseable JSON as a model error', async () => {
     const { port } = fakePort({
       lead_merge: () => ({ text: 'not json', citedBlocks: [], usage }),

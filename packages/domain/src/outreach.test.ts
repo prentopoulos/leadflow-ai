@@ -134,6 +134,7 @@ function revisionFor(
     createdAt: timestamp,
     origin: 'template',
     composerVersion: 'deterministic-template-v1',
+    agentBriefId: null,
     channel: 'email',
     subject,
     body,
@@ -509,7 +510,7 @@ describe('agent paragraph slot (verification-rules-v2)', () => {
     teamVersion: 'agent-team-v1',
     rulesVersion: 'agent-rules-v1',
     promptsSha256: 'a'.repeat(64),
-    projection: agentProjectionFrom({ intake, evidence: foundEvidence }),
+    projectionSha256: 'b'.repeat(64),
     status: 'drafted',
     fallbackReason: null,
     questions: {
@@ -554,7 +555,8 @@ describe('agent paragraph slot (verification-rules-v2)', () => {
   }
 
   it('projects the situation without the person', () => {
-    expect(brief.projection).toEqual({
+    const projection = agentProjectionFrom({ intake, evidence: foundEvidence });
+    expect(projection).toEqual({
       vehicle: { modelYear: 2022, make: 'Toyota', model: 'Camry' },
       area: { placeName: 'Springfield', stateAbbreviation: 'VA' },
       needs: {
@@ -563,7 +565,7 @@ describe('agent paragraph slot (verification-rules-v2)', () => {
         requestIntent: 'compare_options',
       },
     });
-    const serialized = JSON.stringify(brief.projection);
+    const serialized = JSON.stringify(projection);
     for (const value of [
       'Avery',
       'Jordan',

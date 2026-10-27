@@ -2,41 +2,38 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
-## Phase 5 checkpoint (2026-10-27) — start here
+## Phase 5 complete (2026-10-27) — PR #11 awaits owner review
 
-Branch `phase-5-agent-drafts`, draft PR #11, OpenSpec change `phase-5-agent-drafts`. Direction and
-the paid-API gate decision are recorded in PROJECT.md § Phase 5 decisions (do not re-grill).
+Phase 5 is complete on branch `phase-5-agent-drafts`. The opt-in local Anthropic team researches
+bounded lead context, verifies cited claims in code, drafts one review-only paragraph and keeps the
+existing consent, verification and human-approval boundaries. Spend is durably reserved before
+each provider request; unknown usage remains null and conservatively keeps the full reservation;
+SDK retries are disabled; an interrupted in-progress brief falls back on replay instead of paying
+again. Fallback briefs remain visible from the draft dossier, and model inputs retain only a digest
+of the projection.
 
-Done (tasks 1.1–4.1): opt-in agent team inside `compose_draft` — Sonnet 5.5 lead plans, three
-Haiku 5.5 web-search workers (vehicle, area, coverage), code claim verifier, lead merge, Sonnet
-writer → code rule checker → Sonnet critic (≤2 rewrites); `SpendLedger` ($0.30/lead, $8/process,
-worst case reserved first); models see only `AgentLeadProjection`; `agent-brief-v1` records in
-`agentBriefs`; `agent_brief` draft slot checked by `verification-rules-v2`; `system-bundle-v5`
-(provider/model/prompt named only with agents; agent fields enter the bundle identity); switch
-`pnpm api:local -- --agents=claude` / `pnpm demo -- --agents`, hosted refuses it; dossier "Agent
-research" panel; 6 frozen `phase-5.0` eval cases; diagrams (`agent-team` new; architecture,
-agent-architecture, data-model-outreach updated), README, AI_OPS, `docs/dependencies/phase-5.md`
-(`@anthropic-ai/sdk` 0.79.0). No-send check now allows `api.anthropic.com` and RFC 2606 `.example`
-fixture hosts.
+The owner-authorized live probe remains the only paid run: one fictional consented lead completed
+in 31 seconds for **$0.1185**, kept 4 of 16 claims, passed every `verification-rules-v2` rule and did
+not expose the request-text injection to a model or draft. No second paid probe was run. The
+post-probe worker `max_tokens` repair is covered offline but is not claimed as live-proven.
 
-Checks: full `pnpm check` passed on the commit after `c6182d5` (461+ tests, 65 eval pass / 25
-not_run, docs, governance, OpenSpec strict). Not run this session: `pnpm emulator:runtime`,
-rendered 390 px review of the new panel, design-eval, code review.
+Two-axis code review found and fixed conservative-cost, crash/replay, fallback-visibility, worker
+failure, question-count, vehicle-projection, paragraph-bound and projection-persistence issues.
+Lead-quality review confirmed the deterministic qualification rubric is unchanged, claims remain
+citation-bounded, outreach remains a draft and fallback/error states are reported honestly. The
+loopback Firestore/runtime probe passed. The affected strict typecheck and 57 focused tests passed.
+The final archived-revision gate passed with 465 tests, 65 evaluation passes, 25 honest `not_run`
+boundaries, both loopback smokes, governance, docs and strict OpenSpec validation.
 
-Live probe (owner-authorized, 2026-10-27, recorded enrichment, one consented fictional 2022 Camry /
-22150 lead with an injection attempt in the request text): run complete in 31 s, draft
-`pending_review`, all `verification-rules-v2` rules passed, brief `drafted`, 4 of 16 claims kept,
-total **$0.1185** (11 calls max; reservations held: worker reserved $0.040, spent $0.034). The
-injection text did not reach any model or the draft. Finding fixed after the probe: two of three
-workers stopped at `max_tokens` (2,000) and their answers were discarded; workers now get 4,000
-tokens and keep finished cited blocks when cut off (offline test added). The fix is not yet proven
-live.
+Design-review agents hit the account usage ceiling before returning reports, and Chrome automation
+blocked a fresh localhost tab. Component tests cover the agent panel and 390 px behavior, but this
+handoff does **not** claim a completed rendered design evaluation. That review note is non-blocking
+for the local implementation and should be checked during owner PR review if visual signoff is
+required.
 
-Next (task 5.1): run `/code-review` on PR #11 plus the lead-quality review of the agent claims,
-`pnpm emulator:runtime`, a rendered desktop/390 px check of the dossier "Agent research" panel
-(design-eval), optionally one more live probe to confirm the worker fix (owner call: costs about
-$0.12), fix findings, then archive the change, sync specs, set Phase 5 Done, rerun the gate, push,
-mark PR #11 ready. Merge only on Peter's go-ahead.
+The OpenSpec delta is synced to the main `agent-drafting` and `verification-layer` specs and archived
+as `openspec/changes/archive/2026-10-27-phase-5-agent-drafts`. PROJECT.md records Phase 5 `Done`.
+PR #11 may be reviewed and merged only on Peter's go-ahead.
 
 Environment note: the repo folder is owned by the `CodexSandboxOffline` Windows account, so git
 needs `git -c safe.directory=C:/Users/Peter/Documents/leadflow_ai …` and `gh` needs

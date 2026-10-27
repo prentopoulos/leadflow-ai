@@ -68,14 +68,16 @@ an operator restart starts a new process total, matching AdScout's per-run cap).
 it reserves the worst case: input tokens estimated as characters ÷ 2 plus 30,000 tokens per allowed
 search, output at `max_tokens`, plus $0.01 per allowed search. If the reservation would exceed
 either cap the call is not made, the team stops with `budget_exceeded` and the template draft is
-used. After the call the reservation is replaced by the cost computed from reported usage
-(`input_tokens`, `output_tokens`, `server_tool_use.web_search_requests`). Costs are integer
-micro-dollars. Each call's role, model, usage, cost and outcome are stored on the brief.
+used. The reservation is persisted before the provider request. After an answered call it is
+replaced by the cost computed from reported usage (`input_tokens`, `output_tokens`,
+`server_tool_use.web_search_requests`). If the request outcome is ambiguous and usage is unavailable,
+the usage fields remain null and the full reservation stays charged. Costs are integer micro-dollars.
+Each call's role, model, usage, cost and outcome is stored on the brief.
 
 ### 6. Records and verification (`verification-rules-v2`)
 
 `agentBriefs/{briefId}` (`agent-brief-v1`, id derived from run and evidence ids so a replay
-collides) stores status (`drafted` | `fallback`), fallback reason, projection digest, questions,
+collides) stores status (`in_progress` | `drafted` | `fallback`), fallback reason, projection digest, questions,
 kept and rejected claim counts, kept claims, brief points, the paragraph and its claim IDs, critic
 notes, calls and total cost. The `agentParagraph` slot carries `provenance: "agent_brief"` and the
 brief id as its `evidenceId`. `draft.slots_grounded` recomposes the template with the stored
@@ -97,8 +99,10 @@ of the prompt set `agent-prompts-v1`. `versions` gains `agentTeam` (`agent-team-
 0.79.0 (2026-03-16, Apache-2.0) types `output_config`, both web-search tool versions and the
 web-search citation; the 1.x line was under a week old. `AnthropicModelPort` reads
 `ANTHROPIC_API_KEY` from the gitignored `.env` loaded by the launch script, never logs it, uses a
-60-second timeout, the SDK's two retries and `effort: low`. Refusals, unparseable JSON and API
+60-second timeout, no SDK retries and `effort: low`. Refusals, unparseable JSON and API
 errors become a typed `ModelCallError` whose safe code is stored; raw provider text is not stored.
+A process that stops after a reservation is persisted leaves an `in_progress` brief; replay
+converts it to a recorded `model_error` fallback instead of making another paid call.
 A `max_tokens` stop is an error for the JSON roles, but a worker keeps the cited blocks it finished
 (each still goes through the claim verifier) and its call records `max_tokens`. Workers get 4,000
 output tokens: the 2026-10-27 live probe cut two of three workers at 2,000 and lost their answers.

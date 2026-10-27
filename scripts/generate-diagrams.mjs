@@ -844,7 +844,7 @@ function phaseTwoRecords() {
     [
       'Revisions and reviews are append-only; earlier evidence and revisions stay stored, unlinked.',
       'Fields are structure only; stored fixture values are fictional and never drawn here.',
-      'An agent brief exists only for local --agents runs; its slot cites it by briefId.',
+      'An agent brief exists only for local --agents runs; a draft revision links it by briefId, and a drafted paragraph also cites it from its slot.',
     ],
     40,
     636,
@@ -854,7 +854,7 @@ function phaseTwoRecords() {
     diagram: d,
     eyebrow: 'Data model · Phase 5',
     title: 'Enrichment, draft and review records',
-    desc: 'A run links up to two enrichment evidence records, one email check, one run-level verification result and one draft whose immutable revisions each carry a content digest, their own verification result and at most one append-only human review; a draft written with the agent team cites one stored agent brief holding its claims, sources and per-call costs.',
+    desc: 'A run links up to two enrichment evidence records, one email check, one run-level verification result and one draft whose immutable revisions each carry a content digest, their own verification result and at most one append-only human review; a local agent run links one stored brief holding its claims, sources and per-call costs even when the draft falls back to the template.',
     intro:
       'Collection paths match the runtime repositories. The run links only the current evidence and draft; superseded records remain for audit.',
   });

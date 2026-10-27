@@ -17,7 +17,11 @@ export class AnthropicModelPort implements ModelPort {
     if (apiKey.trim().length === 0) {
       throw new Error('ANTHROPIC_API_KEY is not set.');
     }
-    this.client = new Anthropic({ apiKey, timeout: 60_000, maxRetries: 2 });
+    // The spend ledger reserves one provider request. Disable SDK retries so
+    // an ambiguous transport failure cannot create unmetered duplicate calls;
+    // the caller conservatively keeps the full reservation when usage is
+    // unavailable.
+    this.client = new Anthropic({ apiKey, timeout: 60_000, maxRetries: 0 });
   }
 
   async call(request: ModelRequest): Promise<ModelResponse> {

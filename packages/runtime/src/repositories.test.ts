@@ -238,6 +238,10 @@ class MemoryDocumentStore implements FirestoreDocumentStore {
     }
   }
 
+  async set(path: string, data: DocumentData): Promise<void> {
+    this.documents.set(path, structuredClone(data));
+  }
+
   async get(path: string): Promise<unknown | null> {
     return structuredClone(this.documents.get(path) ?? null);
   }

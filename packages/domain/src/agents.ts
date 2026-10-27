@@ -37,7 +37,7 @@ export const AGENT_LIMITS = {
   maxPoints: 5,
   maxRewrites: 2,
   searchesPerWorker: 3,
-  paragraphMaxChars: 560,
+  paragraphMaxChars: 600,
 } as const;
 
 // Per million tokens, in micro-dollars (claude-api skill, cached 2026-10-06).
@@ -114,21 +114,12 @@ export const AgentLeadProjectionSchema = z
   .strict();
 export type AgentLeadProjection = z.infer<typeof AgentLeadProjectionSchema>;
 
-// Vehicle and area come only from found evidence matching the lead; a ZIP
-// with several places contributes no area.
+// The vehicle is a bounded coded intake value. Area comes only from found
+// evidence matching the lead; a ZIP with several places contributes no area.
 export function agentProjectionFrom(input: {
   intake: IntakeSubmission;
   evidence: readonly EnrichmentEvidence[];
 }): AgentLeadProjection {
-  const vehicleEvidence = input.evidence.find(
-    (record) =>
-      record.source === 'nhtsa_vpic' &&
-      record.outcome === 'found' &&
-      record.subject.kind === 'vehicle' &&
-      record.subject.make === input.intake.vehicleMake &&
-      record.subject.modelYear === input.intake.vehicleYear &&
-      record.subject.model === input.intake.vehicleModel,
-  );
   const zipEvidence = input.evidence.find(
     (record) =>
       record.source === 'zippopotam_us' &&
@@ -136,7 +127,6 @@ export function agentProjectionFrom(input: {
       record.subject.kind === 'zip' &&
       record.subject.zipCode === input.intake.zipCode,
   );
-  const vehicleClaim = vehicleEvidence?.claim;
   const zipClaim = zipEvidence?.claim;
   const place =
     zipClaim?.kind === 'zip_places' && zipClaim.places.length === 1
@@ -144,15 +134,13 @@ export function agentProjectionFrom(input: {
       : undefined;
   return AgentLeadProjectionSchema.parse({
     vehicle:
-      vehicleClaim?.kind === 'vehicle_listing' &&
-      vehicleClaim.listed &&
-      vehicleClaim.modelName !== null &&
-      vehicleEvidence?.subject.kind === 'vehicle' &&
-      vehicleEvidence.subject.make !== null
+      input.intake.vehicleYear !== null &&
+      input.intake.vehicleMake !== null &&
+      input.intake.vehicleModel !== null
         ? {
-            modelYear: vehicleClaim.modelYear,
-            make: vehicleEvidence.subject.make,
-            model: vehicleClaim.modelName,
+            modelYear: input.intake.vehicleYear,
+            make: input.intake.vehicleMake,
+            model: input.intake.vehicleModel,
           }
         : null,
     area:
@@ -368,14 +356,14 @@ export const AgentCallSchema = z
     topic: AgentTopicSchema.nullable(),
     attempt: z.number().int().min(1).max(3),
     model: z.enum([AGENT_MODELS.lead, AGENT_MODELS.worker]),
-    outcome: z.enum(['ok', 'error', 'not_made']),
+    outcome: z.enum(['reserved', 'ok', 'error', 'not_made']),
     errorCode: z
       .string()
       .regex(/^[a-z_]{1,60}$/u)
       .nullable(),
-    inputTokens: z.number().int().nonnegative(),
-    outputTokens: z.number().int().nonnegative(),
-    webSearchRequests: z.number().int().nonnegative(),
+    inputTokens: z.number().int().nonnegative().nullable(),
+    outputTokens: z.number().int().nonnegative().nullable(),
+    webSearchRequests: z.number().int().nonnegative().nullable(),
     reservedMicros: z.number().int().nonnegative(),
     costMicros: z.number().int().nonnegative(),
     durationMs: z.number().int().nonnegative(),
@@ -405,8 +393,8 @@ export const AgentBriefRecordSchema = z
     teamVersion: z.literal(AGENT_VERSIONS.team),
     rulesVersion: z.literal(AGENT_VERSIONS.rules),
     promptsSha256: Sha256Schema,
-    projection: AgentLeadProjectionSchema,
-    status: z.enum(['drafted', 'fallback']),
+    projectionSha256: Sha256Schema,
+    status: z.enum(['in_progress', 'drafted', 'fallback']),
     fallbackReason: AgentFallbackReasonSchema.nullable(),
     questions: z
       .object({
@@ -433,6 +421,7 @@ export const AgentBriefRecordSchema = z
   .strict()
   .superRefine((value, context) => {
     const drafted = value.status === 'drafted';
+    const inProgress = value.status === 'in_progress';
     if (drafted !== (value.paragraph !== null)) {
       context.addIssue({
         code: 'custom',
@@ -440,11 +429,12 @@ export const AgentBriefRecordSchema = z
         message: 'only a drafted brief carries a paragraph',
       });
     }
-    if (drafted !== (value.fallbackReason === null)) {
+    if ((!drafted && !inProgress) !== (value.fallbackReason !== null)) {
       context.addIssue({
         code: 'custom',
         path: ['fallbackReason'],
-        message: 'a fallback names its reason; a drafted brief does not',
+        message:
+          'a fallback names its reason; drafted and in-progress briefs do not',
       });
     }
     const total = value.calls.reduce((sum, call) => sum + call.costMicros, 0);
@@ -466,12 +456,8 @@ export function storedBriefFailures(brief: AgentBriefRecord): string[] {
     .map((claim) => `claim_${claim.claimId}`);
   if (brief.paragraph !== null) {
     failures.push(
-      ...checkParagraph(
-        brief.paragraph,
-        brief.paragraphClaimIds,
-        brief.claims,
-        projectionNumbers(brief.projection),
-      ).failures,
+      ...checkParagraph(brief.paragraph, brief.paragraphClaimIds, brief.claims)
+        .failures,
     );
   }
   return failures;

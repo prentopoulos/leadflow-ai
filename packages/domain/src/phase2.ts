@@ -342,6 +342,9 @@ export const OutreachDraftRevisionSchema = z
     createdAt: UtcTimestampSchema,
     origin: z.enum(['template', 'operator_edit']),
     composerVersion: z.literal(CONTRACT_VERSIONS.composer).nullable(),
+    // Links the first template revision to the local agent run even when the
+    // team fell back and therefore emitted no agent paragraph slot.
+    agentBriefId: IdentifierSchema.nullable().default(null),
     channel: z.literal('email'),
     subject: z.string().trim().min(1).max(160),
     body: z.string().trim().min(1).max(4_000),

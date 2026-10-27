@@ -82,6 +82,10 @@ class WorkflowMemoryStore
     }
   }
 
+  async set(path: string, data: DocumentData): Promise<void> {
+    this.documents.set(path, structuredClone(data));
+  }
+
   async get(path: string): Promise<unknown | null> {
     return structuredClone(this.documents.get(path) ?? null);
   }
@@ -457,8 +461,8 @@ function scriptedModel(paragraph: string) {
       switch (request.role) {
         case 'lead_plan':
           return json({
-            vehicle: [],
-            area: [],
+            vehicle: ['What safety features are documented?'],
+            area: ['What driving conditions are common in this area?'],
             coverage: ['What does comprehensive coverage include?'],
           });
         case 'worker':
@@ -812,12 +816,19 @@ A member`);
       { port: model.port, ledger: new SpendLedger() },
     );
     const revision = result.revision as Parameters<typeof agentBriefIdOf>[0];
-    expect(agentBriefIdOf(revision)).toBeNull();
+    const briefId = agentBriefIdOf(revision);
+    expect(briefId).not.toBeNull();
     const briefs = [...result.store.documents.entries()].filter(([path]) =>
       path.startsWith('agentBriefs/'),
     );
     expect(briefs).toHaveLength(1);
     expect(briefs[0]?.[1]).toMatchObject({
+      status: 'fallback',
+      fallbackReason: 'rule_check_failed',
+    });
+    expect(
+      await result.repositories.agentBriefs.get(briefId ?? ''),
+    ).toMatchObject({
       status: 'fallback',
       fallbackReason: 'rule_check_failed',
     });

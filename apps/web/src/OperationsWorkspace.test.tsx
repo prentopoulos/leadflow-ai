@@ -241,6 +241,7 @@ function draftView(): DraftView {
     createdAt: timestamp,
     origin: 'template' as const,
     composerVersion: 'deterministic-template-v1' as const,
+    agentBriefId: null,
     channel: 'email' as const,
     subject: composed.subject,
     body: composed.body,

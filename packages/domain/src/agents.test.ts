@@ -157,11 +157,7 @@ describe('agent brief record', () => {
       teamVersion: 'agent-team-v1',
       rulesVersion: 'agent-rules-v1',
       promptsSha256: 'a'.repeat(64),
-      projection: {
-        vehicle: null,
-        area: null,
-        needs: { needTimeline: null, coverageFocus: null, requestIntent: null },
-      },
+      projectionSha256: 'b'.repeat(64),
       status: 'fallback',
       fallbackReason: 'no_research_subject',
       questions: { vehicle: [], area: [], coverage: [] },

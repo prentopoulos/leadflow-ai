@@ -6,7 +6,6 @@ import {
   callCostMicros,
   checkParagraph,
   keepClaims,
-  projectionNumbers,
   type AgentBriefRecord,
   type AgentCall,
   type AgentClaim,
@@ -172,7 +171,7 @@ export const AGENT_PROMPTS = {
     },
   },
   writer: {
-    system: `Write the middle paragraph of a follow-up email about an auto-insurance inquiry: two to four sentences, under 450 characters. The greeting, introduction and closing are written separately, so do not greet, sign off or address the reader by name, and do not claim to know anything personal about them. Use only facts from the brief and list the IDs of the claims you used. ${NO_DECISIONS} No links, email addresses or line breaks. Use no number unless it appears in a cited claim's quote or is the vehicle's model year.`,
+    system: `Write the middle paragraph of a follow-up email about an auto-insurance inquiry: two to four sentences, no more than 600 characters. The greeting, introduction and closing are written separately, so do not greet, sign off or address the reader by name, and do not claim to know anything personal about them. Use only facts from the brief and list the IDs of the claims you used. ${NO_DECISIONS} No links, email addresses or line breaks. Use no number unless it appears in a cited claim's quote.`,
     schema: {
       type: 'object',
       properties: { paragraph: { type: 'string' }, claimIds: stringList },
@@ -302,6 +301,7 @@ export async function runAgentTeam(input: {
   port: ModelPort;
   budget: LeadBudget;
   clock?: () => number;
+  onProgress?: (outcome: AgentTeamOutcome) => Promise<void>;
 }): Promise<AgentTeamOutcome> {
   const clock = input.clock ?? Date.now;
   const calls: AgentCall[] = [];
@@ -322,49 +322,58 @@ export async function runAgentTeam(input: {
     attempt = 1,
   ): Promise<ModelResponse> {
     const reservedMicros = worstCaseMicros(request);
-    const record = (
+    const callRecord = (
       outcome: AgentCall['outcome'],
       errorCode: string | null,
       usage: ModelUsage | null,
       costMicros: number,
       durationMs: number,
-    ) =>
-      calls.push({
-        role: request.role,
-        topic: request.topic,
-        attempt,
-        model: request.model,
-        outcome,
-        errorCode,
-        inputTokens: usage?.inputTokens ?? 0,
-        outputTokens: usage?.outputTokens ?? 0,
-        webSearchRequests: usage?.webSearchRequests ?? 0,
-        reservedMicros,
-        costMicros,
-        durationMs,
-      });
+    ): AgentCall => ({
+      role: request.role,
+      topic: request.topic,
+      attempt,
+      model: request.model,
+      outcome,
+      errorCode,
+      inputTokens: usage?.inputTokens ?? null,
+      outputTokens: usage?.outputTokens ?? null,
+      webSearchRequests: usage?.webSearchRequests ?? null,
+      reservedMicros,
+      costMicros,
+      durationMs,
+    });
     let settle: (actualMicros: number) => void;
     try {
       settle = input.budget.reserve(reservedMicros);
     } catch (error) {
       if (error instanceof BudgetExceededError) {
-        record('not_made', 'budget_exceeded', null, 0, 0);
+        calls.push(callRecord('not_made', 'budget_exceeded', null, 0, 0));
+        await persistProgress();
         throw new TeamStop('budget_exceeded');
       }
       throw error;
     }
+    // Persist the full conservative reservation before the provider request.
+    // If the process stops after this point, replay sees an in-progress brief,
+    // records a fallback and does not pay for the same lead again.
+    const callIndex =
+      calls.push(
+        callRecord('reserved', 'call_pending', null, reservedMicros, 0),
+      ) - 1;
+    await persistProgress();
     const started = clock();
     try {
       const response = await input.port.call(request);
       const cost = callCostMicros(request.model, response.usage);
       settle(cost);
-      record(
+      calls[callIndex] = callRecord(
         'ok',
         response.truncated === true ? 'max_tokens' : null,
         response.usage,
         cost,
         clock() - started,
       );
+      await persistProgress();
       return response;
     } catch (error) {
       const failure =
@@ -373,10 +382,17 @@ export async function runAgentTeam(input: {
           : new ModelCallError('call_failed');
       const cost =
         failure.usage === null
-          ? 0
+          ? reservedMicros
           : callCostMicros(request.model, failure.usage);
       settle(cost);
-      record('error', failure.code, failure.usage, cost, clock() - started);
+      calls[callIndex] = callRecord(
+        'error',
+        failure.code,
+        failure.usage,
+        cost,
+        clock() - started,
+      );
+      await persistProgress();
       throw failure;
     }
   }
@@ -402,7 +418,7 @@ export async function runAgentTeam(input: {
   }
 
   const outcome = (
-    status: 'drafted' | 'fallback',
+    status: 'in_progress' | 'drafted' | 'fallback',
     fallbackReason: AgentFallbackReason | null,
     paragraph: string | null = null,
     paragraphClaimIds: string[] = [],
@@ -421,6 +437,10 @@ export async function runAgentTeam(input: {
     calls,
     totalCostMicros: calls.reduce((sum, entry) => sum + entry.costMicros, 0),
   });
+
+  const persistProgress = async () => {
+    await input.onProgress?.(outcome('in_progress', null));
+  };
 
   const subjects = topicSubjects(input.projection);
   const topics = AGENT_TOPICS.filter((topic) => subjects[topic] !== undefined);
@@ -446,6 +466,9 @@ export async function runAgentTeam(input: {
         .map((question) => question.trim())
         .slice(0, AGENT_LIMITS.maxQuestionsPerTopic);
     }
+    if (topics.some((topic) => questions[topic].length === 0)) {
+      throw new ModelCallError('invalid_output');
+    }
 
     // 2. Workers search in parallel; claims come from the API's citations.
     const working = topics.filter((topic) => questions[topic].length > 0);
@@ -467,15 +490,17 @@ export async function runAgentTeam(input: {
         }),
       ),
     );
-    if (
-      settled.some(
-        (result) =>
-          result.status === 'rejected' &&
-          result.reason instanceof TeamStop &&
-          result.reason.reason === 'budget_exceeded',
-      )
-    ) {
-      throw new TeamStop('budget_exceeded');
+    const rejectedWorker = settled.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+    if (rejectedWorker !== undefined) {
+      if (
+        rejectedWorker.reason instanceof TeamStop &&
+        rejectedWorker.reason.reason === 'budget_exceeded'
+      ) {
+        throw new TeamStop('budget_exceeded');
+      }
+      throw new ModelCallError('worker_failed');
     }
     const candidates: CandidateClaim[] = [];
     settled.forEach((result, index) => {
@@ -533,7 +558,6 @@ export async function runAgentTeam(input: {
       .slice(0, AGENT_LIMITS.maxPoints);
 
     // 4. Writer -> rule checker -> critic, with at most two rewrites.
-    const allowedNumbers = projectionNumbers(input.projection);
     const brief = JSON.stringify({
       vehicle: subjects.vehicle ?? null,
       points,
@@ -566,7 +590,7 @@ export async function runAgentTeam(input: {
       );
       const paragraph: string = draft.paragraph.trim();
       const cited: string[] = [...new Set(draft.claimIds)];
-      const checked = checkParagraph(paragraph, cited, claims, allowedNumbers);
+      const checked = checkParagraph(paragraph, cited, claims);
       if (checked.failures.length > 0) {
         if (attempt > AGENT_LIMITS.maxRewrites) {
           throw new TeamStop('rule_check_failed');

@@ -22,8 +22,9 @@ Anthropic API with AdScout's spend limits. He asked for the phase in one run wit
 - **Privacy:** models see only the vehicle (year, make, model), the area (place and state from the
   verified ZIP lookup) and the coded coverage answers. They never see the name, email or the
   free-text request; code fills the greeting.
-- **Spend:** about $0.30 per lead and $8 per API process, reserved in code at worst case before each
-  call and settled from reported usage after. A budget refusal, model error or failed check falls
+- **Spend:** about $0.30 per lead and $8 per API process, reserved in code and persisted at worst
+  case before each call, then settled from reported usage. Unknown usage keeps the conservative
+  reservation and replay does not call again. A budget refusal, model error or failed check falls
   back to the template draft and is recorded.
 - The agent paragraph becomes a new draft slot (`agent_brief` provenance) inside the existing
   template, so all eight verification rules still run. `verification-rules-v2` checks the agent

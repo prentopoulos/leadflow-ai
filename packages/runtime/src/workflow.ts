@@ -297,26 +297,47 @@ export function compileQualificationWorkflow(
     if (agents === undefined) return null;
     const briefId = agentBriefIdFor(state.runId, state.enrichmentEvidenceIds);
     const stored = await dependencies.repositories.agentBriefs.get(briefId);
-    if (stored !== null) return stored;
+    if (stored !== null) {
+      if (stored.status !== 'in_progress') return stored;
+      // A prior process stopped after reserving/potentially making a paid
+      // call. Preserve that conservative cost record and fall back instead of
+      // spending again for the same lead.
+      return dependencies.repositories.agentBriefs.set({
+        ...stored,
+        status: 'fallback',
+        fallbackReason: 'model_error',
+      });
+    }
     const projection = agentProjectionFrom({ intake: lead.intake, evidence });
+    const createdAt = now();
+    const record = (outcome: Awaited<ReturnType<typeof runAgentTeam>>) =>
+      AgentBriefRecordSchema.parse({
+        schemaVersion: AGENT_VERSIONS.brief,
+        briefId,
+        runId: state.runId,
+        leadId: state.leadId,
+        createdAt,
+        teamVersion: AGENT_VERSIONS.team,
+        rulesVersion: AGENT_VERSIONS.rules,
+        promptsSha256: AGENT_PROMPTS_SHA256,
+        projectionSha256: sha256Hex(JSON.stringify(projection)),
+        ...outcome,
+      });
+    let progressWrites = Promise.resolve();
     const outcome = await runAgentTeam({
       projection,
       port: agents.port,
       budget: agents.ledger.forLead(),
+      onProgress: async (progress) => {
+        const snapshot = record(progress);
+        progressWrites = progressWrites.then(async () => {
+          await dependencies.repositories.agentBriefs.set(snapshot);
+        });
+        await progressWrites;
+      },
     });
-    const brief = AgentBriefRecordSchema.parse({
-      schemaVersion: AGENT_VERSIONS.brief,
-      briefId,
-      runId: state.runId,
-      leadId: state.leadId,
-      createdAt: now(),
-      teamVersion: AGENT_VERSIONS.team,
-      rulesVersion: AGENT_VERSIONS.rules,
-      promptsSha256: AGENT_PROMPTS_SHA256,
-      projection,
-      ...outcome,
-    });
-    return dependencies.repositories.agentBriefs.createIdempotent(brief);
+    const brief = record(outcome);
+    return dependencies.repositories.agentBriefs.set(brief);
   }
 
   async function scheduleInterpreterRetry(

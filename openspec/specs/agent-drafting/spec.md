@@ -1,4 +1,11 @@
-## ADDED Requirements
+# agent-drafting Specification
+
+## Purpose
+
+Define the opt-in, privacy-bounded and spend-capped agent team that researches verified claims and
+drafts a review-only outreach paragraph without changing qualification or sending communication.
+
+## Requirements
 
 ### Requirement: Opt-in agent team
 The agent team SHALL run only in a local process started with `--agents=claude`, only inside the
@@ -52,9 +59,11 @@ be recorded and the template draft used.
 - **THEN** the fallback reason is `critic_unresolved` and the draft has no agent paragraph
 
 ### Requirement: Spend reserved before every call
-The process SHALL reserve each call's worst-case cost against a $0.30 per-lead and an $8 per-process
-cap before calling, and SHALL settle it from reported usage after. A reservation that would exceed
-a cap SHALL stop the team with `budget_exceeded` without making the call.
+The process SHALL durably record each call's worst-case cost against a $0.30 per-lead and an $8
+per-process cap before calling, and SHALL settle it from reported usage after. Unknown usage SHALL
+remain null and keep the full reservation; replay SHALL fall back instead of making the call again.
+A reservation that would exceed a cap SHALL stop the team with `budget_exceeded` without making the
+call.
 
 #### Scenario: Lead cap reached
 - **WHEN** the next reservation would take the lead above $0.30

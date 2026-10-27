@@ -131,7 +131,7 @@ workspace "LeadFlow AI" "Phase 5 local prototype and private hosted proof of con
         dynamic leadflow.api "agent-drafting" "The opt-in agent team inside the compose step." {
             1: leadflow.api.runtime -> anthropic "Lead plans; three workers search; lead merges kept claims"
             2: leadflow.api.runtime -> leadflow.api.domain "Verifies claims and checks the paragraph"
-            3: leadflow.api.runtime -> leadflow.firestore "Stores the agent brief, the draft and its verification"
+            3: leadflow.api.runtime -> leadflow.firestore "Stores the agent brief before paid calls, then links the drafted or fallback revision and verification"
             autoLayout lr
         }
 

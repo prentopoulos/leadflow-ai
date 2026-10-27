@@ -101,6 +101,12 @@ export class ValidatedDocumentRepository<
     }
   }
 
+  async set(candidate: unknown): Promise<T> {
+    const prepared = this.prepareCreate(candidate);
+    await this.store.set(prepared.path, prepared.data);
+    return prepared.data;
+  }
+
   async get(...lookup: Lookup): Promise<T | null> {
     const stored = await this.store.get(this.readPath(...lookup));
     if (stored === null) return null;

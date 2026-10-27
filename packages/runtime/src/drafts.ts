@@ -92,6 +92,7 @@ export function templateRevision(input: {
     createdAt: input.createdAt,
     origin: 'template',
     composerVersion: CONTRACT_VERSIONS.composer,
+    agentBriefId: input.agentBrief?.briefId ?? null,
     channel: 'email',
     subject: composed.subject,
     body: composed.body,
@@ -109,12 +110,21 @@ export const agentBriefIdFor = (
   evidenceIds: readonly string[],
 ) => deterministicUuid('agent-brief', runId, ...[...evidenceIds].sort());
 
-// The brief an agent slot cites, if the revision has one.
+// The agent run behind the template revision. Drafted briefs also cite this
+// identity from their agent paragraph slot; fallback briefs need the explicit
+// revision link because they intentionally add no model-written slot.
 export function agentBriefIdOf(revision: OutreachDraftRevision): string | null {
-  return (
+  const slotBriefId =
     revision.slots.find((slot) => slot.provenance === 'agent_brief')
-      ?.evidenceId ?? null
-  );
+      ?.evidenceId ?? null;
+  if (
+    slotBriefId !== null &&
+    revision.agentBriefId !== null &&
+    slotBriefId !== revision.agentBriefId
+  ) {
+    throw new DraftIntegrityError('The agent brief links do not match.');
+  }
+  return revision.agentBriefId ?? slotBriefId;
 }
 
 export interface DraftReader {
