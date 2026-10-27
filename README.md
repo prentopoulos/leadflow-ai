@@ -2,8 +2,7 @@
 
 # LeadFlow AI
 
-**A consent-gated lead workflow built from stored evidence, fixed scoring and human-reviewed drafts.**<br>
-Fictional inquiry in. Reviewable outreach draft out.
+**Lead qualification and outreach drafting for fictional auto-insurance inquiries.**
 
 Fictional leads · Firestore Emulator · Public vehicle and ZIP data · Optional Claude agent team
 
