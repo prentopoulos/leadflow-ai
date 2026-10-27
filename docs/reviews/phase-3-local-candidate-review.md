@@ -98,3 +98,12 @@ commit was needed.
 Private-value scanning ran with no `.local/private-values.txt` present, so only the generic shapes
 were checked. The owner should create that file before task 6.1 so later scans also match the exact
 private deployment values.
+
+## Hosted proof notes
+
+Commit `2f75efa` (the first recorded hosted evidence) was pushed with one failing evaluation case:
+`p3-evidence-index` built its "unbound result" probe from the first recorded check, which had just
+become a real, candidate-bound pass, so the probe was no longer unbound. A chained command let the
+commit and push continue after the test failure. The probe now sets `candidateFingerprint: null`
+explicitly; the case's intent and expected outcome are unchanged, and the full gate passed again
+before the next push. The failed push is retained here rather than rewritten.

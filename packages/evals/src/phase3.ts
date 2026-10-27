@@ -548,12 +548,15 @@ export async function observePhaseThree(check: string): Promise<unknown> {
         ),
       );
       const [first] = index.checks;
+      // An explicitly unbound pass: it must be refused whether or not the
+      // recorded index already holds real, bound results.
       const passed = {
         ...first,
         outcome: 'pass',
         recordedAt: '2026-10-26T00:00:00.000Z',
         observed: 'synthetic observation',
         reason: null,
+        candidateFingerprint: null,
       };
       return {
         valid: true,
