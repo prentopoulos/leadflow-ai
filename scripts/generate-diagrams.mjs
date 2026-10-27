@@ -2027,44 +2027,84 @@ function simpleAgentWorkflow() {
   const d = new Diagram({
     slug: 'agent-workflow',
     width: 960,
-    height: 440,
-    maxNodes: 4,
-    maxArrows: 5,
+    height: 540,
+    maxNodes: 8,
+    maxArrows: 11,
   });
 
+  d.path([
+    [16, 300],
+    [36, 300],
+  ]);
+  d.path([
+    [160, 276],
+    [192, 276],
+    [192, 140],
+    [216, 140],
+  ]);
+  d.path([
+    [164, 300],
+    [216, 300],
+  ]);
+  d.path([
+    [160, 324],
+    [192, 324],
+    [192, 460],
+    [216, 460],
+  ]);
+  d.path([
+    [344, 140],
+    [376, 140],
+    [376, 276],
+    [408, 276],
+  ]);
+  d.path([
+    [344, 300],
+    [404, 300],
+  ]);
+  d.path([
+    [344, 460],
+    [376, 460],
+    [376, 324],
+    [408, 324],
+  ]);
   d.path(
     [
-      [480, 200],
-      [480, 244],
+      [540, 300],
+      [564, 300],
+      [564, 196],
+      [588, 196],
     ],
-    { marker: false, role: 'accent' },
+    { role: 'accent' },
   );
+  d.path([
+    [640, 262],
+    [640, 346],
+  ]);
   d.path(
     [
-      [240, 244],
-      [720, 244],
+      [672, 346],
+      [672, 262],
     ],
-    { marker: false },
+    { dashed: true },
   );
-  for (const x of [240, 480, 720]) {
-    d.path([
-      [x, 244],
-      [x, 284],
-    ]);
-  }
+  d.path([
+    [720, 408],
+    [780, 408],
+  ]);
 
   d.bubble({
-    cx: 480,
-    cy: 128,
-    r: 72,
+    cx: 100,
+    cy: 300,
+    r: 64,
     kind: 'focal',
     tag: 'ORCHESTRATOR',
     name: 'Research lead',
-    sub: 'plan · assign · merge',
+    sub: 'plan · delegate',
   });
   d.bubble({
-    cx: 240,
-    cy: 348,
+    cx: 280,
+    cy: 140,
     r: 64,
     kind: 'backend',
     tag: 'SPECIALIST',
@@ -2072,8 +2112,8 @@ function simpleAgentWorkflow() {
     sub: 'facts',
   });
   d.bubble({
-    cx: 480,
-    cy: 348,
+    cx: 280,
+    cy: 300,
     r: 64,
     kind: 'backend',
     tag: 'SPECIALIST',
@@ -2081,21 +2121,57 @@ function simpleAgentWorkflow() {
     sub: 'facts',
   });
   d.bubble({
-    cx: 720,
-    cy: 348,
+    cx: 280,
+    cy: 460,
     r: 64,
     kind: 'backend',
     tag: 'SPECIALIST',
     name: 'Coverage',
     sub: 'education',
   });
+  d.bubble({
+    cx: 472,
+    cy: 300,
+    r: 68,
+    kind: 'backend',
+    tag: 'CODE',
+    name: 'Evidence check',
+    sub: 'sources · claims',
+  });
+  d.bubble({
+    cx: 656,
+    cy: 196,
+    r: 68,
+    kind: 'backend',
+    tag: 'AGENT',
+    name: 'Drafting agent',
+    sub: 'one short paragraph',
+  });
+  d.bubble({
+    cx: 656,
+    cy: 408,
+    r: 64,
+    kind: 'backend',
+    tag: 'CHECK',
+    name: 'Draft review',
+    sub: 'check · rewrite ≤2',
+  });
+  d.bubble({
+    cx: 856,
+    cy: 408,
+    r: 76,
+    kind: 'input',
+    tag: 'PERSON',
+    name: 'Human review',
+    sub: 'approve · edit · reject',
+  });
   return page({
     diagram: d,
-    eyebrow: 'Optional research team',
-    title: 'One lead coordinates three specialists',
-    desc: 'A research orchestrator delegates bounded questions to specialists for vehicle facts, environmental facts and coverage education, then combines only cited findings for verification, drafting and human review.',
+    eyebrow: 'Optional agent pipeline',
+    title: 'From research to a reviewed draft',
+    desc: 'A research lead coordinates vehicle facts, environmental facts and coverage education; code checks the evidence before a drafting agent writes one paragraph, draft review permits two rewrites, and a person makes the final decision.',
     intro:
-      'Each specialist has one job. The lead combines only checked findings.',
+      'Checked research feeds drafting, review and a final human decision.',
   });
 }
 
