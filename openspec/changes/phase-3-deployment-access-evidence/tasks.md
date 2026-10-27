@@ -16,7 +16,7 @@
 
 ## 5. Verify the exact local candidate
 
-- [ ] 5.1 On one clean implementation commit, pass affected tests, the credential-free offline `pnpm check`, container/configuration checks, strict OpenSpec validation, rendered desktop/390 px accessibility review, dependency evidence, consolidated code/security/lead-quality/design review, and secret/private-data/generated-asset/history scans; fix findings through new commits and record the exact source and lockfile identities.
+- [x] 5.1 On one clean implementation commit, pass affected tests, the credential-free offline `pnpm check`, container/configuration checks, strict OpenSpec validation, rendered desktop/390 px accessibility review, dependency evidence, consolidated code/security/lead-quality/design review, and secret/private-data/generated-asset/history scans; fix findings through new commits and record the exact source and lockfile identities.
 
 ## 6. Run the separately authorized hosted proof and close the phase
 

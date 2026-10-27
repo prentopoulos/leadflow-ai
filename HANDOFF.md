@@ -2,6 +2,37 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## Phase 3 local candidate checkpoint (2026-10-26)
+
+Branch `phase-3-deployment-access-evidence`, OpenSpec change of the same name. Tasks 1.1-5.1 are
+complete; 6.1 (the hosted proof) is the only open task and waits for an enumerated owner approval.
+PROJECT.md shows Phase 3 `In progress`. Nothing has been pushed since the spec-only draft PR #7,
+and no cloud API, resource, build or deployment exists.
+
+Implemented and locally verified: strict local/cloud configuration; one digest-pinned container
+serving the web build and API; direct-IAP assertion verification with a private subject allowlist;
+ADC Firestore with seven-day Timestamp retention, deny-all rules and a guarded purge; request-bound
+hosted execution (45 s deadline, 75 s lease) and request-bound resume; session states and the seven
+accessibility refinements; Cloud Build and Cloud Run templates, TTL commands, owner-subject capture
+and Cloud Shell purge entry point; runbook; `system-bundle-v3`; the `phase-3.0` corpus (68
+cases); `deployment-evidence-v1` index with every deployed check `not_run`; three new
+diagrams; README, AI_OPS and walkthrough script. Codex's consolidated review and its fixes are in
+`docs/reviews/phase-3-local-candidate-review.md`, which also records every check, failure and
+identity for the selected candidate `b45328604ac78442a6cc9e8b76965418e7667cd7`.
+
+Retained failures: one intermittent App intake-focus test failure under parallel load (passed on
+three reruns, not reproduced since); the emulator probe's first run exposed a fail-open loopback
+guard for configurations without `mode` (fixed); inspector and `find -delete` defects recorded in
+the review file.
+
+Next action (6.1): the owner gives one enumerated approval (APIs, resources, identities, budget,
+commands, the push of this branch to the public repository, and the private parameters he will
+supply). Before acting, recheck billing, IAM and the spend cap; create `.local/private-values.txt`;
+rerun `pnpm container:inspect` and the pre-publication scans on the exact commit being pushed and
+built (documentation commits after `b453286` change the source digest, so the built commit is
+the one recorded); then follow `docs/operations/runbook.md` and fill the evidence index. The
+walkthrough video is recorded only after hosted evidence passes, and goes to the owner privately.
+
 ## Phase 3 proposal checkpoint (2026-10-26)
 
 Peter accepted the consolidated Phase 3 decisions. Branch

@@ -125,3 +125,18 @@ cloud Firestore, external communication, or other credentialed service.
   `$LASTEXITCODE`. Run `openspec validate` from Git Bash, where its spinner on stderr is harmless.
 - Diagram tooling runs under the Python launcher: `py -3.13` for the diagram-design self-check and
   SVG export, and `py -3.10` where Playwright is installed.
+
+## Phase 3 container and release notes
+
+- The checkout may be owned by the Codex sandbox account. Scripts pass
+  `git -c safe.directory=<repo>` per call; do not change global Git configuration.
+- A working tree can hold CRLF bytes for LF-committed files while `git status` is clean. If the
+  local bundle's `sourceDigest` differs from the image manifest, compare files against
+  `git archive HEAD` and restore any that differ with `git show HEAD:<path> > <path>`.
+- GNU tar on Windows reads `C:\...` as a remote host; run it from the target directory with relative
+  paths. Exported Linux image filesystems cannot be extracted on Windows (symlinks), so
+  `pnpm container:inspect` streams the tar instead.
+- Port 5173 may already be held by another local Vite app; run the web app with
+  `vite --port 5174 --strictPort` and start the API with `LEADFLOW_WEB_ORIGIN=http://127.0.0.1:5174`.
+- Run the full gate, the emulator probe and image builds one at a time on this machine; running them
+  together has exhausted memory.
