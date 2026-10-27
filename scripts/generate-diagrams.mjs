@@ -2085,7 +2085,7 @@ function simpleAgentWorkflow() {
     kind: 'backend',
     tag: 'SPECIALIST',
     name: 'Vehicle',
-    sub: 'vehicle facts',
+    sub: 'facts',
   });
   d.bubble({
     cx: 480,
@@ -2093,8 +2093,8 @@ function simpleAgentWorkflow() {
     r: 64,
     kind: 'backend',
     tag: 'SPECIALIST',
-    name: 'Area',
-    sub: 'local context',
+    name: 'Environmental',
+    sub: 'facts',
   });
   d.bubble({
     cx: 720,
@@ -2103,7 +2103,7 @@ function simpleAgentWorkflow() {
     kind: 'backend',
     tag: 'SPECIALIST',
     name: 'Coverage',
-    sub: 'requested topic',
+    sub: 'education',
   });
   d.callout(
     [
@@ -2117,7 +2117,7 @@ function simpleAgentWorkflow() {
     diagram: d,
     eyebrow: 'Optional research team',
     title: 'One lead coordinates three specialists',
-    desc: 'A research orchestrator delegates bounded questions to vehicle, area and coverage specialists, then combines only cited findings for verification, drafting and human review.',
+    desc: 'A research orchestrator delegates bounded questions to specialists for vehicle facts, environmental facts and coverage education, then combines only cited findings for verification, drafting and human review.',
     intro:
       'Each specialist has one job. The lead combines only checked findings.',
   });

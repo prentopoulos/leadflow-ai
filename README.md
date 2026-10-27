@@ -75,10 +75,11 @@ and quality gate offline.
 
 ## Optional research team
 
-<img src="docs/diagrams/agent-workflow.svg" alt="Optional research team: one orchestrator delegates bounded questions to vehicle, area and coverage specialists, then combines their cited findings for checking, drafting and human review" width="100%">
+<img src="docs/diagrams/agent-workflow.svg" alt="Optional research team: one orchestrator delegates bounded questions to specialists for vehicle facts, environmental facts and coverage education, then combines their cited findings for checking, drafting and human review" width="100%">
 
-With `--agents`, one research lead coordinates three specialists: vehicle, area and requested
-coverage. Code checks their citations before one short paragraph is added to the template.
+With `--agents`, one research lead coordinates three specialists: vehicle facts, environmental
+facts and coverage education. Code checks their citations before one short paragraph is added to
+the template.
 
 The team receives no name, email, ZIP Code or free-text message. Failed evidence, model errors or a
 spend cap leave the plain template draft. The hosted demo never enables this team.
