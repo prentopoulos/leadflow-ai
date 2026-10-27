@@ -137,7 +137,7 @@ const idempotency = {
 } as const;
 
 const bundle = {
-  schemaVersion: 'system-bundle-v4',
+  schemaVersion: 'system-bundle-v5',
   systemBundleId: ids.bundle,
   createdAt: timestamp,
   code: {
@@ -161,12 +161,13 @@ const bundle = {
     simulator: 'simulator-v1',
     enrichmentAdapters: 'enrichment-adapters-v1',
     composer: 'deterministic-template-v1',
-    verificationRules: 'verification-rules-v1',
+    verificationRules: 'verification-rules-v2',
     decisionLanguage: 'decision-language-v1',
     metricsDefinitions: 'metrics-definitions-v2',
     channelRules: 'channel-rules-v1',
     spendFixture: 'synthetic-spend-v1',
     trafficPlan: 'traffic-plan-v1',
+    agentTeam: null,
     evaluator: 'phase-0.1',
     configuration: 'phase-2-local-v1',
   },

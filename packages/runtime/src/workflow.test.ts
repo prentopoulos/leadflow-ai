@@ -21,6 +21,13 @@ import {
 import { LifecyclePersistenceService } from './lifecycle.js';
 import { createFirestoreRepositories } from './repositories.js';
 import {
+  SpendLedger,
+  type ModelPort,
+  type ModelRequest,
+  type ModelResponse,
+} from './agent-team.js';
+import { agentBriefIdOf } from './drafts.js';
+import {
   EnrichmentTimeoutError,
   type EnrichmentTransport,
 } from './enrichment.js';
@@ -359,6 +366,7 @@ async function executeAmbiguousResultWrite(
 async function executeSuccessfulWorkflow(
   submittedIntake: IntakeSubmission,
   transport: EnrichmentTransport = enrichmentTransport,
+  agents?: { port: ModelPort; ledger: SpendLedger },
 ) {
   const store = new WorkflowMemoryStore();
   const repositories = createFirestoreRepositories(store);
@@ -404,6 +412,7 @@ async function executeSuccessfulWorkflow(
       sleep: async () => undefined,
       random: () => 0,
     },
+    ...(agents === undefined ? {} : { agents }),
   });
   const output = await graph.invoke(
     initialQualificationGraphState({
@@ -430,7 +439,58 @@ async function executeSuccessfulWorkflow(
     run.verificationResultId === null
       ? null
       : await repositories.verificationResults.get(run.verificationResultId);
-  return { output, run, revision, verification };
+  return { output, run, revision, verification, repositories, store };
+}
+
+// A scripted model: one cited coverage claim, an approving critic.
+function scriptedModel(paragraph: string) {
+  const requests: ModelRequest[] = [];
+  const usage = { inputTokens: 500, outputTokens: 100, webSearchRequests: 0 };
+  const json = (value: unknown): ModelResponse => ({
+    text: JSON.stringify(value),
+    citedBlocks: [],
+    usage,
+  });
+  const port: ModelPort = {
+    async call(request) {
+      requests.push(request);
+      switch (request.role) {
+        case 'lead_plan':
+          return json({
+            vehicle: [],
+            area: [],
+            coverage: ['What does comprehensive coverage include?'],
+          });
+        case 'worker':
+          return {
+            text: '',
+            citedBlocks: [
+              {
+                text: 'Comprehensive coverage helps pay for theft and weather damage.',
+                citations: [
+                  {
+                    url: 'https://content.naic.org/consumer/auto-insurance',
+                    title: 'NAIC',
+                    citedText:
+                      'Comprehensive coverage helps pay for theft, vandalism and weather damage.',
+                  },
+                ],
+              },
+            ],
+            usage: { ...usage, webSearchRequests: 1 },
+          };
+        case 'lead_merge':
+          return json({
+            points: [{ text: 'Covers theft and weather.', claimIds: ['c1'] }],
+          });
+        case 'writer':
+          return json({ paragraph, claimIds: ['c1'] });
+        case 'critic':
+          return json({ approved: true, issues: [] });
+      }
+    },
+  };
+  return { port, requests };
 }
 
 describe('phase-2-graph-v1', () => {
@@ -691,6 +751,77 @@ describe('phase-2-graph-v1', () => {
         ]),
       }).get((result.revision as { revisionId: string }).revisionId),
     ).toBe('pending_review');
+  });
+
+  it('adds a verified agent paragraph and stores its brief', async () => {
+    const paragraph =
+      'Comprehensive coverage helps pay for theft and weather damage. Our team can walk you through how it fits the protection you want.';
+    const model = scriptedModel(paragraph);
+    const result = await executeSuccessfulWorkflow(
+      {
+        ...intake,
+        emailContactConsent: true,
+        consentRecord: currentConsentRecord(),
+      },
+      enrichmentTransport,
+      { port: model.port, ledger: new SpendLedger() },
+    );
+    const revision = result.revision as Parameters<typeof agentBriefIdOf>[0];
+    expect(revision.body).toContain(`
+
+${paragraph}
+
+A member`);
+    const briefId = agentBriefIdOf(revision);
+    const brief = await result.repositories.agentBriefs.get(briefId ?? '');
+    expect(brief).toMatchObject({
+      status: 'drafted',
+      paragraph,
+      claims: [
+        {
+          claimId: 'c1',
+          url: 'https://content.naic.org/consumer/auto-insurance',
+        },
+      ],
+    });
+    expect(result.verification).toMatchObject({
+      rulesVersion: 'verification-rules-v2',
+      integrityPassed: true,
+      draftPassed: true,
+    });
+    const sent = JSON.stringify(model.requests);
+    for (const value of [
+      'Avery',
+      'avery@example.com',
+      '10001',
+      'Synthetic workflow fixture',
+    ]) {
+      expect(sent).not.toContain(value);
+    }
+  });
+
+  it('falls back to the template draft when the agent team fails', async () => {
+    const model = scriptedModel('Get a quote today.');
+    const result = await executeSuccessfulWorkflow(
+      {
+        ...intake,
+        emailContactConsent: true,
+        consentRecord: currentConsentRecord(),
+      },
+      enrichmentTransport,
+      { port: model.port, ledger: new SpendLedger() },
+    );
+    const revision = result.revision as Parameters<typeof agentBriefIdOf>[0];
+    expect(agentBriefIdOf(revision)).toBeNull();
+    const briefs = [...result.store.documents.entries()].filter(([path]) =>
+      path.startsWith('agentBriefs/'),
+    );
+    expect(briefs).toHaveLength(1);
+    expect(briefs[0]?.[1]).toMatchObject({
+      status: 'fallback',
+      fallbackReason: 'rule_check_failed',
+    });
+    expect(result.verification).toMatchObject({ draftPassed: true });
   });
 
   it('stores a verification-blocked draft outside the approval queue', async () => {

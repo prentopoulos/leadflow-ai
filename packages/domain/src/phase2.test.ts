@@ -267,7 +267,7 @@ describe('Phase 2 drafts, reviews and verification', () => {
       leadId: ids.lead,
       scope: 'run',
       revisionId: null,
-      rulesVersion: 'verification-rules-v1',
+      rulesVersion: 'verification-rules-v2',
       decisionLanguageVersion: 'decision-language-v1',
       verifiedAt: timestamp,
     } as const;

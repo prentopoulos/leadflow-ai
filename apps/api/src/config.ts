@@ -48,6 +48,8 @@ const LocalConfigSchema = z
     // Required with no default: the evidence class of every lookup must be
     // an explicit operator choice (live, recorded or mock).
     enrichmentMode: EnrichmentModeSchema,
+    // Opt-in Phase 5 agent team; off unless the launch script enables it.
+    agents: z.enum(['off', 'claude']).default('off'),
     // The only browser origin allowed to send state-changing requests.
     webOrigin: z
       .string()
@@ -119,7 +121,9 @@ export function loadPhaseOneConfig(
     if (
       environment.FIRESTORE_EMULATOR_HOST !== undefined ||
       environment.LEADFLOW_LOCAL_RESET_ENABLED !== undefined ||
-      environment.GOOGLE_APPLICATION_CREDENTIALS !== undefined
+      environment.GOOGLE_APPLICATION_CREDENTIALS !== undefined ||
+      // Hosted stays template-only (PROJECT.md, Phase 5 decisions).
+      environment.LEADFLOW_AGENTS !== undefined
     ) {
       throw new Error('Hosted configuration contains local-only settings.');
     }
@@ -147,6 +151,7 @@ export function loadPhaseOneConfig(
     apiHost: environment.LEADFLOW_API_HOST,
     localResetEnabled: environment.LEADFLOW_LOCAL_RESET_ENABLED,
     enrichmentMode: environment.LEADFLOW_ENRICHMENT_MODE,
+    agents: environment.LEADFLOW_AGENTS,
     webOrigin: environment.LEADFLOW_WEB_ORIGIN,
   });
 }

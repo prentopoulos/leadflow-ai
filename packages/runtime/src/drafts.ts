@@ -12,6 +12,7 @@ import {
   MAX_DRAFT_REVISIONS,
   OutreachDraftRevisionSchema,
   verifyOutputs,
+  type AgentBriefRecord,
   type DraftReview,
   type DraftView,
   type EnrichmentEvidence,
@@ -62,6 +63,7 @@ export function templateRevision(input: {
   qualification: QualificationResult;
   evidence: readonly EnrichmentEvidence[];
   createdAt: string;
+  agentBrief?: AgentBriefRecord | null;
 }): OutreachDraftRevision {
   if (input.qualification.priority === null) {
     throw new Error('A held qualification cannot receive a draft.');
@@ -71,6 +73,7 @@ export function templateRevision(input: {
       intake: input.lead.intake,
       priority: input.qualification.priority,
       evidence: input.evidence,
+      agentBrief: input.agentBrief ?? null,
     }),
   );
   const draftId = draftIdFor(
@@ -99,6 +102,19 @@ export function templateRevision(input: {
     ),
     verificationResultId: revisionVerificationIdFor(revisionId),
   });
+}
+
+export const agentBriefIdFor = (
+  runId: string,
+  evidenceIds: readonly string[],
+) => deterministicUuid('agent-brief', runId, ...[...evidenceIds].sort());
+
+// The brief an agent slot cites, if the revision has one.
+export function agentBriefIdOf(revision: OutreachDraftRevision): string | null {
+  return (
+    revision.slots.find((slot) => slot.provenance === 'agent_brief')
+      ?.evidenceId ?? null
+  );
 }
 
 export interface DraftReader {
@@ -268,6 +284,13 @@ export class DraftService {
     if (latest === undefined) throw new DraftIntegrityError();
     // A revision whose verification is not yet stored is still being
     // verified; it is shown only once its verdict exists.
+    const first = revisions[0];
+    const briefId = first === undefined ? null : agentBriefIdOf(first);
+    const agentBrief =
+      briefId === null ? null : await repositories.agentBriefs.get(briefId);
+    if (briefId !== null && agentBrief === null) {
+      throw new DraftIntegrityError('The cited agent brief is missing.');
+    }
     const view = DraftViewSchema.parse({
       revisions: revisions
         .filter((revision) => verifications.has(revision.verificationResultId))
@@ -277,6 +300,7 @@ export class DraftService {
           verification: verifications.get(revision.verificationResultId),
         })),
       reviews,
+      agentBrief,
       complianceNotice: COMPLIANCE_NOTICE,
     });
     return { revisions, reviews, verifications, view, latest };

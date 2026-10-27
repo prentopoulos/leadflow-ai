@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AgentBriefRecordSchema } from './agents.js';
 import {
   CONTRACT_VERSIONS,
   DraftSkipReasonSchema,
@@ -304,6 +305,7 @@ export const SlotProvenanceSchema = z.enum([
   'intake',
   'verified_evidence',
   'fixed_copy',
+  'agent_brief',
 ]);
 export const DraftSlotSchema = z
   .object({
@@ -315,10 +317,12 @@ export const DraftSlotSchema = z
   .strict()
   .refine(
     (slot) =>
-      (slot.provenance === 'verified_evidence') === (slot.evidenceId !== null),
+      (slot.provenance === 'verified_evidence' ||
+        slot.provenance === 'agent_brief') ===
+      (slot.evidenceId !== null),
     {
       path: ['evidenceId'],
-      message: 'only verified-evidence slots cite evidence',
+      message: 'only evidence and agent-brief slots cite a record',
     },
   );
 export type DraftSlot = z.infer<typeof DraftSlotSchema>;
@@ -414,28 +418,10 @@ export const VERIFICATION_RULE_IDS = [
 export const VerificationRuleIdSchema = z.enum(VERIFICATION_RULE_IDS);
 export type VerificationRuleId = z.infer<typeof VerificationRuleIdSchema>;
 
-// Words that would turn marketing follow-up into an insurance decision.
-export const DECISION_LANGUAGE_TERMS = [
-  'quote',
-  'quotes',
-  'price',
-  'prices',
-  'pricing',
-  'premium',
-  'premiums',
-  'rate',
-  'rates',
-  'savings',
-  'save',
-  'eligible',
-  'eligibility',
-  'approved for coverage',
-  'underwriting',
-  'underwrite',
-  'guarantee',
-  'guaranteed',
-  'risk',
-] as const;
+export {
+  DECISION_LANGUAGE_TERMS,
+  findDecisionLanguage,
+} from './decision-language.js';
 
 export const RuleResultSchema = z
   .object({
@@ -551,6 +537,8 @@ export const DraftViewSchema = z
         .strict(),
     ),
     reviews: z.array(DraftReviewSchema),
+    // The stored agent brief behind the first revision, when agents ran.
+    agentBrief: AgentBriefRecordSchema.nullable(),
     complianceNotice: z.literal(COMPLIANCE_NOTICE),
   })
   .strict();

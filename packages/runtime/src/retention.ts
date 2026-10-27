@@ -30,6 +30,8 @@ export const RETAINED_COLLECTION_GROUPS = [
   'outreachDrafts',
   'revisions',
   'reviews',
+  // Local agent runs only; listed so purge and TTL cover every write.
+  'agentBriefs',
 ] as const;
 
 export const RETAINED_TOP_LEVEL_COLLECTIONS = [
@@ -43,6 +45,7 @@ export const RETAINED_TOP_LEVEL_COLLECTIONS = [
   'emailChecks',
   'verificationResults',
   'outreachDrafts',
+  'agentBriefs',
 ] as const;
 
 export interface RetentionPolicy {

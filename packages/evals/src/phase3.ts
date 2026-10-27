@@ -186,7 +186,7 @@ export const PHASE_THREE_CASES = [
       // of the Phase 2 methodology is unchanged.
       metricsDefinitions: 'metrics-definitions-v2',
       composer: 'deterministic-template-v1',
-      verificationRules: 'verification-rules-v1',
+      verificationRules: 'verification-rules-v2',
       enrichmentAdapters: 'enrichment-adapters-v1',
     },
     'normal',
@@ -260,7 +260,7 @@ function refusedBy(action: () => unknown): boolean {
 }
 
 const releaseBase = {
-  schemaVersion: 'system-bundle-v4',
+  schemaVersion: 'system-bundle-v5',
   code: {
     revision: 'c'.repeat(40),
     dirty: false,
@@ -288,6 +288,7 @@ const releaseBase = {
     channelRules: CONTRACT_VERSIONS.channelRules,
     spendFixture: CONTRACT_VERSIONS.spendFixture,
     trafficPlan: CONTRACT_VERSIONS.trafficPlan,
+    agentTeam: null,
     evaluator: DATASET_VERSION,
     configuration: 'phase-3-cloud-v1',
   },

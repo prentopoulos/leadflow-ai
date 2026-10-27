@@ -19,6 +19,7 @@ import {
 import { observePhaseTwo } from './phase2.js';
 import { observePhaseThree } from './phase3.js';
 import { observePhaseFour } from './phase4.js';
+import { observePhaseFive } from './phase5.js';
 
 function demand(condition: unknown, message: string, assertions: string[]) {
   if (!condition) throw new Error(message);
@@ -515,8 +516,9 @@ export function evaluateCase(evaluationCase: EvalCase): EvalResult {
       case 'phase2-contract':
       case 'phase3-contract':
       case 'phase4-contract':
+      case 'phase5-contract':
         throw new Error(
-          'Phase 2, 3 and 4 cases are evaluated by evaluateCaseAsync',
+          'Phase 2 to 5 cases are evaluated by evaluateCaseAsync',
         );
       case 'future-runtime':
         throw new Error('future runtime case was incorrectly marked runnable');
@@ -568,7 +570,8 @@ export async function evaluateCaseAsync(
   if (
     (parsedCase.kind !== 'phase2-contract' &&
       parsedCase.kind !== 'phase3-contract' &&
-      parsedCase.kind !== 'phase4-contract') ||
+      parsedCase.kind !== 'phase4-contract' &&
+      parsedCase.kind !== 'phase5-contract') ||
     parsedCase.applicability === 'future'
   ) {
     return evaluateCase(parsedCase);
@@ -606,11 +609,13 @@ export async function evaluateCaseAsync(
           : 'Declared observations are consistent; measured by rendered local review, not this offline run.',
       );
     }
-    const observed = (await (parsedCase.kind === 'phase4-contract'
-      ? observePhaseFour(candidate.check)
-      : parsedCase.kind === 'phase3-contract'
-        ? observePhaseThree(candidate.check)
-        : observePhaseTwo(candidate.check))) as Record<string, unknown>;
+    const observed = (await (parsedCase.kind === 'phase5-contract'
+      ? observePhaseFive(candidate.check)
+      : parsedCase.kind === 'phase4-contract'
+        ? observePhaseFour(candidate.check)
+        : parsedCase.kind === 'phase3-contract'
+          ? observePhaseThree(candidate.check)
+          : observePhaseTwo(candidate.check))) as Record<string, unknown>;
     for (const [key, expected] of Object.entries(parsedCase.expected)) {
       demand(
         sameValue(observed[key], expected),

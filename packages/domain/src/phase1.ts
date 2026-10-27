@@ -19,7 +19,7 @@ export const CONTRACT_VERSIONS = {
   graphState: 'phase-2-graph-state-v1',
   rubric: 'rubric-v1',
   simulator: 'simulator-v1',
-  systemBundle: 'system-bundle-v4',
+  systemBundle: 'system-bundle-v5',
   graph: 'phase-2-graph-v1',
   configuration: 'phase-2-local-v1',
   enrichmentEvidence: 'enrichment-evidence-v1',
@@ -29,7 +29,7 @@ export const CONTRACT_VERSIONS = {
   draftReview: 'draft-review-v1',
   composer: 'deterministic-template-v1',
   verificationResult: 'verification-result-v1',
-  verificationRules: 'verification-rules-v1',
+  verificationRules: 'verification-rules-v2',
   decisionLanguage: 'decision-language-v1',
   metricsDefinitions: 'metrics-definitions-v2',
   metricsReport: 'metrics-report-v2',
@@ -818,6 +818,34 @@ const UnavailableBoundarySchema = z
   .object({ value: z.null(), reason: z.string().min(1).max(160) })
   .strict();
 
+// system-bundle-v5: the owner-resolved Phase 5 agent team (literals kept here
+// so phase1 stays free of the agent module).
+const AgentProviderSchema = z
+  .object({ value: z.literal('anthropic') })
+  .strict();
+const AgentModelsSchema = z
+  .object({
+    value: z
+      .object({
+        lead: z.literal('claude-sonnet-5-5'),
+        writer: z.literal('claude-sonnet-5-5'),
+        critic: z.literal('claude-sonnet-5-5'),
+        worker: z.literal('claude-haiku-5-5'),
+      })
+      .strict(),
+  })
+  .strict();
+const AgentPromptSchema = z
+  .object({
+    value: z
+      .object({
+        version: z.literal('agent-prompts-v1'),
+        sha256: Sha256Schema,
+      })
+      .strict(),
+  })
+  .strict();
+
 export const SystemBundleDocumentSchema = z
   .object({
     schemaVersion: z.literal(CONTRACT_VERSIONS.systemBundle),
@@ -858,6 +886,7 @@ export const SystemBundleDocumentSchema = z
         channelRules: z.literal(CONTRACT_VERSIONS.channelRules),
         spendFixture: z.literal(CONTRACT_VERSIONS.spendFixture),
         trafficPlan: z.literal(CONTRACT_VERSIONS.trafficPlan),
+        agentTeam: z.literal('agent-team-v1').nullable(),
         evaluator: z.string().min(1),
         configuration: z.enum([
           LOCAL_CONFIGURATION_VERSION,
@@ -879,9 +908,9 @@ export const SystemBundleDocumentSchema = z
       .strict(),
     // system-bundle-v3+: local emulator or the exact hosted deployment.
     deployment: DeploymentIdentitySchema,
-    provider: UnavailableBoundarySchema,
-    model: UnavailableBoundarySchema,
-    prompt: UnavailableBoundarySchema,
+    provider: z.union([UnavailableBoundarySchema, AgentProviderSchema]),
+    model: z.union([UnavailableBoundarySchema, AgentModelsSchema]),
+    prompt: z.union([UnavailableBoundarySchema, AgentPromptSchema]),
     enrichmentMode: EnrichmentModeSchema,
     liveToolContracts: z
       .object({
@@ -906,6 +935,27 @@ export const SystemBundleDocumentSchema = z
         code: 'custom',
         path: ['versions', 'configuration'],
         message: 'configuration version must match the deployment mode',
+      });
+    }
+    // Provider, model and prompt are named exactly when the agent team runs.
+    const agents = value.versions.agentTeam !== null;
+    if (
+      [value.provider, value.model, value.prompt].some(
+        (boundary) => (boundary.value !== null) !== agents,
+      )
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['provider'],
+        message: 'provider, model and prompt are set only with the agent team',
+      });
+    }
+    // Hosted stays template-only (PROJECT.md § Phase 5 decisions).
+    if (value.deployment.mode === 'cloud' && agents) {
+      context.addIssue({
+        code: 'custom',
+        path: ['versions', 'agentTeam'],
+        message: 'a hosted bundle has no agent team',
       });
     }
     // Hosted demonstrations are recorded-only and built from a clean commit.

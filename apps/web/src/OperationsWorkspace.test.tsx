@@ -267,6 +267,7 @@ function draftView(): DraftView {
   return {
     revisions: [{ revision, state: 'pending_review', verification }],
     reviews: [],
+    agentBrief: null,
     complianceNotice: COMPLIANCE_NOTICE,
   };
 }

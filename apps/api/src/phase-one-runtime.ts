@@ -4,6 +4,10 @@ import {
   type QualificationGraphState,
 } from '@leadflow-ai/domain';
 import {
+  AGENT_PROMPTS_SHA256,
+  AnthropicModelPort,
+  SpendLedger,
+  type ModelPort,
   AdminDraftReader,
   projectDigest,
   AdminRunEventReader,
@@ -58,6 +62,9 @@ export interface PhaseOneApiRuntimeOptions {
   enrichmentSleep?: (milliseconds: number) => Promise<void>;
   executor?: WorkflowExecutor;
   executionDeadlineMs?: number;
+  // Tests inject a fake model; otherwise the Anthropic adapter is used when
+  // the local configuration enables agents.
+  modelPort?: ModelPort;
 }
 
 // Holds hosted work inside the request: new graph steps stop at the deadline
@@ -104,6 +111,25 @@ export async function createPhaseOneApiDependencies(
   ) {
     throw new Error('Compatible persisted system bundle is unavailable.');
   }
+  const agentsEnabled =
+    startup.configuration.mode === 'local' &&
+    startup.configuration.agents === 'claude';
+  // The bundle must say exactly what drafts this process produces.
+  const bundleAgents =
+    systemBundle.versions.agentTeam !== null &&
+    systemBundle.prompt.value !== null &&
+    systemBundle.prompt.value.sha256 === AGENT_PROMPTS_SHA256;
+  if (agentsEnabled !== bundleAgents) {
+    throw new Error('The system bundle does not match the agent setting.');
+  }
+  const agents = agentsEnabled
+    ? {
+        port:
+          options.modelPort ??
+          new AnthropicModelPort(process.env.ANTHROPIC_API_KEY ?? ''),
+        ledger: new SpendLedger(),
+      }
+    : undefined;
   const transport =
     options.enrichmentTransport ??
     (await createEnrichmentTransport(enrichmentMode));
@@ -134,6 +160,7 @@ export async function createPhaseOneApiDependencies(
         ? {}
         : { sleep: options.enrichmentSleep }),
     },
+    ...(agents === undefined ? {} : { agents }),
     ...clock,
   });
   const drafts = new DraftService({
