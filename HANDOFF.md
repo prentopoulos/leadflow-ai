@@ -2,6 +2,17 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## Phase 4 hosted run in progress (2026-10-27, afternoon)
+
+Approved by Peter (enumerated list, after the CA$0.00 cost reading). Build candidate `a151256`
+(full gate 431 tests; container inspection passed). Done: Cloud Build `d13d3e74-5541-452c-91eb-ce0432970703`
+SUCCESS, image `sha256:83c7f364a03f99eac209f1c79b15e0c5a0ad1c315de4e433e705b451f50b26eb`, no storage
+bucket. Revision A still serves 100%. Blocked: the agent's safety check refused the guarded purge, so
+Peter runs it in Cloud Shell (runbook § Purge). Then, in order: render with
+`LEADFLOW_PREVIOUS_REVISION=leadflow-ai-demo-95b6c04eda59`, `gcloud run services replace` (0%),
+move traffic, smoke 1, rollback exercise, purge again, smokes 5-6, simulated traffic, evidence.
+The Cloud Shell tab froze while typing the render command; nothing was deployed.
+
 ## Phase 4 local candidate checkpoint (2026-10-27)
 
 Branch `phase-4-simulated-acquisition`, draft PR #9. Tasks 2.1-7.1 are complete; the exact local
