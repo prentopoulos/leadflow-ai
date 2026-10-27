@@ -27,21 +27,17 @@ pnpm check
 evaluation cases, local smoke tests, diagram and docs checks, governance and OpenSpec validation. It
 needs no credentials and makes no outside calls.
 
-To use the app, run each line in its own activated PowerShell window, waiting for each to report
-that it is ready:
+### Run the demo
 
-```powershell
-pnpm emulator:start
-pnpm build; pnpm api:local -- --enrichment=recorded
-pnpm simulate:traffic -- --interval=0
-pnpm --filter @leadflow-ai/web exec vite
+In an activated shell (above), one command starts everything with saved responses:
+
+```console
+pnpm demo
 ```
 
-Open the URL Vite prints. It opens on the LeadFlow AI cover; `#intake` takes a new fictional lead,
-`#runs` shows leads and the approval queue, and `#metrics` shows the dashboard. The simulator adds
-60 fictional leads from simulated ad channels and campaigns, using saved responses; leave out
-`--interval=0` to watch them arrive one every 10 seconds. Run `pnpm api:local` without `--enrichment` to look up the
-real public sources for leads you enter. Stopping the emulator discards all state.
+Open the link it prints (the Metrics view), then press **Run simulated traffic**. Sixty fictional
+leads arrive one every 10 seconds from made-up ad channels, and the cost-per-lead figures update
+live. Press Ctrl+C to stop; nothing is kept. Add `-- --open` to open the browser for you.
 
 ## How it works
 
@@ -163,6 +159,7 @@ probe, and their saved responses are what the offline tests use. See [AI_OPS.md]
 | `pnpm check` | Full offline gate |
 | `pnpm emulator:start` | Temporary Firestore Emulator on `127.0.0.1:8080` |
 | `pnpm api:local` | Serve the API with live lookups; add `-- --enrichment=recorded` for saved responses |
+| `pnpm demo` | Start the emulator, API and web app for a live demo |
 | `pnpm simulate:traffic` | Send 60 fictional leads with simulated attribution through the API, one every 10 s (saved responses only) |
 | `pnpm enrichment:probe` | Owner-authorized live lookup that refreshes the saved responses |
 | `pnpm emulator:runtime` | End-to-end test of the API and workflow against the emulator |

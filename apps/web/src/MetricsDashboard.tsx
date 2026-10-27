@@ -12,6 +12,7 @@ import {
 import type { OperationsClient, SafeError } from './operations-client.js';
 import { operationsClient as defaultClient } from './operations-client.js';
 import { AcquisitionSection } from './AcquisitionSection.js';
+import { runClient } from './run-client.js';
 import { useSession } from './session-context.js';
 import { SimulatedTrafficControl } from './SimulatedTrafficControl.js';
 import { useVisiblePolling } from './use-visible-polling.js';
@@ -107,9 +108,14 @@ export function MetricsDashboard({
       {/* A marketing manager's first question is what a lead cost, so the
           simulated acquisition panel leads the page (owner, 2026-10-27). */}
       <AcquisitionSection acquisition={report.acquisition} />
-      {hosted ? (
-        <SimulatedTrafficControl systemBundleId={report.systemBundleId} />
-      ) : null}
+      {/* Hosted runs need the held execution request; locally the API runs
+          each lead in the background, so the control only submits intake. */}
+      <SimulatedTrafficControl
+        systemBundleId={report.systemBundleId}
+        client={
+          hosted ? runClient : { get: runClient.get, resume: runClient.resume }
+        }
+      />
 
       <section className="metric-ledger" aria-labelledby="metric-ledger-title">
         <div className="section-heading operations-section-heading">

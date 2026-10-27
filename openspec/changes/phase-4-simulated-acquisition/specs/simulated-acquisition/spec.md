@@ -129,8 +129,9 @@ in `recorded` enrichment mode, and SHALL use per-bundle idempotency keys so a re
 - **THEN** their drafts wait in `pending_review` and nothing is sent
 
 ### Requirement: Owner-triggered hosted traffic control
-In hosted mode only, the signed-in interface SHALL offer a "Run simulated traffic" control that
-runs the same plan sequentially through intake and the existing held execution request, labelled
+The metrics view SHALL offer a "Run simulated traffic" control that runs the same plan
+sequentially through intake and, when hosted, the existing held execution request (locally the
+API's background executor runs each lead), labelled
 SIMULATED, with Stop, pausing while the tab is hidden, and SHALL add no credential, IAP setting,
 server-side loop or unattended run.
 
@@ -142,9 +143,9 @@ server-side loop or unattended run.
 - **WHEN** the tab becomes hidden during a run
 - **THEN** submissions pause until the tab is visible again
 
-#### Scenario: Local mode
-- **WHEN** the interface runs in local mode
-- **THEN** the hosted control is not shown and the CLI is the documented path
+#### Scenario: Local demo
+- **WHEN** the owner runs `pnpm demo` on Windows or macOS and presses the control
+- **THEN** leads are submitted without an execution request and the acquisition figures update live
 
 ### Requirement: Attribution stays out of scoring, drafts and telemetry
 Attribution SHALL be read only by metrics and the run dossier and SHALL never enter the rubric,
