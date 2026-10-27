@@ -2,7 +2,7 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
-## Phase 5 complete (2026-10-27) — PR #11 awaits owner review
+## Phase 5 complete (2026-10-27) — owner approved PR #11 merge
 
 Phase 5 is complete on branch `phase-5-agent-drafts`. The opt-in local Anthropic team researches
 bounded lead context, verifies cited claims in code, drafts one review-only paragraph and keeps the
@@ -12,10 +12,12 @@ SDK retries are disabled; an interrupted in-progress brief falls back on replay 
 again. Fallback briefs remain visible from the draft dossier, and model inputs retain only a digest
 of the projection.
 
-The owner-authorized live probe remains the only paid run: one fictional consented lead completed
-in 31 seconds for **$0.1185**, kept 4 of 16 claims, passed every `verification-rules-v2` rule and did
-not expose the request-text injection to a model or draft. No second paid probe was run. The
-post-probe worker `max_tokens` repair is covered offline but is not claimed as live-proven.
+Two owner-authorized paid probes used fictional consented leads. The original completed in 31
+seconds for **$0.1185** and kept 4 of 16 claims. After the review fixes, the confirmation probe
+completed in 31.1 seconds for **$0.123732**: all three web-search workers returned `ok`, 12 of 68
+claims survived code verification, the brief was drafted with 7 total calls, and the draft entered
+`pending_review`. Both probes passed every `verification-rules-v2` rule and kept the injected
+request text out of the draft. The worker `max_tokens` repair is therefore live-proven within cap.
 
 Two-axis code review found and fixed conservative-cost, crash/replay, fallback-visibility, worker
 failure, question-count, vehicle-projection, paragraph-bound and projection-persistence issues.
@@ -25,15 +27,16 @@ loopback Firestore/runtime probe passed. The affected strict typecheck and 57 fo
 The final archived-revision gate passed with 465 tests, 65 evaluation passes, 25 honest `not_run`
 boundaries, both loopback smokes, governance, docs and strict OpenSpec validation.
 
-Design-review agents hit the account usage ceiling before returning reports, and Chrome automation
-blocked a fresh localhost tab. Component tests cover the agent panel and 390 px behavior, but this
-handoff does **not** claim a completed rendered design evaluation. That review note is non-blocking
-for the local implementation and should be checked during owner PR review if visual signoff is
-required.
+The rendered design check was completed directly without subagents. At desktop and a temporary
+390×844 viewport, the agent panel showed status, cost, cited claim and quote, model-call disclosure,
+approval controls and verification results. At 390 px the document width equalled the client width,
+focus moved to the dossier after storage, the controls remained readable, and page-console errors
+were empty. The viewport was reset and the temporary review server was stopped.
 
 The OpenSpec delta is synced to the main `agent-drafting` and `verification-layer` specs and archived
 as `openspec/changes/archive/2026-10-27-phase-5-agent-drafts`. PROJECT.md records Phase 5 `Done`.
-PR #11 may be reviewed and merged only on Peter's go-ahead.
+Peter explicitly approved updating the public PR description and merging PR #11 after these final
+checks. No automatic outreach, hosted agent use or real-data gate was authorized.
 
 Environment note: the repo folder is owned by the `CodexSandboxOffline` Windows account, so git
 needs `git -c safe.directory=C:/Users/Peter/Documents/leadflow_ai …` and `gh` needs
