@@ -51,7 +51,11 @@ describe('container contract', () => {
     ],
     [
       'shipping compiled tests',
-      (text) => text.replace(/# Compiled tests[\s\S]*?-delete\n/u, ''),
+      (text) =>
+        text.replace(
+          /# Compiled tests[\s\S]*?(?=RUN pnpm exec node scripts\/write-release-manifest)/u,
+          '',
+        ),
     ],
   ])('fails for %s', async (_label, mutate) => {
     const findings = inspectDockerfile(

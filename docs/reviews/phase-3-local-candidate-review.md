@@ -57,3 +57,8 @@ The first post-review full-gate attempt reached governance and stopped because a
 expectation contained a literal shaped like a private IAP subject. The scanner worked as designed;
 the test now assembles the expected value without embedding a subject-shaped literal. This failed
 attempt is retained and is not reported as a passing candidate gate.
+
+The first exact-commit image build then stopped before producing an image because GNU `find -delete`
+implicitly enables depth traversal and invalidated the command's `node_modules` prune. The Dockerfile
+now uses an explicit pruned `-exec rm` for compiled test artifacts. Commit `d5799d8` is therefore not
+the selected image candidate; the replacement commit must repeat the material checks and inspection.
