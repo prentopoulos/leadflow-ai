@@ -74,9 +74,10 @@ export const METRICS_DEFINITIONS = {
   // Phase 4 (PROJECT.md "Phase 4 decisions", 2026-10-27). SIMULATED: spend is
   // the checked-in synthetic-spend-v1 fixture and leads are fictional.
   blendedCostPerLead: {
-    numerator: 'Total synthetic-spend-v1 flight spend (simulated USD).',
+    numerator:
+      'Total flight spend from the made-up spend plan (synthetic-spend-v1, simulated USD).',
     denominator:
-      'Every persisted lead in the window, including unattributed leads and failed runs.',
+      'every stored lead in the window, including unattributed leads and failed runs.',
     exclusions:
       'None; unattributed and failed-run leads are counted and reported.',
   },

@@ -1354,9 +1354,18 @@ button:disabled {
   margin-top: 2.5rem;
 }
 
-/* Simulated acquisition: kept below and apart from operational metrics. */
+/* Simulated acquisition: kept below and apart from operational metrics, in
+   the same dashed, muted panel idiom as the Simulation panel. */
 .acquisition-section {
   margin-top: 2.5rem;
+  border: 1px dashed var(--line-strong);
+  border-top: 1px solid var(--ink);
+  padding: 1rem;
+  background: var(--paper-muted);
+}
+
+.acquisition-heading h2 {
+  margin: 0;
 }
 
 .simulated-tag {
@@ -1364,18 +1373,57 @@ button:disabled {
   margin-left: 0.5rem;
   border: 1px solid var(--ink);
   padding: 0.1rem 0.4rem;
-  font-size: 0.7rem;
+  color: var(--ink);
+  font-size: 0.8rem;
   font-weight: 750;
   letter-spacing: 0.06em;
   vertical-align: middle;
 }
 
+.chart-caption .simulated-tag,
+.data-table caption .simulated-tag {
+  margin-left: 0;
+}
+
 .acquisition-label,
 .acquisition-note,
 .acquisition-notes p {
+  max-width: 75ch;
   margin: 0.5rem 0;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.acquisition-section .chart-caption {
+  max-width: 75ch;
+}
+
+.acquisition-section .metric-strip .metric-detail {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.acquisition-section .data-table td.is-empty {
+  color: var(--muted);
+}
+
+.chart-empty {
+  margin: 1rem 0;
+  color: var(--muted);
+}
+
+.scroll-hint {
+  display: none;
+  font-weight: 400;
+}
+
+/* The channel name stays in view while the wide table scrolls. */
+.acquisition-section .data-table th:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--paper-muted);
 }
 
 .acquisition-section h3 {
@@ -1392,6 +1440,7 @@ button:disabled {
 .acquisition-notes .definition-list dd {
   font-family: inherit;
   font-size: 0.9rem;
+  font-weight: 400;
 }
 
 .campaign-disclosure {
@@ -1763,6 +1812,26 @@ small {
     border-top: 1px solid var(--line);
     border-left: 0;
     padding-left: 0;
+  }
+
+  /* Acquisition values are short: keep its tiles two by two. */
+  .acquisition-section .metric-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .acquisition-section .metric-strip > div:nth-child(2n) {
+    border-left: 1px solid var(--line);
+    padding-left: 0.75rem;
+  }
+
+  .acquisition-section .metric-strip > div:nth-child(2) {
+    border-top: 0;
+  }
+}
+
+@media (max-width: 850px) {
+  .scroll-hint {
+    display: inline;
   }
 }
 

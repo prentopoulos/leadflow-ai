@@ -126,11 +126,17 @@ function AttributionBlock({
       className="result-section simulation-result"
       aria-labelledby="attribution-title"
     >
-      <h3 id="attribution-title">Acquisition (simulated)</h3>
+      <h3 id="attribution-title">
+        Acquisition <span className="simulated-tag">SIMULATED</span>
+      </h3>
       <dl>
         <div>
           <dt>Channel</dt>
-          <dd>{CHANNEL_LABELS[channelFor(attribution)]}</dd>
+          <dd>
+            {attribution === null
+              ? 'None: entered through the intake form'
+              : CHANNEL_LABELS[channelFor(attribution)]}
+          </dd>
         </div>
         {attribution === null ? null : (
           <>

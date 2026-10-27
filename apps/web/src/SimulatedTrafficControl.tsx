@@ -35,8 +35,10 @@ export function SimulatedTrafficControl({
       <h2 id="traffic-control-title">Simulated traffic</h2>
       <p>
         Sends {PLANNED_TRAFFIC_LEADS} fictional leads with simulated channels
-        and campaigns, one every {intervalMs / 1_000} s, from this page only.
-        Drafts still wait for your approval.
+        and campaigns, one every {intervalMs / 1_000} s (about{' '}
+        {Math.round((PLANNED_TRAFFIC_LEADS * intervalMs) / 60_000)} minutes)
+        from this page only. Keep the tab visible: a hidden tab pauses. Drafts
+        still wait for your approval.
       </p>
       <div className="traffic-control-actions">
         {running ? (
@@ -51,7 +53,7 @@ export function SimulatedTrafficControl({
         ) : (
           <button
             type="button"
-            className="primary-action"
+            className="secondary-action"
             onClick={() =>
               void flight.start({ systemBundleId, submit, client, intervalMs })
             }
@@ -65,7 +67,7 @@ export function SimulatedTrafficControl({
             : state.status === 'finished'
               ? `${state.stopped ? 'Stopped' : 'Finished'}: ${state.created} new, ${state.replayed} already present.`
               : state.status === 'failed'
-                ? `Stopped after ${state.done} leads: ${state.message}`
+                ? `Stopped after ${state.done} leads: ${state.message} Run again: stored leads are skipped.`
                 : null}
         </p>
       </div>
