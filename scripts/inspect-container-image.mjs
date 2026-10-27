@@ -106,14 +106,30 @@ function metadataFindings(image) {
   return findings;
 }
 
+// Real key material, not documentation placeholders such as
+// "-----BEGIN PRIVATE KEY-----xxxxxxx" in upstream JSDoc.
+const CREDENTIAL =
+  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----\s*[A-Za-z0-9+/=\r\n]{64,}|\b(?:ghp|github_pat|xox[baprs])-[-A-Za-z0-9_]{20,}|\bAIza[0-9A-Za-z_-]{30,}/u;
+
+// Project files are checked for build-machine and emulator leakage. The
+// compiled code deliberately carries the local-mode constants (the emulator
+// project ID and loopback host) so hosted mode can refuse them; those
+// constants are not findings. Third-party package contents (their own tests,
+// docs and examples) are checked only for secrets and private values.
 export function contentFindings(tarPath, privateValues) {
   const findings = [];
   let count = 0;
   for (const file of tarFiles(tarPath, (name) => name.startsWith('app/'))) {
     count += 1;
     const relative = file.name.slice('app/'.length);
+    const thirdParty = /(?:^|\/)node_modules\//u.test(relative);
+    if (/(?:^|\/)(?:\.git|\.env(?:\.[^/]*)?)(?:\/|$)/u.test(relative)) {
+      findings.push(`${relative}: forbidden runtime artifact`);
+      continue;
+    }
     if (
-      /(?:^|\/)(?:\.git|\.env(?:\.|$)|docs|deploy|scripts)(?:\/|$)|(?:\.test|\.test-support)\.[^.]+$/u.test(
+      !thirdParty &&
+      /(?:^|\/)(?:docs|deploy|scripts|firestore-export|firebase-export[^/]*)(?:\/|$)|\.overall_export_metadata$|\.log$|(?:\.test|\.test-support)\.[^.]+$/u.test(
         relative,
       )
     ) {
@@ -124,17 +140,14 @@ export function contentFindings(tarPath, privateValues) {
     if (buffer.includes(0)) continue;
     const text = buffer.toString('utf8');
     if (
-      /demo-leadflow-ai-local|127\.0\.0\.1:8080|FIRESTORE_EMULATOR_HOST|[A-Za-z]:\\Users\\|\/(?:Users|home)\/[A-Za-z0-9._-]+/u.test(
+      !thirdParty &&
+      /[A-Za-z]:\\Users\\|\/(?:Users|home)\/[A-Za-z0-9._-]+\/|^\s*FIRESTORE_EMULATOR_HOST\s*=/mu.test(
         text,
       )
     ) {
-      findings.push(`${relative}: local or emulator value`);
+      findings.push(`${relative}: build-machine or emulator configuration`);
     }
-    if (
-      /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:ghp|github_pat|xox[baprs])-[-A-Za-z0-9_]{20,}|\bAIza[0-9A-Za-z_-]{30,}/u.test(
-        text,
-      )
-    ) {
+    if (CREDENTIAL.test(text)) {
       findings.push(`${relative}: credential-like content`);
     }
     for (const value of privateValues) {

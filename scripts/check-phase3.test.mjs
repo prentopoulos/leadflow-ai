@@ -252,3 +252,47 @@ describe('image tar reader', () => {
     }
   });
 });
+
+describe('image content rules', () => {
+  it('flags project leaks and real keys but not third-party tests or placeholders', async () => {
+    const { mkdtemp, mkdir, writeFile, rm } = await import('node:fs/promises');
+    const os = await import('node:os');
+    const { execFileSync } = await import('node:child_process');
+    const { contentFindings } = await import('./inspect-container-image.mjs');
+    const root = await mkdtemp(path.join(os.tmpdir(), 'leadflow-content-'));
+    const keyBody = 'A'.repeat(80);
+    const files = {
+      'app/apps/api/dist/server.test.js': 'test',
+      'app/apps/api/dist/config.js': "const home = 'C:\\Users\\someone\\repo';",
+      'app/apps/api/dist/local.js':
+        "export const project = 'demo-leadflow-ai-local';",
+      'app/.env': 'X=1',
+      'app/node_modules/pkg/test/a.test.js': 'third-party test',
+      'app/node_modules/pkg/doc.js':
+        "// private_key:'-----BEGIN PRIVATE KEY-----xxxxxxx'",
+      'app/node_modules/pkg/leak.js': `-----BEGIN PRIVATE KEY-----\n${keyBody}`,
+      'app/release/private.txt': 'owner-chosen-project-x',
+    };
+    try {
+      for (const [name, content] of Object.entries(files)) {
+        await mkdir(path.join(root, path.dirname(name)), { recursive: true });
+        await writeFile(path.join(root, name), content);
+      }
+      execFileSync('tar', ['-cf', 'image.tar', 'app'], { cwd: root });
+      const findings = contentFindings(path.join(root, 'image.tar'), [
+        'owner-chosen-project-x',
+      ]);
+      expect(findings.sort()).toEqual(
+        [
+          '.env: forbidden runtime artifact',
+          'apps/api/dist/server.test.js: forbidden runtime artifact',
+          'apps/api/dist/config.js: build-machine or emulator configuration',
+          'node_modules/pkg/leak.js: credential-like content',
+          'release/private.txt: configured private value',
+        ].sort(),
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+});
