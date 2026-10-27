@@ -215,11 +215,12 @@
       "scope": "deployed",
       "probe": "runbook rollback",
       "expected": "Traffic returns to the verified previous revision and smoke 1, 2, 5 and 6 pass there.",
-      "outcome": "not_run",
-      "recordedAt": null,
-      "observed": null,
-      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
-      "pending": false
+      "outcome": "pass",
+      "recordedAt": "2026-10-27T03:20:00.000Z",
+      "observed": "Revision leadflow-ai-demo-d6ded3f29172 (build ca7688ad-e0eb-44ed-932c-ec86e0f53c71) deployed at 0% with the candidate tag, then served 100% and passed session, intake, held execution and recorded-label smoke. Traffic returned to leadflow-ai-demo-95b6c04eda59 with IAP on; anonymous page and API requests were refused (302, 401); owner session, intake 202, held execution to complete, lead.persisted first, recorded labels and the no-consent draft skip passed under the candidate bundle.",
+      "reason": null,
+      "pending": false,
+      "candidateFingerprint": "24b74338f3b8dfa3f033d8ced53635d28d9d77461c4e165b23fcfe456b0a0561"
     },
     {
       "id": "deployed-teardown",
@@ -229,7 +230,7 @@
       "outcome": "not_run",
       "recordedAt": null,
       "observed": null,
-      "reason": "Awaiting the enumerated owner approval for hosted actions (task 6.1).",
+      "reason": "Scheduled, not yet due: the service, synthetic data, service-specific access and non-final images are removed within seven days of the owner approving the evidence and walkthrough, and the final image and repository by day 30.",
       "pending": false
     }
   ]

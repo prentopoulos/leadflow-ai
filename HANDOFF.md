@@ -2,6 +2,38 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## Phase 3 hosted proof checkpoint (2026-10-27)
+
+The private hosted proof is live. Peter approved the enumerated task 6.1 actions on 2026-10-26 and
+let Claude drive Cloud Shell and the console in his signed-in Chrome. Done: branch pushed (draft PR
+#7); billing/IAM/cap rechecked; six services enabled (Logging, Monitoring and Service Usage were
+already on, alongside Google's default new-project services, untouched); project alert budget
+`LeadFlow AI project CA$10 alert budget` (50/80/100% actual, 100% forecast); Firestore
+`(default)` Standard/Native in Toronto with deny-all rules, 15 ACTIVE TTL policies and 15 index
+exemptions; repository `leadflow-ai-demo`; identities `leadflow-ai-runtime` (datastore.user) and
+`leadflow-ai-build` (repository writer, log writer); two source-less builds; revision A
+`leadflow-ai-demo-95b6c04eda59` (build `7a4e502d-e957-498f-95fa-18331984640f`) serving 100% and
+revision B `leadflow-ai-demo-d6ded3f29172` (build `ca7688ad-e0eb-44ed-932c-ec86e0f53c71`) kept at
+0% after the rollback exercise. IAP uses a custom OAuth client (External, Testing, owner as the only
+test user); the auto-generated secret was not downloaded. No storage bucket exists.
+
+Evidence (`docs/evidence/phase-3/index.json`, bound to revision A): 14 deployed checks pass,
+including verified rollback. `allowlist-denial` (no second Google account) and
+`resume-retry-conflict` (no hosted interruption; emulator-proven) are `not_run` with reasons;
+cost is pending until billing posts; teardown is scheduled.
+
+Retained failures and deviations: the console budget form and typed console input misfired until
+driven through page controls; IAP needed a custom OAuth client the design had not planned (runbook
+updated); `gcloud iap` asked for the unapproved Cloud Resource Manager API and was declined (the
+Owner role already grants IAP access); commit `2f75efa` was pushed with one failing evaluation
+case, fixed in `d6ded3f`.
+
+Next actions, in order: (1) recheck cost after billing posts and record it; (2) record and send the
+walkthrough preview privately (`docs/walkthrough.md`); (3) owner approves the evidence and
+walkthrough, which starts the seven-day teardown clock (runbook "Teardown schedule"); (4) archive the
+OpenSpec change and merge PR #7 only on the owner's go-ahead. Phase 4 (synthetic click attribution
+and a live simulation engine) was agreed in principle and starts in a fresh session.
+
 ## Phase 3 local candidate checkpoint (2026-10-26)
 
 Branch `phase-3-deployment-access-evidence`, OpenSpec change of the same name. Tasks 1.1-5.1 are
