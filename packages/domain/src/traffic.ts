@@ -1,5 +1,6 @@
 import {
   AttributionSchema,
+  PLANNED_TRAFFIC_LEADS,
   channelFor,
   type Attribution,
 } from './acquisition.js';
@@ -16,7 +17,6 @@ import {
 // channel differences reflect spend and assignment, never lead quality.
 
 export const TRAFFIC_PLAN_VERSION = 'traffic-plan-v1' as const;
-export const PLANNED_TRAFFIC_LEADS = 60;
 export const MAX_TRAFFIC_INTERVAL_MS = 60_000;
 export const DEFAULT_TRAFFIC_INTERVAL_MS = 10_000;
 export const TRAFFIC_INDEPENDENCE_NOTICE =

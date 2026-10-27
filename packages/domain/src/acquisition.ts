@@ -10,6 +10,10 @@ export const ACQUISITION_VERSIONS = {
   trafficPlan: 'traffic-plan-v1',
 } as const;
 
+// The fixed flight size: traffic-plan-v1 plans this many leads and the
+// acquisition block reports progress against it.
+export const PLANNED_TRAFFIC_LEADS = 60;
+
 // Lowercase slugs in the GA4 utm style; parentheses allow `(direct)`,
 // `(none)` and `(organic)`. Values are not normalized, so a stored value is
 // exactly what was validated.
@@ -356,7 +360,7 @@ function row(leads: readonly AcquisitionLead[], spendCents: number) {
 export function acquisitionReport(
   leads: readonly AcquisitionLead[],
   fixture: SpendFixture = SYNTHETIC_SPEND,
-  plannedLeads = 60,
+  plannedLeads = PLANNED_TRAFFIC_LEADS,
 ): AcquisitionReport {
   const totalSpend = fixture.entries.reduce(
     (total, entry) => total + entry.spendCents,

@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { channelFor } from './acquisition.js';
-import { IntakeSubmissionSchema } from './phase1.js';
 import {
   PLANNED_TRAFFIC_LEADS,
+  SYNTHETIC_SPEND,
+  channelFor,
+} from './acquisition.js';
+import { IntakeSubmissionSchema } from './phase1.js';
+import {
   SIMULATED_CAMPAIGNS,
   runTrafficPlan,
   trafficIdempotencyKey,
@@ -30,6 +33,14 @@ describe('traffic-plan-v1', () => {
     for (const entry of plan) {
       expect(IntakeSubmissionSchema.parse(entry.intake)).toEqual(entry.intake);
     }
+  });
+
+  it('plans exactly the campaigns the spend fixture prices', () => {
+    const key = (entry: { source: string; medium: string; campaign: string }) =>
+      `${entry.source}|${entry.medium}|${entry.campaign}`;
+    expect(SIMULATED_CAMPAIGNS.map(key)).toEqual(
+      SYNTHETIC_SPEND.entries.map(key),
+    );
   });
 
   it('marks only paid leads with synthetic click IDs', () => {

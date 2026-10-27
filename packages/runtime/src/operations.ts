@@ -355,11 +355,14 @@ export class OperationsService {
     let responded = 0;
     let appointment = 0;
 
-    for (const context of contexts) {
-      const priority =
-        context.qualification === null
-          ? 'not_scored'
-          : (context.qualification.priority ?? 'held');
+    // One priority per run feeds both the distribution and acquisition.
+    const priorities = contexts.map(({ qualification }) =>
+      qualification === null
+        ? ('not_scored' as const)
+        : (qualification.priority ?? ('held' as const)),
+    );
+    for (const [index, context] of contexts.entries()) {
+      const priority = priorities[index]!;
       priorityDistribution[priority] += 1;
       evidenceRecords.push(...context.evidence);
       const start = context.events.find(
@@ -488,13 +491,10 @@ export class OperationsService {
         appointment,
       },
       acquisition: acquisitionReport(
-        contexts.map(({ run, lead, qualification }) => ({
+        contexts.map(({ run, lead }, index) => ({
           attribution: lead.intake.attribution,
           consented: lead.intake.emailContactConsent,
-          priority:
-            qualification === null
-              ? 'not_scored'
-              : (qualification.priority ?? 'held'),
+          priority: priorities[index]!,
           failed:
             run.status === 'failed_retryable' ||
             run.status === 'failed_terminal',
