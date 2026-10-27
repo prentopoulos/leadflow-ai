@@ -31,8 +31,16 @@ case, fixed in `d6ded3f`.
 Next actions, in order: (1) recheck cost after billing posts and record it; (2) record and send the
 walkthrough preview privately (`docs/walkthrough.md`); (3) owner approves the evidence and
 walkthrough, which starts the seven-day teardown clock (runbook "Teardown schedule"); (4) archive the
-OpenSpec change and merge PR #7 only on the owner's go-ahead. Phase 4 (synthetic click attribution
-and a live simulation engine) was agreed in principle and starts in a fresh session.
+OpenSpec change and merge PR #7 only on the owner's go-ahead. If the owner wants to demo the live
+service during Phase 4, he extends hosting instead of starting the seven-day teardown.
+
+Phase 4 direction (owner, 2026-10-27), to be grilled and proposed in a fresh session: keep it simple.
+One small simulation script feeds fictional leads through the real API at a steady pace with
+recorded enrichment, each carrying a synthetic source, campaign and click ID; drafts still wait for
+human approval. The dashboard adds attribution by channel and campaign and a headline
+**cost-per-lead** metric (synthetic channel spend divided by stored leads, overall and per channel,
+plus cost per qualified lead), labelled simulated. Real Google Ads or Analytics data stays behind
+its gate. The owner prefers to record the walkthrough after Phase 4.
 
 ## Phase 3 local candidate checkpoint (2026-10-26)
 
