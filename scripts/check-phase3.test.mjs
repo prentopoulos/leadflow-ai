@@ -218,3 +218,37 @@ describe('deploy templates', () => {
     expect(commands[1]).toContain('--disable-indexes');
   });
 });
+
+describe('image tar reader', () => {
+  it('streams regular files, including long names, without extracting', async () => {
+    const { mkdtemp, mkdir, writeFile, rm } = await import('node:fs/promises');
+    const os = await import('node:os');
+    const { execFileSync } = await import('node:child_process');
+    const { tarFiles } = await import('./inspect-container-image.mjs');
+    const root = await mkdtemp(path.join(os.tmpdir(), 'leadflow-tar-'));
+    try {
+      const deep = `app/${'nested-directory/'.repeat(8)}file.js`;
+      await mkdir(path.join(root, path.dirname(deep)), { recursive: true });
+      await writeFile(path.join(root, deep), 'deep content');
+      await writeFile(path.join(root, 'app', 'short.js'), 'short content');
+      await writeFile(path.join(root, 'outside.txt'), 'not app');
+      execFileSync('tar', ['-cf', 'image.tar', 'app', 'outside.txt'], {
+        cwd: root,
+      });
+      // Contents are read while iterating; the reader closes its handle at
+      // the end of the stream.
+      const files = [];
+      for (const file of tarFiles(path.join(root, 'image.tar'), (name) =>
+        name.startsWith('app/'),
+      )) {
+        files.push([file.name, file.read().toString('utf8')]);
+      }
+      expect(Object.fromEntries(files)).toEqual({
+        [deep]: 'deep content',
+        'app/short.js': 'short content',
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+});

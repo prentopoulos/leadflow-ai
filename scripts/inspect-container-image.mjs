@@ -2,8 +2,8 @@
 // final runtime image metadata and exported /app filesystem. No cloud access,
 // credentials or private values are required.
 import { execFile } from 'node:child_process';
-import { constants } from 'node:fs';
-import { access, mkdir, readFile, readdir, rm } from 'node:fs/promises';
+import { closeSync, openSync, readSync } from 'node:fs';
+import { mkdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
@@ -14,7 +14,6 @@ const work = path.join(repoRoot, '.local', 'container-inspection');
 const archive = path.join(work, 'source.tar');
 const context = path.join(work, 'context');
 const exported = path.join(work, 'runtime.tar');
-const filesystem = path.join(work, 'filesystem');
 
 async function run(command, args, options = {}) {
   return execute(command, args, {
@@ -26,14 +25,54 @@ async function run(command, args, options = {}) {
   });
 }
 
-async function filesBelow(directory) {
-  const entries = await readdir(directory, {
-    recursive: true,
-    withFileTypes: true,
-  });
-  return entries
-    .filter((entry) => entry.isFile())
-    .map((entry) => path.join(entry.parentPath, entry.name));
+// Reads regular files from an exported image tar without extracting it:
+// Windows cannot create the image's symlinks (zoneinfo, pnpm links), and a
+// streamed read keeps memory flat. Supports ustar prefixes and PAX/GNU long
+// names; symlinks and other entry types are skipped.
+export function* tarFiles(tarPath, accept) {
+  const handle = openSync(tarPath, 'r');
+  const header = Buffer.alloc(512);
+  const field = (start, length) => {
+    const raw = header.subarray(start, start + length);
+    const end = raw.indexOf(0);
+    return raw.toString('utf8', 0, end < 0 ? length : end);
+  };
+  let offset = 0;
+  let longName = null;
+  try {
+    while (readSync(handle, header, 0, 512, offset) === 512) {
+      if (header.every((byte) => byte === 0)) break;
+      const size = Number.parseInt(field(124, 12).trim() || '0', 8);
+      const type = String.fromCharCode(header[156] || 48);
+      const prefix = field(345, 155);
+      const name =
+        longName ??
+        (prefix === '' ? field(0, 100) : `${prefix}/${field(0, 100)}`);
+      const dataOffset = offset + 512;
+      offset = dataOffset + Math.ceil(size / 512) * 512;
+      const read = () => {
+        const data = Buffer.alloc(size);
+        readSync(handle, data, 0, size, dataOffset);
+        return data;
+      };
+      if (type === 'x' || type === 'L') {
+        const data = read();
+        const end = data.indexOf(0);
+        const text = data.toString('utf8', 0, end < 0 ? data.length : end);
+        longName =
+          type === 'L'
+            ? text
+            : (/(?:^|\n)\d+ path=([^\n]*)\n/u.exec(text)?.[1] ?? null);
+        continue;
+      }
+      longName = null;
+      if ((type === '0' || type === '7') && accept(name)) {
+        yield { name, read };
+      }
+    }
+  } finally {
+    closeSync(handle);
+  }
 }
 
 function metadataFindings(image) {
@@ -67,11 +106,12 @@ function metadataFindings(image) {
   return findings;
 }
 
-async function contentFindings(appDirectory, privateValues) {
+export function contentFindings(tarPath, privateValues) {
   const findings = [];
-  const files = await filesBelow(appDirectory);
-  for (const file of files) {
-    const relative = path.relative(appDirectory, file).replaceAll('\\', '/');
+  let count = 0;
+  for (const file of tarFiles(tarPath, (name) => name.startsWith('app/'))) {
+    count += 1;
+    const relative = file.name.slice('app/'.length);
     if (
       /(?:^|\/)(?:\.git|\.env(?:\.|$)|docs|deploy|scripts)(?:\/|$)|(?:\.test|\.test-support)\.[^.]+$/u.test(
         relative,
@@ -80,7 +120,7 @@ async function contentFindings(appDirectory, privateValues) {
       findings.push(`${relative}: forbidden runtime artifact`);
       continue;
     }
-    const buffer = await readFile(file);
+    const buffer = file.read();
     if (buffer.includes(0)) continue;
     const text = buffer.toString('utf8');
     if (
@@ -103,6 +143,7 @@ async function contentFindings(appDirectory, privateValues) {
       }
     }
   }
+  if (count === 0) findings.push('runtime image has no /app files');
   return findings;
 }
 
@@ -160,10 +201,6 @@ export async function inspectCandidateImage() {
   } finally {
     await run('docker', ['rm', container]);
   }
-  await mkdir(filesystem, { recursive: true });
-  await run('tar', ['-xf', 'runtime.tar', '-C', 'filesystem'], { cwd: work });
-  const appDirectory = path.join(filesystem, 'app');
-  await access(appDirectory, constants.R_OK);
   let privateValues = [];
   try {
     privateValues = (
@@ -178,14 +215,14 @@ export async function inspectCandidateImage() {
   } catch (error) {
     if (error.code !== 'ENOENT') throw error;
   }
-  findings.push(...(await contentFindings(appDirectory, privateValues)));
+  findings.push(...contentFindings(exported, privateValues));
   if (findings.length > 0) {
     throw new Error(
       `Candidate image inspection failed:\n${findings.join('\n')}`,
     );
   }
   console.log(
-    `Candidate image ${tag} passed metadata and filesystem inspection.`,
+    `Candidate image ${tag} (${image.Id}) passed metadata and filesystem inspection.`,
   );
 }
 
