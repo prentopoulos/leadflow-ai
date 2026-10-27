@@ -2,16 +2,20 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
-## Phase 4 hosted run in progress (2026-10-27, afternoon)
+## Phase 4 hosted demonstration (2026-10-27)
 
-Approved by Peter (enumerated list, after the CA$0.00 cost reading). Build candidate `a151256`
-(full gate 431 tests; container inspection passed). Done: Cloud Build `d13d3e74-5541-452c-91eb-ce0432970703`
-SUCCESS, image `sha256:83c7f364a03f99eac209f1c79b15e0c5a0ad1c315de4e433e705b451f50b26eb`, no storage
-bucket. Revision A still serves 100%. Blocked: the agent's safety check refused the guarded purge, so
-Peter runs it in Cloud Shell (runbook § Purge). Then, in order: render with
-`LEADFLOW_PREVIOUS_REVISION=leadflow-ai-demo-95b6c04eda59`, `gcloud run services replace` (0%),
-move traffic, smoke 1, rollback exercise, purge again, smokes 5-6, simulated traffic, evidence.
-The Cloud Shell tab froze while typing the render command; nothing was deployed.
+Revision `leadflow-ai-demo-a151256aac80` (build `d13d3e74`, image `sha256:83c7f364…`) serves 100%.
+Recorded in `docs/evidence/phase-4/index.json`: owner access, both purges, configuration match,
+persist-before-202, polling, duplicate-execution conflict, recorded labels, consent/no-send, verified
+rollback to `95b6c04eda59` and back, the 60-lead hosted flight and the acquisition labels all pass.
+Open: `deployed-cost-status` (Firestore reads rose to 108,327 today because the open hosted
+dashboard polls every 3 s; above the 50,000 free tier, cents expected; recheck the bill),
+`deployed-teardown` (starts at Peter's evidence approval), the walkthrough recording, and the
+design's fallback of a 15 s hosted metrics poll before any further hosted demo.
+
+Live demo for Peter: `pnpm demo` (Windows and macOS; local, no cloud cost) then **Run simulated
+traffic** on Metrics. macOS setup lives on `feat/macos-showcase-readme` with the checksum fix
+(`5a7a8e9`, local worktree `../lf-mac`), not yet pushed or merged.
 
 ## Phase 4 local candidate checkpoint (2026-10-27)
 

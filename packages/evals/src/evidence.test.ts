@@ -16,7 +16,7 @@ const indexPath = path.resolve(
 );
 
 describe('phase 4 deployment evidence index', () => {
-  it('lists every Phase 4 check as not run, with cost pending, until the authorized probe', async () => {
+  it('binds Phase 4 passes to the deployed candidate and holds readiness while cost and teardown are pending', async () => {
     const index = DeploymentEvidenceIndexSchema.parse(
       JSON.parse(
         await readFile(indexPath.replace('phase-3', 'phase-4'), 'utf8'),
@@ -26,9 +26,10 @@ describe('phase 4 deployment evidence index', () => {
     expect(index.checks.map((check) => check.id)).toEqual([
       ...PHASE_FOUR_DEPLOYED_CHECK_IDS,
     ]);
-    expect(index.checks.every((check) => check.outcome === 'not_run')).toBe(
-      true,
-    );
+    const open = index.checks
+      .filter((check) => check.outcome !== 'pass')
+      .map((check) => check.id);
+    expect(open).toEqual(['deployed-cost-status', 'deployed-teardown']);
     expect(deploymentReady(index)).toBe(false);
   });
 });
