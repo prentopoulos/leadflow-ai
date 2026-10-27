@@ -34,7 +34,7 @@ export async function verifyHostedBoundaries({ systemBundleId }) {
     ).persist({
       idempotencyKey: `hosted-retention-probe-${randomUUID()}`,
       intake: {
-        schemaVersion: 'intake-v2',
+        schemaVersion: 'intake-v3',
         identityClass: 'fictional',
         givenName: 'Riley',
         familyName: 'Example',

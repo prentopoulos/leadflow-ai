@@ -17,7 +17,7 @@ const hostedInput = {
 
 function base(configuration: 'phase-2-local-v1' | 'phase-3-cloud-v1') {
   return {
-    schemaVersion: 'system-bundle-v3',
+    schemaVersion: 'system-bundle-v4',
     code: {
       revision: 'c'.repeat(40),
       dirty: false,
@@ -25,10 +25,10 @@ function base(configuration: 'phase-2-local-v1' | 'phase-3-cloud-v1') {
       patchDigest: null,
     },
     lockfileDigest: digest,
-    fixtures: { version: 'phase-3.0', digest },
+    fixtures: { version: 'phase-4.0', digest },
     versions: {
-      intake: 'intake-v2',
-      lead: 'lead-v2',
+      intake: 'intake-v3',
+      lead: 'lead-v3',
       run: 'run-v2',
       event: 'event-v2',
       checkpoint: 'checkpoint-v1',
@@ -42,7 +42,8 @@ function base(configuration: 'phase-2-local-v1' | 'phase-3-cloud-v1') {
       verificationRules: 'verification-rules-v1',
       decisionLanguage: 'decision-language-v1',
       metricsDefinitions: 'metrics-definitions-v1',
-      evaluator: 'phase-3.0',
+      channelRules: 'channel-rules-v1',
+      evaluator: 'phase-4.0',
       configuration,
     },
     environment: {

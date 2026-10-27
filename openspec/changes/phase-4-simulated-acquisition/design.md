@@ -59,7 +59,7 @@ Evaluated in order, first match wins:
 
 | Channel | Rule |
 |---|---|
-| Direct | source `(direct)` and medium `(none)` or `(not set)` |
+| Direct | source `(direct)` and medium `(none)` (GA4's `(not set)` contains a space, which the slug rule refuses) |
 | Paid Search | source in the search list (`google`, `bing`) and a paid medium |
 | Paid Social | source in the social list (`facebook`, `instagram`, `linkedin`) and a paid medium |
 | Email | source or medium `email`, or medium `newsletter` |

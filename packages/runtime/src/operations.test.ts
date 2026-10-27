@@ -38,7 +38,8 @@ const startedAt = '2026-10-25T20:00:00.000Z';
 const finishedAt = '2026-10-25T20:00:01.000Z';
 
 const intake = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',
@@ -56,7 +57,7 @@ const intake = {
 } as const;
 
 const lead = (leadId: string) => ({
-  schemaVersion: 'lead-v2' as const,
+  schemaVersion: 'lead-v3' as const,
   leadId,
   createdAt: startedAt,
   intake,
@@ -66,6 +67,7 @@ const lead = (leadId: string) => ({
     retrievedAt: '2026-10-24' as const,
     exactSourceFields: ['zipCode' as const],
     demoFields: ['givenName' as const],
+    simulatedFields: ['attribution'] as ['attribution'],
     parityVerified: false as const,
   },
   evidenceClass: 'synthetic' as const,

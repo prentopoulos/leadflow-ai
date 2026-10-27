@@ -4,7 +4,7 @@
 
 ## 2. Attribution contract
 
-- [ ] 2.1 Add `intake-v3`/`lead-v3` with the strict optional attribution object and synthetic click-ID rule, `channel-rules-v1`, server-side channel derivation, provenance labels, `intake-v2` rejection, the form's `attribution: null`, the new system bundle, and the attribution isolation from rubric, drafts, verification, events and logs; freeze the `phase-4.0` cases before implementation and prove them with affected unit tests and the emulator probe.
+- [x] 2.1 Add `intake-v3`/`lead-v3` with the strict optional attribution object and synthetic click-ID rule, `channel-rules-v1`, server-side channel derivation, provenance labels, `intake-v2` rejection, the form's `attribution: null`, the new system bundle, and the attribution isolation from rubric, drafts, verification, events and logs; freeze the `phase-4.0` cases before implementation and prove them with affected unit tests and the emulator probe.
 
 ## 3. Traffic plan and simulator
 

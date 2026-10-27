@@ -178,7 +178,7 @@ function metricsResponse(): MetricsResponse {
 
 function draftView(): DraftView {
   const intake = {
-    schemaVersion: 'intake-v2' as const,
+    schemaVersion: 'intake-v3' as const,
     identityClass: 'fictional' as const,
     givenName: 'Avery',
     familyName: 'Jordan',
@@ -193,6 +193,7 @@ function draftView(): DraftView {
     requestDetails: null,
     emailContactConsent: true,
     consentRecord: currentConsentRecord(),
+    attribution: null,
   };
   const composed = composeDraft(
     composerInputFrom({ intake, priority: 'high', evidence: [] }),

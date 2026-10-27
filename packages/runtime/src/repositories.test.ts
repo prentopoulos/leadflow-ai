@@ -28,7 +28,8 @@ const timestamp = '2026-10-24T20:00:00.000Z';
 const digest = 'a'.repeat(64);
 
 const intake = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',
@@ -46,7 +47,7 @@ const intake = {
 } as const;
 
 const lead = {
-  schemaVersion: 'lead-v2',
+  schemaVersion: 'lead-v3',
   leadId: ids.lead,
   createdAt: timestamp,
   intake,
@@ -68,6 +69,7 @@ const lead = {
       'requestDetails',
       'emailContactConsent',
     ],
+    simulatedFields: ['attribution'],
     parityVerified: false,
   },
   evidenceClass: 'synthetic',
@@ -135,7 +137,7 @@ const idempotency = {
 } as const;
 
 const bundle = {
-  schemaVersion: 'system-bundle-v3',
+  schemaVersion: 'system-bundle-v4',
   systemBundleId: ids.bundle,
   createdAt: timestamp,
   code: {
@@ -147,8 +149,8 @@ const bundle = {
   lockfileDigest: digest,
   fixtures: { version: 'phase-0.1', digest },
   versions: {
-    intake: 'intake-v2',
-    lead: 'lead-v2',
+    intake: 'intake-v3',
+    lead: 'lead-v3',
     run: 'run-v2',
     event: 'event-v2',
     checkpoint: 'checkpoint-v1',
@@ -162,6 +164,7 @@ const bundle = {
     verificationRules: 'verification-rules-v1',
     decisionLanguage: 'decision-language-v1',
     metricsDefinitions: 'metrics-definitions-v1',
+    channelRules: 'channel-rules-v1',
     evaluator: 'phase-0.1',
     configuration: 'phase-2-local-v1',
   },

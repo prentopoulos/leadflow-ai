@@ -122,7 +122,7 @@ outcomes appear only in their own labelled panel. Every chart also has a table o
 ## Evidence
 
 <!-- bottom-line:start -->
-- 68 fixed synthetic evaluation cases
+- 74 fixed synthetic evaluation cases
 - rubric-v1 weights: need timeline 40, request clarity 30, completeness 30
 <!-- bottom-line:end -->
 

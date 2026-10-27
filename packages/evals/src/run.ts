@@ -48,7 +48,7 @@ const report = EvalReportSchema.parse({
 
 const outputDirectory = path.join(repoRoot, '.local', 'evals');
 await mkdir(outputDirectory, { recursive: true });
-const outputPath = path.join(outputDirectory, 'phase-3-report.json');
+const outputPath = path.join(outputDirectory, 'phase-4-report.json');
 await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 
 console.log(

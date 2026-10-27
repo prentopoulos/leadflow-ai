@@ -18,7 +18,8 @@ const accepted: IntakeAcceptedResponse = {
   evidenceClass: 'synthetic-local',
 };
 const intake = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: ' Avery ',
   familyName: 'Example',

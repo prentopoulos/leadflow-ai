@@ -258,7 +258,7 @@ function refusedBy(action: () => unknown): boolean {
 }
 
 const releaseBase = {
-  schemaVersion: 'system-bundle-v3',
+  schemaVersion: 'system-bundle-v4',
   code: {
     revision: 'c'.repeat(40),
     dirty: false,
@@ -283,6 +283,7 @@ const releaseBase = {
     verificationRules: CONTRACT_VERSIONS.verificationRules,
     decisionLanguage: CONTRACT_VERSIONS.decisionLanguage,
     metricsDefinitions: CONTRACT_VERSIONS.metricsDefinitions,
+    channelRules: CONTRACT_VERSIONS.channelRules,
     evaluator: DATASET_VERSION,
     configuration: 'phase-3-cloud-v1',
   },

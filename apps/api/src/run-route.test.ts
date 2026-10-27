@@ -21,11 +21,12 @@ const timestamp = '2026-10-25T12:00:00.000Z';
 const responseFixture: RunDetailResponse = {
   schemaVersion: 'run-detail-response-v2',
   lead: {
-    schemaVersion: 'lead-v2',
+    schemaVersion: 'lead-v3',
     leadId: ids.lead,
     createdAt: timestamp,
     intake: {
-      schemaVersion: 'intake-v2',
+      schemaVersion: 'intake-v3',
+      attribution: null,
       identityClass: 'fictional',
       givenName: 'Avery',
       familyName: 'Example',
@@ -59,6 +60,7 @@ const responseFixture: RunDetailResponse = {
         'requestDetails',
         'emailContactConsent',
       ],
+      simulatedFields: ['attribution'],
       parityVerified: false,
     },
     evidenceClass: 'synthetic',

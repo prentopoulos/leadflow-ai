@@ -64,7 +64,7 @@ export function seedLead(index) {
       : PROBE_VEHICLE_SUBJECTS[index % PROBE_VEHICLE_SUBJECTS.length];
   const consent = index % 4 !== 3;
   return {
-    schemaVersion: 'intake-v2',
+    schemaVersion: 'intake-v3',
     identityClass: 'fictional',
     givenName: givenNames[index % givenNames.length],
     familyName: familyNames[index % familyNames.length],

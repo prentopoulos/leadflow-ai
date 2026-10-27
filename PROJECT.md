@@ -382,7 +382,7 @@ Milestones are ordered by dependency.
 | 1 | Verified intake, immediate Firestore persistence, LangGraph orchestration, qualification agent, and C4 architecture diagrams as code | Done |
 | 2 | Live enrichment, consent-gated outreach drafts, verification/security layer, responsive live dashboard, and run monitoring (Firebase Auth moved to Phase 3) | Done |
 | 3 | Owner-authorized private Cloud Run deployment with direct IAP access control, evidence bundle, README, and demonstration walkthrough (the repository went public under MIT at the close of Phase 2) | Done |
-| 4 | Simulated acquisition: attributed synthetic traffic, cost per lead and per qualified lead (simulated), hosted demonstration and walkthrough | Planned |
+| 4 | Simulated acquisition: attributed synthetic traffic, cost per lead and per qualified lead (simulated), hosted demonstration and walkthrough | In progress |
 
 ### Lean task budgets for remaining phases
 

@@ -23,3 +23,4 @@ export {
 } from './evidence.js';
 export type { DeploymentEvidenceIndex } from './evidence.js';
 export { PHASE_THREE_CASES } from './phase3.js';
+export { PHASE_FOUR_CASES } from './phase4.js';

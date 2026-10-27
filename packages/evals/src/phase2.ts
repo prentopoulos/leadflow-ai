@@ -220,7 +220,8 @@ export const PHASE_TWO_CASES = [
 ] satisfies EvalCase[];
 
 const intake: IntakeSubmission = {
-  schemaVersion: 'intake-v2',
+  schemaVersion: 'intake-v3',
+  attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Jordan',
