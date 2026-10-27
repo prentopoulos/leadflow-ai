@@ -133,7 +133,8 @@ export async function inspectCandidateImage() {
   await rm(work, { recursive: true, force: true });
   await mkdir(context, { recursive: true });
   await git(['archive', '--format=tar', `--output=${archive}`, commit]);
-  await run('tar', ['-xf', archive, '-C', context]);
+  // Relative paths: GNU tar reads a drive-letter path as a remote host.
+  await run('tar', ['-xf', 'source.tar', '-C', 'context'], { cwd: work });
   const tag = `leadflow-ai-candidate:${commit.slice(0, 12)}`;
   await run(
     'docker',
@@ -160,7 +161,7 @@ export async function inspectCandidateImage() {
     await run('docker', ['rm', container]);
   }
   await mkdir(filesystem, { recursive: true });
-  await run('tar', ['-xf', exported, '-C', filesystem]);
+  await run('tar', ['-xf', 'runtime.tar', '-C', 'filesystem'], { cwd: work });
   const appDirectory = path.join(filesystem, 'app');
   await access(appDirectory, constants.R_OK);
   let privateValues = [];
