@@ -2,6 +2,20 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## Phase 4 spec checkpoint (2026-10-27)
+
+Branch `phase-4-simulated-acquisition`, OpenSpec change of the same name. Grilling finished in one
+round: Peter accepted all nine owner calls and ten settled answers (PROJECT.md § Phase 4
+decisions). The spec-only commit and draft PR are the only actions so far; no code has changed.
+
+Interim cost reading (2026-10-27 09:45 Toronto, read-only in Peter's Chrome): billing Overview,
+Reports and all three budgets showed CA$0.00 (the Cloud Run cap "~$0.00 / $10.00"). That was about
+11 hours after the last hosted activity (about 02:45 UTC on 2026-10-27), inside Google's "usually
+within 24 hours" window, so `deployed-cost-status` stays pending.
+
+Next: task 1.1, recheck the posted cost after about 22:45 Toronto on 2026-10-27 and record it.
+Local tasks 2.1-7.1 do not wait for it; only the hosted approval in task 8.1 does.
+
 ## Phase 3 closing checkpoint (2026-10-27)
 
 Phase 3 is complete and archived as `openspec/changes/archive/2026-10-27-phase-3-deployment-access-evidence`
