@@ -240,7 +240,7 @@ export function AgentResearch({ brief }: { brief: AgentBriefRecord }) {
           <dd>{sources}</dd>
         </div>
         <div>
-          <dt>Facts checked</dt>
+          <dt>Verified</dt>
           <dd>
             {brief.claims.length} of {brief.candidateClaims}
           </dd>
