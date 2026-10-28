@@ -155,6 +155,16 @@ describe('Phase 1 intake workspace', () => {
     expect(intakeClient.mock.calls[1]?.[1]).toBe('stable-retry-key');
   });
 
+  it('removes added vehicles when the form is reset', () => {
+    render(<App />);
+    fireEvent.click(
+      screen.getByRole('button', { name: /Add another vehicle/u }),
+    );
+    expect(screen.getByLabelText('Vehicle 2 year')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Restore example' }));
+    expect(screen.queryByLabelText('Vehicle 2 year')).not.toBeInTheDocument();
+  });
+
   it('declares 390px and reduced-motion safeguards', () => {
     const stylesheet = readFileSync(
       path.join(process.cwd(), 'apps/web/src/styles.css'),

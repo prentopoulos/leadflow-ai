@@ -144,6 +144,9 @@ export function App({
   );
   const [accepted, setAccepted] = useState<IntakeAcceptedResponse | null>(null);
   const [executionNotice, setExecutionNotice] = useState<string | null>(null);
+  // A form reset clears inputs but not component state, so remounting the
+  // extra-vehicle rows on reset removes any rows that were added.
+  const [resetCount, setResetCount] = useState(0);
   const session = useSession();
   const hosted = session.mode === 'cloud';
   const errorSummaryRef = useRef<HTMLDivElement>(null);
@@ -298,6 +301,7 @@ export function App({
     setSubmissionStatus('idle');
     setAccepted(null);
     setExecutionNotice(null);
+    setResetCount((count) => count + 1);
     requestIdentityRef.current = null;
   }
 
@@ -440,7 +444,7 @@ export function App({
                       <FieldError field="vehicleModel" errors={errors} />
                     </div>
                   </div>
-                  <AdditionalVehicles />
+                  <AdditionalVehicles key={resetCount} />
                 </div>
 
                 <ChoiceQuestion field="multipleDrivers" />
