@@ -130,9 +130,9 @@ Skills grant no spending, outreach, deployment or real-data transfer authority.
 - Planning/skills: frontmatter where relevant, local links, source digests for carryover,
   consistency, strict OpenSpec validation, whitespace and candidate-file inspection.
 - Runtime: activate the repository toolchain with `. .\scripts\activate-toolchain.ps1` (macOS:
-  `source scripts/activate-toolchain.sh`), then run `pnpm check`. It covers strict OpenSpec validation plus format, lint, type, build, test,
-  deterministic evaluation, loopback smoke, constitution-drift, and tracked-file hygiene checks.
-  Add meaningful affected boundary tests.
+  `source scripts/activate-toolchain.sh`), then run `pnpm check`. It covers strict OpenSpec
+  validation plus format, lint, type, build, test, deterministic evaluation, loopback smoke,
+  constitution-drift, and tracked-file hygiene checks. Add meaningful affected boundary tests.
 - Results and model behavior: independent checks of outputs, cases fixed before measuring,
   honest run records. No fabricated remote results.
   For AI products, apply the AI-ops evaluation procedure and bind evidence to the complete
