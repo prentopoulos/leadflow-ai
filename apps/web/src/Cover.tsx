@@ -33,8 +33,7 @@ export function Cover() {
           </p>
           <h1 id="cover-title">LeadFlow AI</h1>
           <p className="cover-lede">
-            Scores and researches auto insurance leads, then drafts follow-ups
-            for your team to approve.
+            Score and follow up on auto insurance leads.
           </p>
         </header>
 
