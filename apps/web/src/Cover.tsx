@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { SimulationStrip } from './Masthead.js';
 
 // The agent pipeline in the order a lead moves through it (README "How it
@@ -55,8 +56,17 @@ export function Cover() {
         >
           <h2 id="cover-pipeline-title">Pipeline</h2>
           <ol>
-            {pipeline.map((step) => (
-              <li key={step}>{step}</li>
+            {/* Each step lights in turn, like a lead moving through. */}
+            {pipeline.map((step, index) => (
+              <li key={step} style={{ '--step': index } as CSSProperties}>
+                <span className="step-dot" aria-hidden="true" />
+                <span className="step-label">{step}</span>
+                {index < pipeline.length - 1 ? (
+                  <span className="step-rail" aria-hidden="true">
+                    <span />
+                  </span>
+                ) : null}
+              </li>
             ))}
           </ol>
         </section>

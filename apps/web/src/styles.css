@@ -2952,27 +2952,118 @@ fieldset.flow-question > legend + * {
   }
 }
 
-/* The cover pipeline reads as one line of single-word steps. */
+/* Cover pipeline after 21st.dev steppers: single-word steps on one line,
+   joined by a rail. The highlight moves step to step (1.6 s each) and the
+   rail fills toward the next step, like a lead going through. */
 .cover-pipeline ol {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0;
 }
 
 .cover-pipeline li {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: 999px;
-  padding: 0.5rem 1rem;
-  color: var(--cover-ink);
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  border: 0;
+  padding: 0;
+  background: none;
   font-weight: 700;
 }
 
-.cover-pipeline li + li::before {
-  margin-left: -0.5rem;
-  padding-right: 0.5rem;
-  color: var(--cover-mint);
-  content: '→';
+.step-dot {
+  position: relative;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--cover-mint);
+  border-radius: 50%;
+  background: #0b1714;
+  animation: pipeline-dot 11.2s linear infinite;
+  animation-delay: calc(var(--step) * 1.6s);
+}
+
+.step-label {
+  color: var(--cover-soft);
+  animation: pipeline-label 11.2s linear infinite;
+  animation-delay: calc(var(--step) * 1.6s);
+}
+
+.step-rail {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  overflow: hidden;
+  background: rgb(134 239 197 / 22%);
+}
+
+.step-rail > span {
+  display: block;
+  height: 100%;
+  background: var(--cover-mint);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: pipeline-rail 11.2s linear infinite;
+  animation-delay: calc(var(--step) * 1.6s);
+}
+
+@keyframes pipeline-dot {
+  0%,
+  13% {
+    background: var(--cover-mint);
+  }
+
+  16%,
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label {
+  0%,
+  13% {
+    color: #f4fbf8;
+  }
+
+  16%,
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+@keyframes pipeline-rail {
+  0% {
+    transform: scaleX(0);
+  }
+
+  14% {
+    transform: scaleX(1);
+  }
+
+  16%,
+  100% {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-dot,
+  .step-label,
+  .step-rail > span {
+    animation: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .cover-pipeline ol {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 1.25rem;
+  }
+
+  .step-rail {
+    display: none;
+  }
 }
