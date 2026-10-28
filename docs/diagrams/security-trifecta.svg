@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1000 496" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="security-trifecta-title security-trifecta-desc" id="security-trifecta-root">
+<svg width="1000" height="496" viewBox="0 0 1000 496" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="security-trifecta-title security-trifecta-desc" id="security-trifecta-root">
   <title id="security-trifecta-title">No run gets all three capabilities</title>
   <desc id="security-trifecta-desc">Three overlapping capability sets show bounded untrusted input, sensitive data and a way out. Their shared center is blocked. The matrix shows recorded local, live local and optional agent-local modes without real personal data or automatic sending.</desc>
   <defs>

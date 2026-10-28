@@ -17,6 +17,7 @@ import { AcquisitionSection } from './AcquisitionSection.js';
 import { runClient } from './run-client.js';
 import { useSession } from './session-context.js';
 import { SimulatedTrafficControl } from './SimulatedTrafficControl.js';
+import { AgentToggle } from './AgentToggle.js';
 import { useVisiblePolling } from './use-visible-polling.js';
 
 function milliseconds(value: number | null) {
@@ -180,6 +181,7 @@ export function MetricsDashboard({
                 : { get: runClient.get, resume: runClient.resume }
             }
           />
+          {hosted ? null : <AgentToggle />}
           <AcquisitionSection acquisition={report.acquisition} />
         </>
       ) : null}

@@ -4,9 +4,11 @@
 // API in the foreground. Requires `pnpm build` and `pnpm emulator:start`.
 // Enrichment is live (owner-authorized reads) unless `--enrichment=recorded`
 // or `--enrichment=mock` is passed; the mode is part of the system bundle, so
-// each mode has its own labelled dashboard window. `--agents=claude` turns on
-// the Phase 5 agent team: it reads ANTHROPIC_API_KEY from the gitignored
-// `.env` (never printed) and records a bundle naming the provider and models.
+// each mode has its own labelled dashboard window. The normal local process is
+// agent-capable but starts with the team off. It reads ANTHROPIC_API_KEY from
+// the gitignored `.env` when present; otherwise the dashboard can create that
+// file through the loopback backend. `--agents=off` is retained only for
+// explicit template-only diagnostics.
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { createSystemBundle } from '../packages/evals/dist/bundle.js';
@@ -27,20 +29,18 @@ if (!['live', 'recorded', 'mock'].includes(enrichmentMode)) {
 const agentsArgument = process.argv
   .find((argument) => argument.startsWith('--agents='))
   ?.slice('--agents='.length);
-const agents = agentsArgument === 'claude';
-if (agentsArgument !== undefined && !agents) {
-  throw new Error('--agents must be claude.');
+if (
+  agentsArgument !== undefined &&
+  !['claude', 'auto', 'off'].includes(agentsArgument)
+) {
+  throw new Error('--agents must be claude, auto or off.');
 }
-if (agents) {
-  try {
-    process.loadEnvFile(path.join(repoRoot, '.env'));
-  } catch {
-    // Fall through to the check below; the key may already be exported.
-  }
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('--agents=claude needs ANTHROPIC_API_KEY in .env.');
-  }
+try {
+  process.loadEnvFile(path.join(repoRoot, '.env'));
+} catch {
+  // First run: the dashboard can create the gitignored file after startup.
 }
+const agents = agentsArgument !== 'off';
 
 const environment = {
   ...process.env,
@@ -70,7 +70,7 @@ try {
 }
 
 console.log(
-  `System bundle ${bundle.systemBundleId} recorded; starting the API on 127.0.0.1:3001 with ${enrichmentMode} enrichment${agents ? ' and the Claude agent team (caps: $0.30 per lead, $8 per process)' : ''}.`,
+  `System bundle ${bundle.systemBundleId} recorded; starting the API on 127.0.0.1:3001 with ${enrichmentMode} enrichment${agents ? ' ; the Claude agent team is available from the dashboard switch (off until clicked; caps $0.30 per lead, $8 per process)' : ''}.`,
 );
 const server = spawn(
   process.execPath,

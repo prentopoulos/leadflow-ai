@@ -352,10 +352,14 @@ one run without re-grilling. Owner calls:
   `claude-haiku-5-5` (workers); about $0.30 per lead and $8 per API process, reserved in code at
   worst case before each call and settled after; a budget stop falls back to the template draft.
   The key lives in the gitignored `.env` as `ANTHROPIC_API_KEY`.
-- Off by default behind `api:local -- --agents=claude` and `pnpm demo -- --agents`; hosted stays
-  template-only. The agent paragraph is a new slot in the existing template, so the eight
-  verification rules still run; the brief's claims and per-call costs are stored and the dossier
-  shows the cited sources. Offline tests use a fake model; one small live probe runs at the end.
+- Adjusted by Peter on 2026-10-28: the normal local API and `pnpm demo` are agent-capable without an
+  `--agents` startup argument, but the agent team starts off and makes no paid call until the
+  operator enables it. If no key is loaded, the Metrics panel accepts it through the loopback
+  backend, creates or updates the gitignored repository-root `.env`, and then enables the team;
+  hosted stays template-only. The agent paragraph is a new slot in the existing template, so the
+  eight verification rules still run; the brief's claims and per-call costs are stored and the
+  dossier shows the cited sources. Offline tests use a fake model; provider probes stay separately
+  owner-authorized.
 
 Settled by the agent with a cited basis (design.md): `@anthropic-ai/sdk` 0.79.0, the oldest
 release that types structured outputs, both web-search tools and web-search citations (fact); claims

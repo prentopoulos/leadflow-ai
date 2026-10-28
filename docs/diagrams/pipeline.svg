@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1120 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-title pipeline-desc" id="pipeline-root">
+<svg width="1120" height="420" viewBox="0 0 1120 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-title pipeline-desc" id="pipeline-root">
   <title id="pipeline-title">From form to a human-reviewed draft</title>
   <desc id="pipeline-desc">A fictional form submission is stored first, reduced to selected facts, scored and checked against public sources, used to prepare a draft, verified and placed in the dashboard for human review and manual use.</desc>
   <defs>

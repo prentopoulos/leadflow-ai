@@ -37,6 +37,10 @@ import {
 } from './draft-route.js';
 import type { IapAssertionVerifier } from './iap.js';
 import { registerSessionRoute } from './session-route.js';
+import {
+  registerAgentRoutes,
+  type AgentRouteDependencies,
+} from './agent-route.js';
 import { registerStaticWeb, type StaticAsset } from './static-web.js';
 import {
   registerExecuteRoute,
@@ -58,6 +62,7 @@ export interface CreateAppOptions {
   reset?: ResetRouteDependencies;
   operations?: OperationsRouteDependencies;
   drafts?: DraftRouteDependencies;
+  agents?: AgentRouteDependencies;
   execute?: ExecuteRouteDependencies;
   executor?: { idle(): Promise<void> };
   iapVerifier?: Pick<IapAssertionVerifier, 'verify'>;
@@ -251,6 +256,12 @@ export function createApp(options: CreateAppOptions = {}): FastifyInstance {
     phaseOne,
     options.requestIdFactory ?? randomUUID,
     options.reset,
+  );
+  registerAgentRoutes(
+    app,
+    phaseOne,
+    options.requestIdFactory ?? randomUUID,
+    options.agents,
   );
   if (options.staticAssets !== undefined) {
     registerStaticWeb(app, options.staticAssets);

@@ -1,4 +1,7 @@
 import {
+  AGENT_LIMITS,
+  AgentSettingsSchema,
+  AnthropicApiKeySchema,
   HOSTED_TARGET,
   type ExecuteResponse,
   type QualificationGraphState,
@@ -32,6 +35,9 @@ import {
   type QualificationInterpreter,
 } from '@leadflow-ai/runtime';
 import { z } from 'zod';
+import { saveLocalAnthropicApiKey } from './agent-key-store.js';
+import { LocalAgentModelControl } from './agent-model-control.js';
+import type { AgentRouteDependencies } from './agent-route.js';
 import type { ExecuteRouteDependencies } from './execute-route.js';
 import type { IntakeRouteDependencies } from './intake-route.js';
 import type { ResetRouteDependencies } from './reset-route.js';
@@ -50,6 +56,8 @@ export interface PhaseOneApiDependencies {
   drafts: DraftService;
   operations: OperationsRouteDependencies;
   executor: WorkflowExecutor;
+  // Local only: the dashboard switch for the agent team.
+  agents?: AgentRouteDependencies;
   // Present only in hosted mode, where intake starts no post-response work.
   execute?: ExecuteRouteDependencies;
 }
@@ -65,6 +73,8 @@ export interface PhaseOneApiRuntimeOptions {
   // Tests inject a fake model; otherwise the Anthropic adapter is used when
   // the local configuration enables agents.
   modelPort?: ModelPort;
+  // Tests can isolate the fixed-path dotenv write without touching the repo.
+  saveAgentApiKey?: (apiKey: string) => Promise<void>;
 }
 
 // Holds hosted work inside the request: new graph steps stop at the deadline
@@ -122,14 +132,52 @@ export async function createPhaseOneApiDependencies(
   if (agentsEnabled !== bundleAgents) {
     throw new Error('The system bundle does not match the agent setting.');
   }
+  // The local workflow is compiled agent-capable even before first-run key
+  // setup. Both a configured adapter and the dashboard switch are required
+  // before any model call can happen.
+  const environmentKey = AnthropicApiKeySchema.safeParse(
+    process.env.ANTHROPIC_API_KEY,
+  );
+  const modelControl = new LocalAgentModelControl(
+    options.modelPort ??
+      (environmentKey.success
+        ? new AnthropicModelPort(environmentKey.data)
+        : null),
+    (apiKey) => new AnthropicModelPort(apiKey),
+  );
   const agents = agentsEnabled
     ? {
-        port:
-          options.modelPort ??
-          new AnthropicModelPort(process.env.ANTHROPIC_API_KEY ?? ''),
+        port: modelControl,
         ledger: new SpendLedger(),
+        isEnabled: () => modelControl.enabled,
       }
     : undefined;
+  const agentSettings = () =>
+    AgentSettingsSchema.parse({
+      schemaVersion: 'agent-settings-v1',
+      available: agents !== undefined && modelControl.available,
+      enabled: agents !== undefined && modelControl.enabled,
+      leadCapUsd: AGENT_LIMITS.leadCapMicros / 1_000_000,
+      processCapUsd: AGENT_LIMITS.processCapMicros / 1_000_000,
+      spentUsd: (agents?.ledger.processSpentMicros ?? 0) / 1_000_000,
+    });
+  const agentRoutes: AgentRouteDependencies = {
+    settings: agentSettings,
+    setEnabled: (enabled) => {
+      modelControl.setEnabled(agents !== undefined && enabled);
+      return agentSettings();
+    },
+    saveApiKey: async (apiKey) => {
+      if (agents === undefined) {
+        throw new Error('Agent capability is not configured.');
+      }
+      await modelControl.configure(
+        apiKey,
+        options.saveAgentApiKey ?? saveLocalAnthropicApiKey,
+      );
+      return agentSettings();
+    },
+  };
   const transport =
     options.enrichmentTransport ??
     (await createEnrichmentTransport(enrichmentMode));
@@ -315,6 +363,6 @@ export async function createPhaseOneApiDependencies(
       systemBundleId: validatedBundleId,
     },
     executor,
-    ...(hosted ? { execute } : {}),
+    ...(hosted ? { execute } : agentsEnabled ? { agents: agentRoutes } : {}),
   };
 }

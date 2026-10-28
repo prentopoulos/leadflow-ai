@@ -49,12 +49,15 @@ pnpm demo
 Open the printed link and press **Run simulated traffic**. Sixty fictional leads arrive from
 simulated channels while the dashboard updates. Press Ctrl+C to stop; nothing is kept.
 
-Add `-- --open` to open a browser. Add `-- --agents` to enable the paid Claude research team, capped
-at $0.30 per lead and $8 per session.
+Add `-- --open` to open a browser. To try the paid Claude research team, open **Metrics**, choose
+**Turn on agent research**, and paste your Anthropic API key. The loopback backend creates or
+updates the gitignored repository-root `.env`, turns the team on, and never returns the key. Calls
+remain capped at $0.30 per lead and $8 per session, with the session's Claude spend beside the
+switch. Template drafts work without a key.
 
 ## How it works
 
-<img src="docs/diagrams/pipeline.svg" alt="LeadFlow pipeline: a fictional form submission is stored first, reduced to selected facts, scored and checked against public sources, used to prepare and verify a draft, then placed in the dashboard for human review and manual copy or export" width="100%">
+<a href="docs/diagrams/pipeline.svg?raw=1" title="Open the full-size LeadFlow pipeline diagram"><img src="docs/diagrams/pipeline.svg" alt="LeadFlow pipeline: a fictional form submission is stored first, reduced to selected facts, scored and checked against public sources, used to prepare and verify a draft, then placed in the dashboard for human review and manual copy or export" width="100%"></a>
 
 The form is stored first. Only selected facts move into scoring, public lookups, research and
 drafting; every draft is checked and held in the dashboard for a person to approve, edit or reject.
@@ -64,16 +67,16 @@ evidence stays visibly unavailable.
 
 ## Technical system
 
-<img src="docs/diagrams/architecture.svg" alt="Technical system: the React dashboard calls a loopback Fastify API, which stores the lead in Firestore before LangGraph runs fixed rules, read-only vehicle and ZIP lookups and, in local agent mode, a capped Anthropic agent runtime" width="100%">
+<a href="docs/diagrams/architecture.svg?raw=1" title="Open the full-size technical system diagram"><img src="docs/diagrams/architecture.svg" alt="Technical system: the React dashboard calls a loopback Fastify API, which stores the lead in Firestore before LangGraph runs fixed rules, read-only vehicle and ZIP lookups and, in local agent mode, a capped Anthropic agent runtime" width="100%"></a>
 
 React calls a loopback Fastify API. Firestore stores the lead before LangGraph runs fixed rules,
 read-only public lookups and, in local agent mode, the capped Anthropic agent runtime.
 
 ## Agent pipeline
 
-<img src="docs/diagrams/agent-workflow.svg" alt="Agent pipeline: one research leader plans questions for three sub-agents covering vehicle facts, environmental facts and coverage education; verified findings return to the leader and then pass to separate drafting and critic agents before human review, with no more than two rewrites" width="100%">
+<a href="docs/diagrams/agent-workflow.svg?raw=1" title="Open the full-size agent pipeline diagram"><img src="docs/diagrams/agent-workflow.svg" alt="Agent pipeline: one research leader plans questions for three sub-agents covering vehicle facts, environmental facts and coverage education; verified findings return to the leader and then pass to separate drafting and critic agents before human review, with no more than two rewrites" width="100%"></a>
 
-With `--agents`, one research leader delegates to three sub-agents, merges their checked findings and
+With the switch on, one research leader delegates to three sub-agents, merges their checked findings and
 hands one brief to a separate drafting agent. Fixed rules and a separate critic allow at most two
 rewrites before human review.
 
@@ -93,7 +96,7 @@ and can be resumed by the operator.
 ## Security
 
 <p align="center">
-  <img src="docs/diagrams/security-trifecta.svg" alt="LeadFlow security trifecta: no current role combines untrusted input, real personal data and outbound or state-changing access; recorded local, live local and optional agent-local modes each hold at most two capabilities" width="900">
+  <a href="docs/diagrams/security-trifecta.svg?raw=1" title="Open the full-size security diagram"><img src="docs/diagrams/security-trifecta.svg" alt="LeadFlow security trifecta: no current role combines untrusted input, real personal data and outbound or state-changing access; recorded local, live local and optional agent-local modes each hold at most two capabilities" width="900"></a>
 </p>
 
 No current role combines untrusted input, real personal data and outbound or state-changing access.
@@ -145,8 +148,8 @@ as `not_run`, never as a pass. See [AI_OPS.md](AI_OPS.md).
 |---|---|
 | `pnpm check` | Full offline gate |
 | `pnpm emulator:start` | Temporary Firestore Emulator on `127.0.0.1:8080` |
-| `pnpm api:local` | Serve the API with live lookups; add `-- --enrichment=recorded` for saved responses or `-- --agents=claude` for the agent team |
-| `pnpm demo` | Start the emulator, API and web app for a live demo; add `-- --agents` for the paid Claude agent team |
+| `pnpm api:local` | Serve the API with live lookups and local agent setup; add `-- --enrichment=recorded` for saved responses |
+| `pnpm demo` | Start the emulator, API and web app for a live demo; Metrics can save a supplied Anthropic key to the gitignored `.env` and turn agent research on |
 | `pnpm simulate:traffic` | Send 60 fictional leads with simulated attribution through the API, one every 10 s (saved responses only) |
 | `pnpm enrichment:probe` | Owner-authorized live lookup that refreshes the saved responses |
 | `pnpm emulator:runtime` | End-to-end test of the API and workflow against the emulator |

@@ -78,8 +78,9 @@ export interface QualificationWorkflowDependencies {
   checkpointer: BaseCheckpointSaver;
   enrichment: WorkflowEnrichmentDependencies;
   events: RunEventReader;
-  // Present only when the local process was started with --agents=claude.
-  agents?: { port: ModelPort; ledger: SpendLedger };
+  // Present only in an agent-capable local process. isEnabled requires both a
+  // configured backend key and the operator's dashboard switch.
+  agents?: { port: ModelPort; ledger: SpendLedger; isEnabled?: () => boolean };
   now?: () => string;
   idFactory?: () => string;
 }
@@ -294,7 +295,7 @@ export function compileQualificationWorkflow(
     evidence: readonly EnrichmentEvidence[],
   ) {
     const agents = dependencies.agents;
-    if (agents === undefined) return null;
+    if (agents === undefined || agents.isEnabled?.() === false) return null;
     const briefId = agentBriefIdFor(state.runId, state.enrichmentEvidenceIds);
     const stored = await dependencies.repositories.agentBriefs.get(briefId);
     if (stored !== null) {

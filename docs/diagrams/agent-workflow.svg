@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 960 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="agent-workflow-title agent-workflow-desc" id="agent-workflow-root">
+<svg width="960" height="640" viewBox="0 0 960 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="agent-workflow-title agent-workflow-desc" id="agent-workflow-root">
   <title id="agent-workflow-title">Research team, drafting and human review</title>
   <desc id="agent-workflow-desc">One research leader plans questions for three sub-agents, receives their code-checked vehicle, environmental and coverage findings, merges a research brief for a separate drafting agent, and passes the draft through fixed rules, a separate critic agent and human review with at most two rewrites.</desc>
   <defs>

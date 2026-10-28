@@ -40,8 +40,11 @@ at its own price and break the per-call cost record.
 
 About $0.30 per lead and $8 per API process (AdScout's Phase 2 values), reserved at worst case before
 each call and settled from reported usage. SDK retries are disabled; an ambiguous failure keeps null
-usage and the full conservative reservation. The key is `ANTHROPIC_API_KEY` in the gitignored `.env`,
-loaded only by `scripts/run-local-api.mjs --agents=claude` and never printed.
+usage and the full conservative reservation. The key is `ANTHROPIC_API_KEY` in the gitignored
+repository-root `.env` and is never printed. The normal local launcher loads it when present. When
+absent, the Metrics view can submit it once to a write-only loopback route; the backend creates
+`.env`, installs the SDK adapter in memory and turns the already compiled agent capability on
+without a restart.
 
 ## Alternatives considered
 
