@@ -20,7 +20,10 @@ import { useVisiblePolling } from './use-visible-polling.js';
 function milliseconds(value: number | null) {
   if (value === null) return 'Insufficient data';
   if (value < 1_000) return `${Math.round(value)} ms`;
-  return `${(value / 1_000).toFixed(value < 10_000 ? 1 : 0)} s`;
+  if (value < 60_000)
+    return `${(value / 1_000).toFixed(value < 10_000 ? 1 : 0)} s`;
+  if (value < 3_600_000) return `${Math.round(value / 60_000)} min`;
+  return `${(value / 3_600_000).toFixed(1)} hr`;
 }
 
 function percent(metric: RateValue) {
@@ -270,23 +273,19 @@ export function MetricsDashboard({
             <section className="chart-section" aria-labelledby="timing-title">
               <h2 id="timing-title">Timing</h2>
               <dl className="definition-list">
+                {/* Medians only: p90, mean and n are analyst detail the
+                    sales team does not act on (owner, 2026-10-27). */}
                 <div>
-                  <dt>Processing median / p90 / mean</dt>
-                  <dd>
-                    {milliseconds(report.processingTime.medianMs)} /{' '}
-                    {milliseconds(report.processingTime.p90Ms)} /{' '}
-                    {milliseconds(report.processingTime.meanMs)}
-                  </dd>
-                  <small>n={report.processingTime.n}</small>
+                  <dt>Typical processing</dt>
+                  <dd>{milliseconds(report.processingTime.medianMs)}</dd>
                 </div>
                 <div>
-                  <dt>Review median / p90 / mean</dt>
+                  <dt>Typical review time</dt>
                   <dd>
-                    {milliseconds(report.reviewLatency.medianMs)} /{' '}
-                    {milliseconds(report.reviewLatency.p90Ms)} /{' '}
-                    {milliseconds(report.reviewLatency.meanMs)}
+                    {report.reviewLatency.medianMs === null
+                      ? 'Not reviewed yet'
+                      : milliseconds(report.reviewLatency.medianMs)}
                   </dd>
-                  <small>n={report.reviewLatency.n}</small>
                 </div>
               </dl>
             </section>
