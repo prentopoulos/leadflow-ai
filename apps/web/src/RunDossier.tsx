@@ -263,33 +263,11 @@ export function RunDossier({
       ) : null}
       <section className="run-summary" aria-labelledby="stored-run-title">
         <h3 id="stored-run-title">{readable(detail.run.status)}</h3>
-        <dl>
-          <div>
-            <dt>Attempt</dt>
-            <dd>{detail.run.attempt}</dd>
-          </div>
-          <div>
-            <dt>Retries</dt>
-            <dd>{detail.run.retryCount}</dd>
-          </div>
-          <div>
-            <dt>Current step</dt>
-            <dd>
-              {detail.run.currentStep === null
-                ? 'None'
-                : readable(detail.run.currentStep)}
-            </dd>
-          </div>
-          <div>
-            <dt>Evidence</dt>
-            <dd>
-              {readable(detail.run.evidenceCompleteness)}
-              {detail.run.enrichmentMode === null
-                ? ''
-                : ` · ${detail.run.enrichmentMode}`}
-            </dd>
-          </div>
-        </dl>
+        {/* Attempts, retries and evidence completeness are operator
+            diagnostics; the person handling the lead sees only progress. */}
+        {detail.run.currentStep === null ? null : (
+          <p>Now: {readable(detail.run.currentStep)}</p>
+        )}
         {detail.run.holds.length > 0 ? (
           <p className="safe-error">Draft blocked by verification</p>
         ) : null}
@@ -318,6 +296,10 @@ export function RunDossier({
         ) : null}
       </section>
 
+      {detail.qualification !== null ? (
+        <Qualification result={detail.qualification} />
+      ) : null}
+
       <DraftSection
         draft={detail.draft}
         skipReason={detail.run.draftSkipReason}
@@ -335,9 +317,30 @@ export function RunDossier({
         completeness={detail.run.evidenceCompleteness}
       />
 
-      {detail.qualification !== null ? (
-        <Qualification result={detail.qualification} />
+      {detail.simulation !== null ? (
+        <section
+          className="result-section simulation-result"
+          aria-labelledby="simulation-title"
+        >
+          <h3 id="simulation-title">Outcomes</h3>
+          <dl>
+            <div>
+              <dt>Contacted</dt>
+              <dd>{detail.simulation.outcome.contacted ? 'Yes' : 'No'}</dd>
+            </div>
+            <div>
+              <dt>Responded</dt>
+              <dd>{detail.simulation.outcome.responded ? 'Yes' : 'No'}</dd>
+            </div>
+            <div>
+              <dt>Appointment</dt>
+              <dd>{detail.simulation.outcome.appointment ? 'Yes' : 'No'}</dd>
+            </div>
+          </dl>
+        </section>
       ) : null}
+
+      <AttributionBlock attribution={detail.lead.intake.attribution} />
 
       <section className="event-history" aria-labelledby="event-history-title">
         <h3 id="event-history-title">Events</h3>
@@ -367,31 +370,6 @@ export function RunDossier({
           </ol>
         </details>
       </section>
-
-      {detail.simulation !== null ? (
-        <section
-          className="result-section simulation-result"
-          aria-labelledby="simulation-title"
-        >
-          <h3 id="simulation-title">Outcomes</h3>
-          <dl>
-            <div>
-              <dt>Contacted</dt>
-              <dd>{detail.simulation.outcome.contacted ? 'Yes' : 'No'}</dd>
-            </div>
-            <div>
-              <dt>Responded</dt>
-              <dd>{detail.simulation.outcome.responded ? 'Yes' : 'No'}</dd>
-            </div>
-            <div>
-              <dt>Appointment</dt>
-              <dd>{detail.simulation.outcome.appointment ? 'Yes' : 'No'}</dd>
-            </div>
-          </dl>
-        </section>
-      ) : null}
-
-      <AttributionBlock attribution={detail.lead.intake.attribution} />
     </div>
   );
 }

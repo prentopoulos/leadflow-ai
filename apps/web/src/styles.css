@@ -103,6 +103,7 @@ a {
   display: flex;
   min-height: 38px;
   align-items: center;
+  justify-content: center;
   gap: 0.55rem;
   border-bottom: 1px solid #075e57;
   padding: 0.55rem max(1rem, calc((100vw - 90rem) / 2));
@@ -1345,6 +1346,15 @@ button:disabled {
 
 .traffic-control {
   margin: 1.5rem 0 2.5rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.traffic-control h2 {
+  margin: 0 0 0.5rem;
+}
+
+.traffic-control > p {
+  margin: 0 0 1.25rem;
 }
 
 /* Simulated acquisition: leads the Metrics page, set apart from the
@@ -1445,7 +1455,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem 1rem;
+  gap: 1rem 1.5rem;
 }
 
 .traffic-control-actions p {
@@ -1924,21 +1934,6 @@ small {
   line-height: 1.6;
 }
 
-.cover-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.65rem;
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-.cover-status-dot {
-  width: 0.65rem;
-  height: 0.65rem;
-  border-radius: 50%;
-  background: var(--cover-mint);
-}
-
 .cover-entries {
   display: flex;
   flex-wrap: wrap;
@@ -1983,7 +1978,7 @@ small {
   outline-offset: 4px;
 }
 
-.cover-boundaries {
+.cover-pipeline {
   margin-top: clamp(3rem, 8vw, 6rem);
   border: 1px solid rgb(134 239 197 / 24%);
   border-radius: 1.5rem;
@@ -1991,27 +1986,33 @@ small {
   background: rgb(13 32 27 / 82%);
 }
 
-.cover-boundaries h2 {
+.cover-pipeline h2 {
   margin: 0 0 1.25rem;
   color: var(--cover-ink);
   font-size: clamp(1.5rem, 4vw, 2.35rem);
   letter-spacing: -0.035em;
 }
 
-.cover-boundaries ul {
+.cover-pipeline ol {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
   gap: 0.75rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.cover-boundaries li {
+.cover-pipeline li {
+  display: grid;
+  gap: 0.25rem;
   border: 1px solid rgb(134 239 197 / 18%);
   border-radius: 0.75rem;
   padding: 0.85rem 1rem;
   background: rgb(255 255 255 / 4%);
+}
+
+.cover-pipeline li strong {
+  color: var(--cover-ink);
 }
 
 .cover-footer {
@@ -2022,7 +2023,7 @@ small {
 }
 
 @media (max-width: 560px) {
-  .cover-boundaries ul {
+  .cover-pipeline ul {
     grid-template-columns: 1fr;
   }
 
@@ -2209,4 +2210,10 @@ kbd {
 
 .criteria-list summary > strong {
   margin-left: auto;
+}
+
+.evidence-source {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
 }

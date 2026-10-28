@@ -311,7 +311,9 @@ describe('run dossier', () => {
       expect(
         await screen.findByRole('heading', { name: heading }),
       ).toBeInTheDocument();
-      expect(screen.getByText('Interpret qualification')).toBeInTheDocument();
+      expect(
+        screen.getByText('Now: Interpret qualification'),
+      ).toBeInTheDocument();
     },
   );
 

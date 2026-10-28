@@ -52,6 +52,9 @@ const allowedHosts = new Set([
   // Phase 5 opt-in agent team, owner-authorized 2026-10-27 (PROJECT.md):
   // the Anthropic SDK's default endpoint, local only.
   'api.anthropic.com',
+  // Dossier link to NHTSA's public vehicle page (recalls and safety ratings),
+  // owner-authorized 2026-10-27: opened by a person, never requested.
+  'www.nhtsa.gov',
 ]);
 
 // RFC 2606 reserves `.example`; such hosts never resolve, so fixtures may

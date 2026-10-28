@@ -22,11 +22,31 @@ const sourceNames = {
   zippopotam_us: 'Zippopotam.us',
 } as const;
 
-const classLabels = {
-  live: 'Live',
-  recorded: 'Recorded',
-  mock: 'Mock',
-} as const;
+// A public page behind each record that whoever handles the lead can open
+// during a call: NHTSA's vehicle page (recalls and safety ratings) when the
+// model is known, otherwise the exact vPIC or Zippopotam.us query.
+function sourceLink(record: EnrichmentEvidence) {
+  const subject = record.subject;
+  if (subject.kind === 'zip') {
+    return {
+      href: `https://api.zippopotam.us/us/${subject.zipCode}`,
+      label: 'Open Zippopotam.us ZIP data',
+    };
+  }
+  if (subject.make === null || subject.modelYear === null) return null;
+  const make = encodeURIComponent(subject.make.toUpperCase());
+  if (subject.model !== null) {
+    const model = encodeURIComponent(subject.model.toUpperCase());
+    return {
+      href: `https://www.nhtsa.gov/vehicle/${subject.modelYear}/${make}/${model}`,
+      label: 'Open NHTSA recalls and safety ratings',
+    };
+  }
+  return {
+    href: `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/${make}/modelyear/${subject.modelYear}?format=json`,
+    label: 'Open NHTSA vPIC data',
+  };
+}
 
 function time(value: string | null) {
   return value === null ? '—' : new Date(value).toLocaleString();
@@ -80,27 +100,23 @@ export function EnrichmentEvidenceSection({
             <div className="evidence-heading">
               <strong>{sourceNames[record.source]}</strong>
               <span className="state-tag">{readable(record.outcome)}</span>
-              <span
-                className={`class-tag class-${record.evidenceClass}`}
-                title="Evidence class"
-              >
-                {classLabels[record.evidenceClass]}
-              </span>
             </div>
             <Claim record={record} />
-            <dl className="evidence-facts">
-              <div>
-                <dt>Retrieved</dt>
-                <dd>{time(record.retrievedAt)}</dd>
-              </div>
-              {record.recordedCapturedAt === null ? null : (
-                <div>
-                  <dt>Live capture</dt>
-                  <dd>{time(record.recordedCapturedAt)}</dd>
-                </div>
-              )}
-            </dl>
-            <small>{record.attribution}</small>
+            {(() => {
+              const link = sourceLink(record);
+              return link === null ? null : (
+                <a
+                  className="evidence-source"
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={record.attribution}
+                >
+                  {link.label}
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              );
+            })()}
           </li>
         ))}
       </ul>
@@ -121,6 +137,7 @@ export function VerificationSection({
   holds: readonly string[];
 }) {
   if (verification === null) return null;
+  const failed = verification.rules.filter((rule) => rule.outcome === 'fail');
   return (
     <section className="result-section" aria-labelledby="verification-title">
       <h3 id="verification-title">
@@ -128,23 +145,20 @@ export function VerificationSection({
           ? 'Blocked'
           : 'Verified'}
       </h3>
-      <ul className="rule-list">
-        {verification.rules.map((rule) => (
-          <li key={rule.ruleId} className={`rule-${rule.outcome}`}>
-            <span className="rule-mark" aria-hidden="true">
-              {rule.outcome === 'pass'
-                ? '✓'
-                : rule.outcome === 'fail'
-                  ? '✕'
-                  : '–'}
-            </span>
-            <span>
-              <strong>{rule.ruleId}</strong> {readable(rule.outcome)}
+      {/* One line for the person handling the lead; only failed checks are
+          named, because a passed rule list tells them nothing to act on. */}
+      {failed.length === 0 ? (
+        <p>All draft checks passed.</p>
+      ) : (
+        <ul className="rule-list">
+          {failed.map((rule) => (
+            <li key={rule.ruleId} className="rule-fail">
+              <strong>{rule.ruleId}</strong>
               {rule.matches.length > 0 ? ` · ${rule.matches.join(', ')}` : ''}
-            </span>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

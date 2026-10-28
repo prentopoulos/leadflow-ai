@@ -40,6 +40,18 @@ function RateDefinition({ metric }: { metric: RateValue }) {
   );
 }
 
+function combine(left: RateValue, right: RateValue): RateValue {
+  const numerator = left.numerator + right.numerator;
+  const denominator = left.denominator + right.denominator;
+  return {
+    value: denominator === 0 ? null : numerator / denominator,
+    numerator,
+    denominator,
+    excluded: left.excluded + right.excluded,
+    reason: denominator === 0 ? 'insufficient_data' : null,
+  };
+}
+
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -102,10 +114,24 @@ export function MetricsDashboard({
   const priorityData = Object.entries(report.priorityDistribution).map(
     ([label, count]) => ({ label: label.replace('_', ' '), count }),
   );
-  const recorded = report.enrichment.filter(
-    (item) => item.classGroup === 'recorded_or_mock',
-  );
-  const live = report.enrichment.filter((item) => item.classGroup === 'live');
+  // One feed per source under the page-level SIMULATION strip: recorded and
+  // live lookups are summed into a single Live row (owner, 2026-10-27).
+  const feed = report.enrichment
+    .filter((item) => item.classGroup === 'live')
+    .map((item) => {
+      const other = report.enrichment.find(
+        (row) =>
+          row.classGroup === 'recorded_or_mock' && row.source === item.source,
+      );
+      return other === undefined
+        ? item
+        : {
+            ...item,
+            success: combine(item.success, other.success),
+            foundRate: combine(item.foundRate, other.foundRate),
+            notAttempted: item.notAttempted + other.notAttempted,
+          };
+    });
 
   return (
     <div className="metrics-dashboard">
@@ -338,13 +364,9 @@ export function MetricsDashboard({
                 </tr>
               </thead>
               <tbody>
-                {[...live, ...recorded].map((item) => (
-                  <tr key={`${item.classGroup}-${item.source}`}>
-                    <th scope="row">
-                      {item.classGroup === 'recorded_or_mock'
-                        ? 'Recorded / mock'
-                        : 'Live'}
-                    </th>
+                {feed.map((item) => (
+                  <tr key={item.source}>
+                    <th scope="row">Live</th>
                     <td>{sourceLabels[item.source]}</td>
                     <td>
                       {percent(item.success)}{' '}
