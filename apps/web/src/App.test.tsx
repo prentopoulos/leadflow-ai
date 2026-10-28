@@ -145,7 +145,7 @@ describe('Phase 1 intake workspace', () => {
     });
     fireEvent.click(submit);
     const error = await screen.findByRole('alert');
-    expect(error).toHaveFocus();
+    await waitFor(() => expect(error).toHaveFocus());
     expect(error).toHaveTextContent('The intake could not be persisted.');
     expect(screen.getByLabelText(/Test email/i)).toHaveValue(
       'avery.jordan@example.com',
