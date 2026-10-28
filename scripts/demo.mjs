@@ -3,8 +3,8 @@
 // then prints the dashboard link. Press "Run simulated traffic" on Metrics to
 // play the flight live. Ctrl+C stops everything; the emulator keeps no data.
 // Run from an activated toolchain shell: `pnpm demo` (add `-- --open` to open
-// the browser). With ANTHROPIC_API_KEY in `.env`, the Metrics page offers a
-// switch for the paid Claude agent team; without one it says how to add it.
+// the browser). The Metrics page offers the paid Claude agent team switch and
+// can create the gitignored `.env` when the operator supplies a key.
 import { spawn, spawnSync } from 'node:child_process';
 import net from 'node:net';
 import path from 'node:path';
@@ -96,7 +96,7 @@ try {
   console.log('Starting the API (saved responses only)…');
   await start(
     'API',
-    ['scripts/run-local-api.mjs', '--enrichment=recorded', '--agents=auto'],
+    ['scripts/run-local-api.mjs', '--enrichment=recorded'],
     /starting the API|listening/iu,
     { ...process.env, LEADFLOW_WEB_ORIGIN: webOrigin },
   );

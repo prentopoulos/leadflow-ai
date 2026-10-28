@@ -2,12 +2,33 @@
 
 Read PROJECT.md and current user instructions. Inspect actual Git/OpenSpec state before resuming.
 
+## Agent key onboarding refinement (2026-10-28)
+
+Branch `feat/agent-toggle` now makes the normal `pnpm demo` startup agent-capable without an
+`--agents` argument. The Metrics panel starts off; when no key exists, **Turn on agent research**
+opens an accessible inline password form. Its write-only loopback route creates or updates the
+gitignored repository-root `.env`, installs the Anthropic adapter in memory and enables the switch
+without restarting. The key is not returned, logged, stored in Firestore or placed in browser
+storage. Turning the switch off is checked before every subsequent provider call. The hosted routes
+remain absent. README diagram images now link to full-size raw SVGs, and generated SVGs carry
+intrinsic dimensions so they do not open at the browser's 300×150 default.
+
+The bounded OpenSpec change is `agent-key-onboarding`. The final offline gate passed: 484 tests,
+65 synthetic evaluation passes with 25 honest `not_run` boundaries, both loopback smokes,
+governance, docs and all 21 OpenSpec items. The Windows demo review confirmed off-at-start,
+enable/disable without restart, zero provider spend, and a readable 390px panel with no horizontal
+overflow. The missing-key form, safe write failures and transactional adapter install are covered by
+focused tests; the existing local `.env` was not read or changed during review. No live provider call
+was made. macOS uses the same Node launcher and has no OS-specific key path, but no Mac host was
+available for a live run in this slice.
+
 ## After Phase 5 (2026-10-27): agent switch and benchmark
 
-Branch `feat/agent-toggle`: the agent team is now a dashboard switch. `pnpm demo` passes
-`--agents=auto`, so a key in `.env` makes the team available and the Metrics page shows an "AI
-research agents" switch (off at start, `PUT /v1/agents`, local only) with the session's Claude spend;
-without a key it explains how to add one. Models again see only an NHTSA-listed vehicle (Codex had
+Branch `feat/agent-toggle`: the agent team is now a dashboard switch. This paragraph records the
+earlier branch state; the 2026-10-28 refinement above replaced its flag and manual-key behavior.
+A key in `.env` made the team available and the Metrics page showed an "AI research agents" switch
+(off at start, `PUT /v1/agents`, local only) with the session's Claude spend. Models again see only
+an NHTSA-listed vehicle (Codex had
 switched to the typed intake text). Fresh-clone check from GitHub on Windows passed: bootstrap,
 install, `pnpm demo`, Run simulated traffic, approve a draft, cost per lead recalculated by hand.
 Benchmark, same first 10 traffic-plan leads, sequential, recorded enrichment: agents off 0.92 s

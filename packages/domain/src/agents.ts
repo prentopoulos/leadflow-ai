@@ -503,3 +503,15 @@ export type AgentSettings = z.infer<typeof AgentSettingsSchema>;
 export const AgentSettingsUpdateSchema = z
   .object({ enabled: z.boolean() })
   .strict();
+
+// Accepted only by the write-only loopback setup route. Restricting the value
+// to dotenv-safe characters prevents line, quote and expansion injection when
+// the backend writes the fixed ANTHROPIC_API_KEY assignment.
+export const AnthropicApiKeySchema = z
+  .string()
+  .min(20)
+  .max(300)
+  .regex(/^sk-ant-[A-Za-z0-9_-]+$/u);
+export const AnthropicApiKeyUpdateSchema = z
+  .object({ ['apiKey']: AnthropicApiKeySchema })
+  .strict();

@@ -1,6 +1,7 @@
 import {
   AgentSettingsSchema,
   AgentSettingsUpdateSchema,
+  AnthropicApiKeyUpdateSchema,
   ErrorResponseSchema,
   type AgentSettings,
 } from '@leadflow-ai/domain';
@@ -11,6 +12,7 @@ import type { PhaseOneStartup } from './startup.js';
 export interface AgentRouteDependencies {
   settings(): AgentSettings;
   setEnabled(enabled: boolean): AgentSettings;
+  saveApiKey(apiKey: string): Promise<AgentSettings>;
 }
 
 // Local only: the dashboard switch for the opt-in agent team. Hosted mode
@@ -51,13 +53,26 @@ export function registerAgentRoutes(
               category: 'conflict',
               retryable: false,
               message:
-                'The agent team needs ANTHROPIC_API_KEY in .env and a restart.',
+                'The agent team needs an Anthropic API key before it can be enabled.',
             },
             requestIdFactory,
           ),
         );
       }
       return dependencies.setEnabled(enabled);
+    },
+  );
+  app.put(
+    '/v1/agents/key',
+    {
+      schema: {
+        body: AnthropicApiKeyUpdateSchema,
+        response: { 200: AgentSettingsSchema },
+      },
+    },
+    async (request) => {
+      const { apiKey } = AnthropicApiKeyUpdateSchema.parse(request.body);
+      return dependencies.saveApiKey(apiKey);
     },
   );
 }

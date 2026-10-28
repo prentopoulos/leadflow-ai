@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1040 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc" id="architecture-root">
+<svg width="1040" height="560" viewBox="0 0 1040 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc" id="architecture-root">
   <title id="architecture-title">The system and its approved connections</title>
-  <desc id="architecture-desc">The React dashboard calls a loopback Fastify API, which stores the lead in Firestore before LangGraph runs fixed code, public read-only lookups and, only in local agent mode, a capped Anthropic agent runtime.</desc>
+  <desc id="architecture-desc">The React dashboard calls a Host/Origin-checked loopback Fastify API, which can save a write-only local Anthropic key and stores each lead in Firestore before LangGraph runs fixed code, public read-only lookups and, only after the operator enables it, a capped Anthropic agent runtime.</desc>
   <defs>
       <style>#architecture-root { --color-paper: #f4f1e9;
       --color-ink: #1a211f;

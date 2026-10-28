@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AgentToggle } from './AgentToggle.js';
 
@@ -41,10 +47,66 @@ describe('agent switch', () => {
     );
   });
 
-  it('explains how to enable it without a key', async () => {
-    const fetcher = vi.fn(async () => reply(settings(false, false)));
+  it('opens a focused key form and enables agents after a safe save', async () => {
+    const apiKey = `sk-ant-${'a'.repeat(24)}`;
+    const fetcher = vi.fn(async (input: unknown, init?: RequestInit) =>
+      reply(
+        String(input).endsWith('/key') && init?.method === 'PUT'
+          ? settings(true, true)
+          : settings(false, false),
+      ),
+    );
     render(<AgentToggle fetcher={fetcher as unknown as typeof fetch} />);
-    expect(await screen.findByText(/no API key/u)).toBeInTheDocument();
-    expect(screen.queryByRole('button')).toBeNull();
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Turn on agent research',
+      }),
+    );
+    const input = screen.getByLabelText('Anthropic API key');
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('type', 'password');
+    expect(screen.getByText(/gitignored/u)).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: apiKey } });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save key and turn on' }),
+    );
+    expect(
+      await screen.findByRole('button', { name: 'Agents on · turn off' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByDisplayValue(apiKey)).toBeNull();
+    expect(fetcher).toHaveBeenLastCalledWith(
+      '/v1/agents/key',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ apiKey }),
+      }),
+    );
+  });
+
+  it('keeps the form open and announces a safe save failure', async () => {
+    const fetcher = vi.fn(async (input: unknown) =>
+      String(input).endsWith('/key')
+        ? new Response('{}', { status: 500 })
+        : reply(settings(false, false)),
+    );
+    render(<AgentToggle fetcher={fetcher as unknown as typeof fetch} />);
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Turn on agent research' }),
+    );
+    fireEvent.change(screen.getByLabelText('Anthropic API key'), {
+      target: { value: `sk-ant-${'a'.repeat(24)}` },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save key and turn on' }),
+    );
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'nothing was enabled',
+    );
+    await waitFor(() =>
+      expect(screen.getByLabelText('Anthropic API key')).toBeEnabled(),
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Agents on · turn off' }),
+    ).toBeNull();
   });
 });

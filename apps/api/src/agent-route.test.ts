@@ -35,11 +35,12 @@ const startup: PhaseOneStartup = {
 } as PhaseOneStartup;
 
 function control(available: boolean): AgentRouteDependencies {
+  let hasKey = available;
   let enabled = false;
   const settings = () => ({
     schemaVersion: 'agent-settings-v1' as const,
-    available,
-    enabled: available && enabled,
+    available: hasKey,
+    enabled: hasKey && enabled,
     leadCapUsd: 0.3,
     processCapUsd: 8,
     spentUsd: 0,
@@ -47,7 +48,12 @@ function control(available: boolean): AgentRouteDependencies {
   return {
     settings,
     setEnabled: (value) => {
-      enabled = available && value;
+      enabled = hasKey && value;
+      return settings();
+    },
+    saveApiKey: async () => {
+      hasKey = true;
+      enabled = true;
       return settings();
     },
   };
@@ -90,10 +96,69 @@ describe('agent switch route', () => {
     expect(malformed.statusCode).toBe(400);
   });
 
+  it('accepts a bounded key without echoing it and enables the team', async () => {
+    const agents = control(false);
+    const app = createApp({ phaseOne: startup, agents });
+    apps.add(app);
+    const apiKey = `sk-ant-${'a'.repeat(24)}`;
+    const response = await app.inject({
+      method: 'PUT',
+      url: '/v1/agents/key',
+      payload: { apiKey },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.body).not.toContain(apiKey);
+    expect(response.json()).toMatchObject({ available: true, enabled: true });
+  });
+
+  it('rejects malformed and dotenv-injecting keys', async () => {
+    const app = createApp({ phaseOne: startup, agents: control(false) });
+    apps.add(app);
+    for (const apiKey of [
+      '',
+      `sk-ant-${'a'.repeat(20)}\nHOST=attacker`,
+      `sk-ant-${'a'.repeat(20)}"`,
+      `not-anthropic-${'a'.repeat(20)}`,
+    ]) {
+      const response = await app.inject({
+        method: 'PUT',
+        url: '/v1/agents/key',
+        payload: { apiKey },
+      });
+      expect(response.statusCode).toBe(400);
+      if (apiKey.length > 0) expect(response.body).not.toContain(apiKey);
+    }
+  });
+
+  it('keeps the team unavailable when key persistence fails', async () => {
+    const agents = control(false);
+    agents.saveApiKey = async () => {
+      throw new Error('fixture write failure');
+    };
+    const app = createApp({ phaseOne: startup, agents });
+    apps.add(app);
+    const apiKey = `sk-ant-${'a'.repeat(24)}`;
+    const response = await app.inject({
+      method: 'PUT',
+      url: '/v1/agents/key',
+      payload: { apiKey },
+    });
+    expect(response.statusCode).toBe(500);
+    expect(response.body).not.toContain(apiKey);
+    const settings = await app.inject({ method: 'GET', url: '/v1/agents' });
+    expect(settings.json()).toMatchObject({ available: false, enabled: false });
+  });
+
   it('is absent without local agent dependencies', async () => {
     const app = createApp({ phaseOne: startup });
     apps.add(app);
     const response = await app.inject({ method: 'GET', url: '/v1/agents' });
     expect(response.statusCode).toBe(404);
+    const keyResponse = await app.inject({
+      method: 'PUT',
+      url: '/v1/agents/key',
+      payload: { apiKey: `sk-ant-${'a'.repeat(24)}` },
+    });
+    expect(keyResponse.statusCode).toBe(404);
   });
 });

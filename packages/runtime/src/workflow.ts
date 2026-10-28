@@ -78,8 +78,8 @@ export interface QualificationWorkflowDependencies {
   checkpointer: BaseCheckpointSaver;
   enrichment: WorkflowEnrichmentDependencies;
   events: RunEventReader;
-  // Present only when the local process was started with --agents=claude.
-  // isEnabled is the operator's dashboard switch; absent means always on.
+  // Present only in an agent-capable local process. isEnabled requires both a
+  // configured backend key and the operator's dashboard switch.
   agents?: { port: ModelPort; ledger: SpendLedger; isEnabled?: () => boolean };
   now?: () => string;
   idFactory?: () => string;

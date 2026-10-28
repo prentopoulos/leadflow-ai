@@ -59,9 +59,9 @@
     <h1>The system and its approved connections</h1>
     <p class="intro">The local app owns the workflow and records. Only the two approved service paths leave it.</p>
     <div class="diagram-container">
-<svg viewBox="0 0 1040 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
+<svg width="1040" height="560" viewBox="0 0 1040 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
   <title id="architecture-title">The system and its approved connections</title>
-  <desc id="architecture-desc">The React dashboard calls a loopback Fastify API, which stores the lead in Firestore before LangGraph runs fixed code, public read-only lookups and, only in local agent mode, a capped Anthropic agent runtime.</desc>
+  <desc id="architecture-desc">The React dashboard calls a Host/Origin-checked loopback Fastify API, which can save a write-only local Anthropic key and stores each lead in Firestore before LangGraph runs fixed code, public read-only lookups and, only after the operator enables it, a capped Anthropic agent runtime.</desc>
   <defs>
       <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#626a66"/></marker>
       <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#075e57"/></marker>

@@ -1,5 +1,5 @@
 import { AgentSettingsSchema, type AgentSettings } from '@leadflow-ai/domain';
-import { useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { Button } from './components/ui/button.js';
 import { apiFetch } from './session-context.js';
 
@@ -11,6 +11,10 @@ export function AgentToggle({ fetcher = apiFetch }: { fetcher?: Fetcher }) {
   const [settings, setSettings] = useState<AgentSettings | null>(null);
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [showKeySetup, setShowKeySetup] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [setupError, setSetupError] = useState<string | null>(null);
+  const keyInput = useRef<HTMLInputElement>(null);
 
   async function load(init?: RequestInit) {
     try {
@@ -30,6 +34,10 @@ export function AgentToggle({ fetcher = apiFetch }: { fetcher?: Fetcher }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (showKeySetup) keyInput.current?.focus();
+  }, [showKeySetup]);
+
   async function toggle() {
     if (settings === null) return;
     setBusy(true);
@@ -39,6 +47,30 @@ export function AgentToggle({ fetcher = apiFetch }: { fetcher?: Fetcher }) {
       body: JSON.stringify({ enabled: !settings.enabled }),
     });
     setBusy(false);
+  }
+
+  async function saveKey(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setSetupError(null);
+    try {
+      const response = await fetcher('/v1/agents/key', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ apiKey }),
+      });
+      if (!response.ok) throw new Error(String(response.status));
+      setSettings(AgentSettingsSchema.parse(await response.json()));
+      setApiKey('');
+      setShowKeySetup(false);
+      setFailed(false);
+    } catch {
+      setSetupError(
+        'We could not save that key. Check it and try again; nothing was enabled.',
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -72,11 +104,74 @@ export function AgentToggle({ fetcher = apiFetch }: { fetcher?: Fetcher }) {
           </div>
         </>
       ) : (
-        <p>
-          Off: no API key. Add <code>ANTHROPIC_API_KEY</code> to a{' '}
-          <code>.env</code> file in the repository root and restart{' '}
-          <code>pnpm demo</code> to try them. Template drafts work without it.
-        </p>
+        <>
+          <p>
+            Add one source-backed paragraph to consented draft emails. Your
+            Anthropic usage is billed directly and stays capped at $
+            {settings.leadCapUsd.toFixed(2)} per lead and $
+            {settings.processCapUsd.toFixed(2)} per session. Template drafts
+            keep working without it.
+          </p>
+          {showKeySetup ? (
+            <form className="agent-key-setup" onSubmit={saveKey}>
+              <div>
+                <label htmlFor="anthropic-api-key">Anthropic API key</label>
+                <p id="anthropic-api-key-help">
+                  Saved only to the gitignored <code>.env</code> on this
+                  computer. The key is never shown again or stored in LeadFlow
+                  records.
+                </p>
+              </div>
+              <input
+                ref={keyInput}
+                id="anthropic-api-key"
+                name="anthropic-api-key"
+                type="password"
+                autoComplete="off"
+                spellCheck={false}
+                minLength={20}
+                maxLength={300}
+                pattern="sk-ant-[A-Za-z0-9_-]+"
+                aria-describedby="anthropic-api-key-help"
+                value={apiKey}
+                onChange={(event) => setApiKey(event.target.value)}
+                disabled={busy}
+                required
+              />
+              {setupError === null ? null : (
+                <p className="agent-key-error" role="alert">
+                  {setupError}
+                </p>
+              )}
+              <div className="agent-key-actions">
+                <Button type="submit" disabled={busy}>
+                  {busy ? 'Saving…' : 'Save key and turn on'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => {
+                    setApiKey('');
+                    setSetupError(null);
+                    setShowKeySetup(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <Button
+              onClick={() => {
+                setSetupError(null);
+                setShowKeySetup(true);
+              }}
+            >
+              Turn on agent research
+            </Button>
+          )}
+        </>
       )}
     </section>
   );

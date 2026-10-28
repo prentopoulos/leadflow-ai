@@ -350,7 +350,7 @@ export class Diagram {
       )
       .join('\n      ');
     return [
-      `<svg viewBox="0 0 ${this.width} ${this.height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="${this.slug}-title ${this.slug}-desc">`,
+      `<svg width="${this.width}" height="${this.height}" viewBox="0 0 ${this.width} ${this.height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="${this.slug}-title ${this.slug}-desc">`,
       `  <title id="${this.slug}-title">${escapeXml(title)}</title>`,
       `  <desc id="${this.slug}-desc">${escapeXml(desc)}</desc>`,
       `  <defs>\n      ${markers}\n  </defs>`,

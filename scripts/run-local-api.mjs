@@ -4,11 +4,11 @@
 // API in the foreground. Requires `pnpm build` and `pnpm emulator:start`.
 // Enrichment is live (owner-authorized reads) unless `--enrichment=recorded`
 // or `--enrichment=mock` is passed; the mode is part of the system bundle, so
-// each mode has its own labelled dashboard window. `--agents=claude` (key
-// required) or `--agents=auto` (only if a key is present) makes the Phase 5
-// agent team available behind the dashboard switch: it reads
-// ANTHROPIC_API_KEY from the gitignored `.env` (never printed) and records a
-// bundle naming the provider and models.
+// each mode has its own labelled dashboard window. The normal local process is
+// agent-capable but starts with the team off. It reads ANTHROPIC_API_KEY from
+// the gitignored `.env` when present; otherwise the dashboard can create that
+// file through the loopback backend. `--agents=off` is retained only for
+// explicit template-only diagnostics.
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { createSystemBundle } from '../packages/evals/dist/bundle.js';
@@ -31,23 +31,16 @@ const agentsArgument = process.argv
   ?.slice('--agents='.length);
 if (
   agentsArgument !== undefined &&
-  !['claude', 'auto'].includes(agentsArgument)
+  !['claude', 'auto', 'off'].includes(agentsArgument)
 ) {
-  throw new Error('--agents must be claude or auto.');
+  throw new Error('--agents must be claude, auto or off.');
 }
-if (agentsArgument !== undefined) {
-  try {
-    process.loadEnvFile(path.join(repoRoot, '.env'));
-  } catch {
-    // No .env: the key may already be exported, or auto runs without agents.
-  }
+try {
+  process.loadEnvFile(path.join(repoRoot, '.env'));
+} catch {
+  // First run: the dashboard can create the gitignored file after startup.
 }
-const hasKey = Boolean(process.env.ANTHROPIC_API_KEY);
-if (agentsArgument === 'claude' && !hasKey) {
-  throw new Error('--agents=claude needs ANTHROPIC_API_KEY in .env.');
-}
-// auto: offer the dashboard switch only when a key is present.
-const agents = agentsArgument !== undefined && hasKey;
+const agents = agentsArgument !== 'off';
 
 const environment = {
   ...process.env,

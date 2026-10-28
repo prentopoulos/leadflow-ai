@@ -115,7 +115,7 @@ function architecture() {
     kind: 'backend',
     tag: 'API',
     name: 'Fastify API',
-    sub: '127.0.0.1:3001 · Host/Origin',
+    sub: ['127.0.0.1:3001 · Host/Origin', 'write-only .env key setup'],
   });
   d.node({
     x: 528,
@@ -179,7 +179,7 @@ function architecture() {
     diagram: d,
     eyebrow: 'Architecture · local mode',
     title: 'LeadFlow AI local architecture',
-    desc: 'An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin; the API commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, and, only when started with --agents, calls the Anthropic API for a capped research and drafting agent team, while a traffic simulator feeds fictional leads with simulated attribution through the same intake API, and hosted model calls, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.',
+    desc: 'An operator uses the dossier, which calls a loopback Fastify API that checks Host and Origin, accepts a write-only Anthropic key for the fixed gitignored .env, and commits intake to the Firestore Emulator before the seven-node LangGraph runtime scores, enriches through read-only GETs to NHTSA vPIC and Zippopotam.us, drafts and verifies with domain contracts, and, only after the operator enables agent research, calls the Anthropic API for a capped research and drafting team, while a traffic simulator feeds fictional leads with simulated attribution through the same intake API, and hosted model calls, outreach sending and real personal data stay deferred; the private hosted topology has its own deployment view.',
     intro:
       'Everything inside the boundary runs on one workstation against synthetic data. Outbound calls are read-only GETs to the two authorized enrichment sources and, when the agent team is switched on, capped calls to the Anthropic API; nothing is ever sent.',
   });
@@ -844,7 +844,7 @@ function phaseTwoRecords() {
     [
       'Revisions and reviews are append-only; earlier evidence and revisions stay stored, unlinked.',
       'Fields are structure only; stored fixture values are fictional and never drawn here.',
-      'An agent brief exists only for local --agents runs; a draft revision links it by briefId, and a drafted paragraph also cites it from its slot.',
+      'An agent brief exists only for a local run with agent research enabled; a draft revision links it by briefId, and a drafted paragraph also cites it from its slot.',
     ],
     40,
     636,
@@ -2017,7 +2017,7 @@ function simpleArchitecture() {
     diagram: d,
     eyebrow: 'Technical system boundary',
     title: 'The system and its approved connections',
-    desc: 'The React dashboard calls a loopback Fastify API, which stores the lead in Firestore before LangGraph runs fixed code, public read-only lookups and, only in local agent mode, a capped Anthropic agent runtime.',
+    desc: 'The React dashboard calls a Host/Origin-checked loopback Fastify API, which can save a write-only local Anthropic key and stores each lead in Firestore before LangGraph runs fixed code, public read-only lookups and, only after the operator enables it, a capped Anthropic agent runtime.',
     intro:
       'The local app owns the workflow and records. Only the two approved service paths leave it.',
   });
