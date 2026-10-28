@@ -2217,3 +2217,188 @@ kbd {
   margin-top: 0.35rem;
   font-size: 0.85rem;
 }
+
+/* Workspace emphasis, after 21st.dev stat-card and segmented-tab patterns:
+   the cover's dark band and gold carry into the header, tabs are a pill
+   control, sections sit on rounded white cards and the CPL tile is the dark
+   hero number. Layout is unchanged (owner, 2026-10-27). */
+.masthead {
+  border-bottom: 0;
+  width: 100%;
+  max-width: none;
+  padding-inline: max(1rem, calc((100% - 88rem) / 2));
+  background: #0b1714;
+}
+
+.masthead .brand {
+  color: #dce8e3;
+}
+
+.masthead .brand-mark {
+  border-color: #f4c95d;
+  color: #f4c95d;
+}
+
+.masthead .workspace-nav a {
+  color: #bdd0c8;
+  font-size: 0.85rem;
+}
+
+.masthead .workspace-nav a:hover,
+.masthead .workspace-nav a[aria-current='page'] {
+  border-bottom-color: #86efc5;
+  color: #f4fbf8;
+}
+
+.ui-tabs-list {
+  width: fit-content;
+  max-width: 100%;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px;
+  background: var(--paper-muted);
+}
+
+.ui-tabs-trigger {
+  min-height: 40px;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 1.05rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.ui-tabs-trigger:hover {
+  color: var(--ink);
+  background: rgb(255 255 255 / 70%);
+}
+
+.ui-tabs-trigger[data-state='active'] {
+  color: #f4fbf8;
+  background: #0b1714;
+}
+
+.operations-heading h1 {
+  color: #0b1714;
+}
+
+.metrics-dashboard > section,
+.metrics-grid > section {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.25rem;
+  background: #fff;
+}
+
+.metrics-grid {
+  gap: 1rem;
+}
+
+.metric-strip {
+  gap: 0.75rem;
+  border: 0;
+}
+
+.metric-strip > div,
+.metric-strip > div + div,
+.acquisition-section .acquisition-strip > div:nth-child(n) {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  background: var(--paper-strong);
+}
+
+.metric-strip dt {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.metric-strip dd {
+  color: #0b1714;
+  font-weight: 700;
+}
+
+.acquisition-section .acquisition-strip > div:nth-child(3) {
+  border-color: #0b1714;
+  background: #0b1714;
+}
+
+.acquisition-section .acquisition-strip > div:nth-child(3) dt,
+.acquisition-section .acquisition-strip > div:nth-child(3) .metric-detail {
+  color: #bdd0c8;
+}
+
+.acquisition-section .acquisition-strip > div:nth-child(3) dd:first-of-type {
+  color: #f4c95d;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+}
+
+.traffic-control {
+  border-color: #b9dcd3;
+  background: var(--accent-soft);
+}
+
+.traffic-run {
+  border-color: var(--accent-dark);
+  border-radius: 999px;
+  padding-inline: 1.4rem;
+  color: #fff;
+  background: var(--accent);
+}
+
+.traffic-run:hover {
+  background: var(--accent-dark);
+}
+
+.score-value {
+  font-size: 3rem;
+}
+
+.acquisition-section
+  .acquisition-strip
+  > div:nth-child(3)
+  dd.is-empty:first-of-type {
+  font-size: 1.1rem;
+}
+
+.metrics-dashboard > .traffic-control {
+  border-color: #b9dcd3;
+  background: var(--accent-soft);
+}
+
+/* The tab's h1 already names the section. */
+.acquisition-heading h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Run cards lead with priority, so the queue scans by what to call first. */
+.priority-pill {
+  align-self: center;
+  justify-self: start;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  color: var(--ink);
+  background: var(--paper-muted);
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.priority-high {
+  color: #3d2c05;
+  background: #f4c95d;
+}
+
+.priority-standard {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+}

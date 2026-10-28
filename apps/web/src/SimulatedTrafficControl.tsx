@@ -51,7 +51,7 @@ export function SimulatedTrafficControl({
         ) : (
           <button
             type="button"
-            className="secondary-action"
+            className="traffic-run"
             onClick={() =>
               void flight.start({ systemBundleId, submit, client, intervalMs })
             }

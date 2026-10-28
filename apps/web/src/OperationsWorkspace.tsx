@@ -91,30 +91,20 @@ function RunItem({
             {readable(item.status)}
           </span>
         </span>
+        {/* Priority leads the card as a coloured pill; retries, evidence and
+            lease are operator diagnostics kept in the dossier and the
+            accessible name's attention flag (owner, 2026-10-27). */}
         <span className="run-item-grid">
-          <span>
-            <small>Priority</small>
+          <span className={`priority-pill priority-${item.priority}`}>
             {readable(item.priority)}
-          </span>
-          <span>
-            <small>Age</small>
-            {age(item.createdAt)}
-          </span>
-          <span>
-            <small>Retries</small>
-            {item.retryCount}
-          </span>
-          <span>
-            <small>Evidence</small>
-            {readable(item.evidenceCompleteness)}
           </span>
           <span>
             <small>Draft</small>
             {readable(item.draftState)}
           </span>
           <span>
-            <small>Lease</small>
-            {readable(item.leaseState)}
+            <small>Age</small>
+            {age(item.createdAt)}
           </span>
         </span>
         {attention ? (

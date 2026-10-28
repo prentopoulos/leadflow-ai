@@ -1,6 +1,6 @@
 // One-command local demo for Windows and macOS: starts a fresh Firestore
 // Emulator, builds, serves the API with recorded enrichment and the web app,
-// then prints the dashboard link. Press "Run simulated traffic" on Metrics to
+// then prints the dashboard link. Press "Run 60 leads" on Metrics to
 // play the flight live. Ctrl+C stops everything; the emulator keeps no data.
 // Run from an activated toolchain shell: `pnpm demo` (add `-- --open` to open
 // the browser; add `-- --agents` to draft with the paid Claude agent team).
@@ -130,7 +130,7 @@ try {
 const url = `${webOrigin}/#metrics`;
 console.log(`\nLeadFlow AI demo is running: ${url}`);
 console.log(
-  'Press "Run simulated traffic" to send 60 fictional leads, one every 10 s. Ctrl+C stops the demo.',
+  'Press "Run 60 leads" to send 60 fictional leads, one every 10 s. Ctrl+C stops the demo.',
 );
 if (process.argv.includes('--open')) {
   const opener =
