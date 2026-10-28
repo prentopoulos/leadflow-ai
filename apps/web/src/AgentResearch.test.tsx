@@ -62,7 +62,7 @@ describe('agent research panel', () => {
     render(<AgentResearch brief={brief} />);
     const panel = screen.getByRole('region', { name: 'Agent research' });
     expect(panel).toHaveTextContent('Written by the agent team');
-    expect(panel).toHaveTextContent('Verified1 of 2');
+    expect(panel).toHaveTextContent('Verified facts1 / 12');
     expect(panel).toHaveTextContent('Cost$0.01');
     const link = within(panel).getByRole('link', { name: 'content.naic.org' });
     expect(link).toHaveAttribute(

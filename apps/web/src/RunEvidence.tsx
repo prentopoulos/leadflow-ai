@@ -1,4 +1,4 @@
-import { AGENT_TOPICS } from '@leadflow-ai/domain';
+import { AGENT_LIMITS, AGENT_TOPICS } from '@leadflow-ai/domain';
 import type {
   AgentBriefRecord,
   DraftView,
@@ -219,6 +219,7 @@ export function AgentResearch({ brief }: { brief: AgentBriefRecord }) {
   );
   const shown = brief.status === 'drafted' ? cited : brief.claims;
   const sources = new Set(shown.map((claim) => claim.url)).size;
+  const maxFacts = AGENT_LIMITS.maxClaimsPerTopic * AGENT_TOPICS.length;
   const topics = AGENT_TOPICS.map((topic) => ({
     topic,
     claims: shown.filter((claim) => claim.topic === topic),
@@ -239,10 +240,15 @@ export function AgentResearch({ brief }: { brief: AgentBriefRecord }) {
           <dt>Sources</dt>
           <dd>{sources}</dd>
         </div>
-        <div>
-          <dt>Verified</dt>
+        {/* Shown against the most the team keeps (four per topic), so a
+            full brief reads 12 / 12 rather than a fraction of everything
+            found; the found count stays on hover. */}
+        <div
+          title={`${brief.candidateClaims} found; the best-supported are kept, up to ${AGENT_LIMITS.maxClaimsPerTopic} per topic.`}
+        >
+          <dt>Verified facts</dt>
           <dd>
-            {brief.claims.length} of {brief.candidateClaims}
+            {brief.claims.length} / {maxFacts}
           </dd>
         </div>
         <div>
