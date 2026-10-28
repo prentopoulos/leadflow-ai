@@ -39,24 +39,20 @@ function readable(value: string) {
     .replace(/^\w/u, (letter) => letter.toUpperCase());
 }
 
-// Form labels as the intake shows them. Only ZIP Code is verified against
-// the Military.com auto landing form (IntakeFieldProvenanceSchema); every
-// other field is a labelled LeadFlow demo field.
-const formFields: Record<
-  QualificationField,
-  { label: string; source: string }
-> = {
-  zipCode: { label: 'ZIP Code', source: 'Military.com form' },
-  givenName: { label: 'First name', source: 'LeadFlow demo field' },
-  familyName: { label: 'Last name', source: 'LeadFlow demo field' },
-  email: { label: 'Test email', source: 'LeadFlow demo field' },
-  vehicleYear: { label: 'Vehicle year', source: 'LeadFlow demo field' },
-  vehicleMake: { label: 'Vehicle make', source: 'LeadFlow demo field' },
-  vehicleModel: { label: 'Vehicle model', source: 'LeadFlow demo field' },
-  requestIntent: { label: 'Request intent', source: 'LeadFlow demo field' },
-  coverageFocus: { label: 'Coverage focus', source: 'LeadFlow demo field' },
-  needTimeline: { label: 'Need timeline', source: 'LeadFlow demo field' },
-  requestDetails: { label: 'Request details', source: 'LeadFlow demo field' },
+// Form labels as the intake shows them. Only ZIP Code is the Military.com
+// auto form's own question; the intake form labels the rest as demo fields.
+const formFields: Record<QualificationField, string> = {
+  zipCode: 'ZIP Code',
+  givenName: 'First name',
+  familyName: 'Last name',
+  email: 'Test email',
+  vehicleYear: 'Vehicle year',
+  vehicleMake: 'Vehicle make',
+  vehicleModel: 'Vehicle model',
+  requestIntent: 'Request intent',
+  coverageFocus: 'Coverage focus',
+  needTimeline: 'Need timeline',
+  requestDetails: 'Request details',
 };
 
 function answer(value: string | number | null) {
@@ -85,15 +81,13 @@ function FormAnswers({ intake }: { intake: IntakeSubmission }) {
           <thead>
             <tr>
               <th scope="col">Field</th>
-              <th scope="col">Form</th>
               <th scope="col">Answer</th>
             </tr>
           </thead>
           <tbody>
             {rows.map(({ field, value }) => (
               <tr key={field}>
-                <th scope="row">{formFields[field].label}</th>
-                <td>{formFields[field].source}</td>
+                <th scope="row">{formFields[field]}</th>
                 <td className={value === null ? 'answer-missing' : undefined}>
                   {value ?? 'Not answered'}
                 </td>
@@ -101,7 +95,6 @@ function FormAnswers({ intake }: { intake: IntakeSubmission }) {
             ))}
             <tr>
               <th scope="row">Email contact consent</th>
-              <td>LeadFlow demo field</td>
               <td>{intake.emailContactConsent ? 'Yes' : 'No'}</td>
             </tr>
           </tbody>
@@ -179,8 +172,7 @@ function Qualification({
           <ul className="missing-list">
             {result.missingInformation.map((field) => (
               <li key={field}>
-                <span className="missing-pill">{formFields[field].label}</span>
-                <small>{formFields[field].source}</small>
+                <span className="missing-pill">{formFields[field]}</span>
               </li>
             ))}
           </ul>
