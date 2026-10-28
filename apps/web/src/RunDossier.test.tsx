@@ -339,9 +339,9 @@ describe('run dossier', () => {
     expect(screen.getByRole('heading', { name: 'Events' })).toBeInTheDocument();
     expect(screen.getByText('Lead persisted')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Simulation' }),
+      screen.getByRole('heading', { name: 'Outcomes' }),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/^Simulated (yes|no)$/u)).toHaveLength(3);
+    expect(screen.getAllByText(/^(Yes|No)$/u)).toHaveLength(3);
   });
 
   it('exposes explicit resume only for an eligible stored failure', async () => {

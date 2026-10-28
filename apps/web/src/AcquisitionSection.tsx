@@ -40,29 +40,21 @@ function share(value: AcquisitionRatio) {
     : `${Math.round(value.value * 100)}%`;
 }
 
-function SimulatedTag() {
-  return <span className="simulated-tag">SIMULATED</span>;
-}
-
 // The detail sits in its own dd so each tile stays a valid term/description
 // group for assistive technology.
 function Tile({
   label,
   value,
   detail,
-  provisional,
 }: {
   label: string;
   value: CostValue | AcquisitionRatio;
   detail: string;
-  provisional: boolean;
 }) {
   const text = 'valueCents' in value ? costText(value) : share(value);
   return (
     <div>
-      <dt>
-        {label} · simulated{provisional ? ' · provisional' : ''}
-      </dt>
+      <dt>{label}</dt>
       <dd className={value.reason === null ? undefined : 'is-empty'}>{text}</dd>
       <dd className="metric-detail">{detail}</dd>
     </div>
@@ -131,50 +123,36 @@ export function AcquisitionSection({
       aria-labelledby="acquisition-title"
     >
       <div className="acquisition-heading">
-        <h2 id="acquisition-title">
-          Acquisition <SimulatedTag />
-        </h2>
-        <p className="acquisition-label">
-          Made-up spend, channels and leads (simulated USD).
-        </p>
+        <h2 id="acquisition-title">Acquisition</h2>
       </div>
 
       <dl className="metric-strip acquisition-strip">
         <div>
-          <dt>Spend · simulated</dt>
+          <dt>Spend</dt>
           <dd>{dollars(blended.spendCents)}</dd>
-          <dd className="metric-detail">budget</dd>
         </div>
         <div>
-          <dt>Leads · simulated</dt>
+          <dt>Leads</dt>
           <dd>{blended.leads}</dd>
           <dd className="metric-detail">
             {flightLeads} of {acquisition.plannedLeads} planned
           </dd>
         </div>
-        <Tile
-          label="CPL"
-          value={blended.cpl}
-          detail="per lead"
-          provisional={provisional}
-        />
+        <Tile label="CPL" value={blended.cpl} detail="per lead" />
         <Tile
           label="Cost per MQL"
           value={blended.cpql}
           detail={`${blended.qualified} MQLs`}
-          provisional={provisional}
         />
         <Tile
           label="Cost per contactable lead"
           value={blended.cpcl}
           detail={`${blended.contactable} consented`}
-          provisional={provisional}
         />
         <Tile
           label="MQL rate"
           value={blended.qualifiedRate}
           detail={`${blended.qualified} of ${blended.leads}`}
-          provisional={false}
         />
       </dl>
       {notes.length > 0 ? (
@@ -184,13 +162,9 @@ export function AcquisitionSection({
       <div className="chart-section">
         <h3 id="channel-cpl-title">CPL by channel</h3>
         <figure className="chart-frame" aria-labelledby="channel-cpl-caption">
-          <figcaption id="channel-cpl-caption" className="chart-caption">
-            <SimulatedTag /> {TRAFFIC_INDEPENDENCE_NOTICE}
-            <span className="sr-only">
-              {' '}
-              Focus the chart and use the arrow keys to step through bars; the
-              channel table lists every value.
-            </span>
+          <figcaption id="channel-cpl-caption" className="sr-only">
+            Focus the chart and use the arrow keys to step through bars; the
+            channel table lists every value.
           </figcaption>
           {chartData.length === 0 ? (
             <p className="chart-empty">
@@ -206,7 +180,7 @@ export function AcquisitionSection({
                 layout="vertical"
                 margin={{ left: 8, right: 112 }}
                 accessibilityLayer
-                title="Simulated CPL by channel"
+                title="CPL by channel"
               >
                 <CartesianGrid stroke="#c8c6bd" horizontal={false} />
                 <XAxis
@@ -222,10 +196,7 @@ export function AcquisitionSection({
                 />
                 <Tooltip
                   animationDuration={0}
-                  formatter={(value) => [
-                    usd.format(Number(value)),
-                    'Simulated CPL',
-                  ]}
+                  formatter={(value) => [usd.format(Number(value)), 'CPL']}
                 />
                 <Bar
                   dataKey="dollars"
@@ -265,7 +236,7 @@ export function AcquisitionSection({
       >
         <table className="data-table">
           <caption id="channel-table-caption">
-            Channels <SimulatedTag />
+            Channels
             <span className="scroll-hint"> Scroll for more.</span>
           </caption>
           <thead>
@@ -298,17 +269,15 @@ export function AcquisitionSection({
       </div>
 
       <details className="campaign-disclosure">
-        <summary>
-          Campaigns ({acquisition.campaigns.length}) <SimulatedTag />
-        </summary>
+        <summary>Campaigns ({acquisition.campaigns.length})</summary>
         <div
           className="table-scroll"
           tabIndex={0}
           role="region"
-          aria-label="Simulated campaigns"
+          aria-label="Campaigns"
         >
           <table className="data-table">
-            <caption className="sr-only">Simulated campaigns</caption>
+            <caption className="sr-only">Campaigns</caption>
             <thead>
               <tr>
                 <th scope="col">Campaign</th>
@@ -357,6 +326,7 @@ export function AcquisitionSection({
           </div>
         </dl>
         <p>{CHANNEL_RULES_NOTICE}</p>
+        <p>{TRAFFIC_INDEPENDENCE_NOTICE}</p>
         <p>{acquisition.spendLabel}</p>
       </details>
     </section>

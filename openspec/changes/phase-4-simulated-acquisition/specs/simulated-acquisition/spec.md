@@ -28,7 +28,7 @@ summaries, metrics, events or logs.
 
 #### Scenario: Operator opens a simulated paid lead
 - **WHEN** the run dossier renders a paid-search or paid-social lead
-- **THEN** the click ID appears in the "Acquisition (simulated)" block and in no other view or record
+- **THEN** the click ID appears in the dossier "Acquisition" block and in no other view or record
 
 ### Requirement: Versioned channel rules
 `channel-rules-v1` SHALL map source and medium to Direct, Paid Search, Paid Social, Email,
