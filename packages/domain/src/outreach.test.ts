@@ -8,6 +8,7 @@ import {
   DRAFT_SUBJECT,
 } from './outreach.js';
 import {
+  EXAMPLE_MILITARY_ANSWERS,
   currentConsentRecord,
   type IntakeSubmission,
   type LifecycleEvent,
@@ -41,6 +42,7 @@ const timestamp = '2026-10-25T20:00:00.000Z';
 
 const intake: IntakeSubmission = {
   schemaVersion: 'intake-v3',
+  militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
   attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',

@@ -1,4 +1,5 @@
 import {
+  EXAMPLE_MILITARY_ANSWERS,
   COMPLIANCE_NOTICE,
   composeDraft,
   composerInputFrom,
@@ -60,6 +61,7 @@ function completeDetail(): RunDetailResponse {
       createdAt: timestamp,
       intake: {
         schemaVersion: 'intake-v3',
+        militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
         attribution: null,
         identityClass: 'fictional',
         givenName: 'Avery',

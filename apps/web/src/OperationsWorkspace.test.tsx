@@ -10,6 +10,7 @@ import {
   within,
 } from '@testing-library/react';
 import {
+  EXAMPLE_MILITARY_ANSWERS,
   COMPLIANCE_NOTICE,
   acquisitionReport,
   canonicalDraftContent,
@@ -211,6 +212,7 @@ function metricsResponse(): MetricsResponse {
 function draftView(): DraftView {
   const intake = {
     schemaVersion: 'intake-v3' as const,
+    militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
     identityClass: 'fictional' as const,
     givenName: 'Avery',
     familyName: 'Jordan',

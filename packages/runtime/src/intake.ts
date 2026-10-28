@@ -96,17 +96,20 @@ export class IntakePersistenceService {
       createdAt,
       intake,
       provenance: {
-        sourceId: 'military-com-auto-landing',
+        sourceId: 'military-com-auto-flow',
         sourceUrl: 'https://auto.military.com/',
-        retrievedAt: '2026-10-24',
-        exactSourceFields: ['zipCode'],
-        demoFields: [
+        retrievedAt: '2026-10-27',
+        exactSourceFields: [
+          'zipCode',
           'givenName',
           'familyName',
           'email',
           'vehicleYear',
           'vehicleMake',
           'vehicleModel',
+          'militaryAnswers',
+        ],
+        demoFields: [
           'coverageFocus',
           'requestIntent',
           'needTimeline',

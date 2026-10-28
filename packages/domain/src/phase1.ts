@@ -69,6 +69,89 @@ export const TestEmailSchema = z
     'email must use an IANA-reserved example domain',
   );
 
+// Fictional numbers only: the 555-0100 to 555-0199 range is reserved for
+// fiction, so a stored phone can never reach a real person.
+// Stored as ten digits; the form strips formatting before submitting.
+export const FictionalPhoneSchema = z
+  .string()
+  .regex(/^\d{3}55501\d{2}$/u, 'phone must be a fictional 555-01XX number');
+
+// Military.com auto quote flow, read from the live page's flow definition on
+// 2026-10-27 (auto.military.com). Questions LeadFlow already stores (ZIP,
+// name, email, first vehicle) map onto the existing intake fields; these are
+// the rest. Risk factors (incidents, DUI, SR-22, gender, birthdate, marital
+// status) are recorded for display only and never enter scoring or models.
+export const MILITARY_AUTO_CARRIERS = [
+  'Allstate',
+  'American Family',
+  'Farmers',
+  'GEICO',
+  'Liberty Mutual',
+  'Mercury',
+  'Nationwide',
+  'Progressive',
+  'State Farm',
+  'Travelers',
+  'USAA',
+  'The General',
+  'Other',
+] as const;
+const YesNoSchema = z.enum(['yes', 'no']);
+export const MilitaryVehicleSchema = z
+  .object({
+    year: z.number().int().min(1981).max(2027).nullable(),
+    make: z.string().trim().min(1).max(80).nullable(),
+    model: z.string().trim().min(1).max(80).nullable(),
+  })
+  .strict();
+export const MilitaryAnswersSchema = z
+  .object({
+    currentlyInsured: YesNoSchema.nullable().default(null),
+    currentCarrier: z.enum(MILITARY_AUTO_CARRIERS).nullable().default(null),
+    validLicense: YesNoSchema.nullable().default(null),
+    recentIncidents: z
+      .enum(['none', 'one', 'multiple'])
+      .nullable()
+      .default(null),
+    duiDwi: YesNoSchema.nullable().default(null),
+    sr22: YesNoSchema.nullable().default(null),
+    militaryService: YesNoSchema.nullable().default(null),
+    // The flow allows five vehicles; the first is the intake's own vehicle.
+    additionalVehicles: z.array(MilitaryVehicleSchema).max(4).default([]),
+    multipleDrivers: YesNoSchema.nullable().default(null),
+    homeOwner: YesNoSchema.nullable().default(null),
+    bundleInterest: YesNoSchema.nullable().default(null),
+    married: YesNoSchema.nullable().default(null),
+    gender: z.enum(['male', 'female']).nullable().default(null),
+    birthDate: z.iso.date().nullable().default(null),
+    streetAddress: z.string().trim().min(1).max(120).nullable().default(null),
+    aptUnitSuite: z.string().trim().min(1).max(40).nullable().default(null),
+    phone: FictionalPhoneSchema.nullable().default(null),
+  })
+  .strict();
+export type MilitaryAnswers = z.infer<typeof MilitaryAnswersSchema>;
+
+// A complete fictional answer set for fixtures and examples.
+export const EXAMPLE_MILITARY_ANSWERS: MilitaryAnswers = {
+  currentlyInsured: 'yes',
+  currentCarrier: 'USAA',
+  validLicense: 'yes',
+  recentIncidents: 'none',
+  duiDwi: 'no',
+  sr22: 'no',
+  militaryService: 'yes',
+  additionalVehicles: [],
+  multipleDrivers: 'no',
+  homeOwner: 'yes',
+  bundleInterest: 'yes',
+  married: 'no',
+  gender: 'female',
+  birthDate: '1985-06-15',
+  streetAddress: '100 Example Street',
+  aptUnitSuite: null,
+  phone: '7035550100',
+};
+
 export const NeedTimelineSchema = z.enum([
   'within_30_days',
   'days_31_to_90',
@@ -154,6 +237,9 @@ export const IntakeSubmissionSchema = z
     consentRecord: ConsentRecordSchema.nullable().default(null),
     // Synthetic LeadFlow simulation data, never a Military.com field.
     attribution: AttributionSchema.nullable().default(null),
+    // Required on every intake. Intakes stored before the Military.com flow
+    // read back with every answer blank (null), never as a missing block.
+    militaryAnswers: MilitaryAnswersSchema.prefault({}),
   })
   .strict()
   .superRefine((value, context) => {
@@ -167,7 +253,7 @@ export const IntakeSubmissionSchema = z
   });
 export type IntakeSubmission = z.infer<typeof IntakeSubmissionSchema>;
 
-export const IntakeFieldProvenanceSchema = z
+const IntakeFieldProvenanceV1Schema = z
   .object({
     sourceId: z.literal('military-com-auto-landing'),
     sourceUrl: z.literal('https://auto.military.com/'),
@@ -192,6 +278,44 @@ export const IntakeFieldProvenanceSchema = z
     parityVerified: z.literal(false),
   })
   .strict();
+// 2026-10-27: the intake copies the Military.com auto flow's questions, so
+// name, email, vehicle and the flow answers are exact source fields; the
+// LeadFlow scoring step stays labelled demo. Full parity (the flow's own
+// submission and make/model lists) is still unverified.
+const IntakeFieldProvenanceV2Schema = z
+  .object({
+    sourceId: z.literal('military-com-auto-flow'),
+    sourceUrl: z.literal('https://auto.military.com/'),
+    retrievedAt: z.literal('2026-10-27'),
+    exactSourceFields: z.array(
+      z.enum([
+        'zipCode',
+        'givenName',
+        'familyName',
+        'email',
+        'vehicleYear',
+        'vehicleMake',
+        'vehicleModel',
+        'militaryAnswers',
+      ]),
+    ),
+    demoFields: z.array(
+      z.enum([
+        'coverageFocus',
+        'requestIntent',
+        'needTimeline',
+        'requestDetails',
+        'emailContactConsent',
+      ]),
+    ),
+    simulatedFields: z.tuple([z.literal('attribution')]),
+    parityVerified: z.literal(false),
+  })
+  .strict();
+export const IntakeFieldProvenanceSchema = z.union([
+  IntakeFieldProvenanceV1Schema,
+  IntakeFieldProvenanceV2Schema,
+]);
 export type IntakeFieldProvenance = z.infer<typeof IntakeFieldProvenanceSchema>;
 
 export const LeadDocumentSchema = z

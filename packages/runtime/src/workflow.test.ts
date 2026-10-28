@@ -1,6 +1,7 @@
 import type { DocumentData } from 'firebase-admin/firestore';
 import { MemorySaver } from '@langchain/langgraph';
 import {
+  EXAMPLE_MILITARY_ANSWERS,
   currentConsentRecord,
   deriveRevisionStates,
   type IntakeSubmission,
@@ -44,6 +45,7 @@ const requestId = '55555555-5555-4555-8555-555555555555';
 
 const intake = {
   schemaVersion: 'intake-v3',
+  militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
   attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',

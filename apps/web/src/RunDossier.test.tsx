@@ -1,3 +1,4 @@
+import { EXAMPLE_MILITARY_ANSWERS } from '@leadflow-ai/domain';
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import {
@@ -50,6 +51,7 @@ function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
       createdAt: timestamp,
       intake: {
         schemaVersion: 'intake-v3',
+        militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
         attribution: null,
         identityClass: 'fictional',
         givenName: 'Avery',

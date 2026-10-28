@@ -1,6 +1,7 @@
 import type { DocumentData } from 'firebase-admin/firestore';
 import { describe, expect, it } from 'vitest';
 import {
+  EXAMPLE_MILITARY_ANSWERS,
   scoreQualification,
   simulateOutcome,
   verifyOutputs,
@@ -61,6 +62,7 @@ const lead = {
   createdAt: timestamp,
   intake: {
     schemaVersion: 'intake-v3',
+    militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
     attribution: null,
     identityClass: 'fictional',
     givenName: 'Avery',

@@ -3,6 +3,7 @@
 // scripted model stands in for Claude; these cases prove the contracts, not
 // model quality. The owner-authorized live probe is recorded separately.
 import {
+  EXAMPLE_MILITARY_ANSWERS,
   AGENT_LIMITS,
   agentProjectionFrom,
   canonicalDraftContent,
@@ -139,6 +140,7 @@ export const PHASE_FIVE_CASES = [
 
 const intake: IntakeSubmission = {
   schemaVersion: 'intake-v3',
+  militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
   attribution: null,
   identityClass: 'fictional',
   givenName: 'Marisol',

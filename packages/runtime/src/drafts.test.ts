@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  EXAMPLE_MILITARY_ANSWERS,
   currentConsentRecord,
   scoreQualification,
   verifyOutputs,
@@ -46,6 +47,7 @@ const lead: LeadDocument = {
   createdAt: timestamp,
   intake: {
     schemaVersion: 'intake-v3',
+    militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
     attribution: null,
     identityClass: 'fictional',
     givenName: 'Avery',
