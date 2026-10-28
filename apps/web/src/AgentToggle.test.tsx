@@ -59,7 +59,7 @@ describe('agent switch', () => {
     render(<AgentToggle fetcher={fetcher as unknown as typeof fetch} />);
     fireEvent.click(
       await screen.findByRole('button', {
-        name: 'Turn on agent research',
+        name: 'Turn on agents',
       }),
     );
     const input = screen.getByLabelText('Anthropic API key');
@@ -67,9 +67,7 @@ describe('agent switch', () => {
     expect(input).toHaveAttribute('type', 'password');
     expect(screen.getByText(/gitignored/u)).toBeInTheDocument();
     fireEvent.change(input, { target: { value: apiKey } });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Save key and turn on' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save & turn on' }));
     expect(
       await screen.findByRole('button', { name: 'Agents on · turn off' }),
     ).toHaveAttribute('aria-pressed', 'true');
@@ -91,14 +89,12 @@ describe('agent switch', () => {
     );
     render(<AgentToggle fetcher={fetcher as unknown as typeof fetch} />);
     fireEvent.click(
-      await screen.findByRole('button', { name: 'Turn on agent research' }),
+      await screen.findByRole('button', { name: 'Turn on agents' }),
     );
     fireEvent.change(screen.getByLabelText('Anthropic API key'), {
       target: { value: `sk-ant-${'a'.repeat(24)}` },
     });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Save key and turn on' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save & turn on' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'nothing was enabled',
     );

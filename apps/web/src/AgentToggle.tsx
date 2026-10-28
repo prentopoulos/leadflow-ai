@@ -84,11 +84,9 @@ export function AgentToggle({ fetcher = apiFetch }: { fetcher?: Fetcher }) {
       ) : settings.available ? (
         <>
           <p>
-            When on, each consented lead's draft gets one paragraph researched
-            on the web and written by Claude, with every source shown in the
-            dossier. Adds about 30 s per lead. Capped at $
-            {settings.leadCapUsd.toFixed(2)} per lead and $
-            {settings.processCapUsd.toFixed(2)} per session.
+            Adds sourced research to consented drafts. Up to $
+            {settings.leadCapUsd.toFixed(2)}/lead and $
+            {settings.processCapUsd.toFixed(2)}/session.
           </p>
           <div className="draft-actions">
             <Button
@@ -106,20 +104,17 @@ export function AgentToggle({ fetcher = apiFetch }: { fetcher?: Fetcher }) {
       ) : (
         <>
           <p>
-            Add one source-backed paragraph to consented draft emails. Your
-            Anthropic usage is billed directly and stays capped at $
-            {settings.leadCapUsd.toFixed(2)} per lead and $
-            {settings.processCapUsd.toFixed(2)} per session. Template drafts
-            keep working without it.
+            Add sourced research to consented drafts with your Anthropic key. Up
+            to ${settings.leadCapUsd.toFixed(2)}/lead and $
+            {settings.processCapUsd.toFixed(2)}/session.
           </p>
           {showKeySetup ? (
             <form className="agent-key-setup" onSubmit={saveKey}>
               <div>
                 <label htmlFor="anthropic-api-key">Anthropic API key</label>
                 <p id="anthropic-api-key-help">
-                  Saved only to the gitignored <code>.env</code> on this
-                  computer. The key is never shown again or stored in LeadFlow
-                  records.
+                  Saved to this computer's gitignored <code>.env</code>. Never
+                  stored with lead data.
                 </p>
               </div>
               <input
@@ -145,7 +140,7 @@ export function AgentToggle({ fetcher = apiFetch }: { fetcher?: Fetcher }) {
               )}
               <div className="agent-key-actions">
                 <Button type="submit" disabled={busy}>
-                  {busy ? 'Saving…' : 'Save key and turn on'}
+                  {busy ? 'Saving…' : 'Save & turn on'}
                 </Button>
                 <Button
                   type="button"
@@ -168,7 +163,7 @@ export function AgentToggle({ fetcher = apiFetch }: { fetcher?: Fetcher }) {
                 setShowKeySetup(true);
               }}
             >
-              Turn on agent research
+              Turn on agents
             </Button>
           )}
         </>
