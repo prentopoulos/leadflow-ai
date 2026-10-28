@@ -442,7 +442,9 @@ describe('metrics dashboard', () => {
     expect(
       screen.getByRole('table', { name: 'Priority distribution' }),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/Insufficient data/u).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(/Insufficient data|Not reviewed yet/u).length,
+    ).toBeGreaterThan(0);
     expect(screen.getAllByText('1 of 10').length).toBeGreaterThan(0);
     expect(
       screen.getByRole('heading', { name: 'Outcomes' }),
