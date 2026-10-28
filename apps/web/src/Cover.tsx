@@ -15,9 +15,9 @@ const pipeline = [
 ] as const;
 
 const entries = [
-  { href: '#intake', label: 'Start an intake', primary: true },
-  { href: '#runs', label: 'Review runs and approvals', primary: false },
-  { href: '#metrics', label: 'Open the metrics', primary: false },
+  { href: '#intake', label: 'Intake', primary: true },
+  { href: '#runs', label: 'Runs', primary: false },
+  { href: '#metrics', label: 'Metrics', primary: false },
 ] as const;
 
 // The home screen: the project's original Phase 0 cover, with copy that
