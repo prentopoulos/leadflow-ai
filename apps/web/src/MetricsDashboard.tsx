@@ -230,7 +230,18 @@ export function MetricsDashboard({
 
           <div className="metrics-grid">
             <section className="chart-section" aria-labelledby="priority-title">
-              <h2 id="priority-title">Priority</h2>
+              <div className="chart-header">
+                <h2 id="priority-title">Priority</h2>
+                <p className="chart-kpi">
+                  <span>Stored runs</span>
+                  <strong>
+                    {priorityData.reduce(
+                      (total, item) => total + item.count,
+                      0,
+                    )}
+                  </strong>
+                </p>
+              </div>
               {/* Keyboard focus lands inside this frame: Recharts' accessibility
               layer steps through bars with the arrow keys, and the caption
               names the table that carries the same values. */}
@@ -273,8 +284,8 @@ export function MetricsDashboard({
                     />
                     <Bar
                       dataKey="count"
-                      radius={[8, 8, 0, 0]}
-                      maxBarSize={72}
+                      radius={[12, 12, 12, 12]}
+                      maxBarSize={64}
                       isAnimationActive={!reducedMotion}
                     >
                       {/* Pill colours; the dark outline keeps each mark at

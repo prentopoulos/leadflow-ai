@@ -6,7 +6,14 @@ import type {
   SafeError,
   VerificationResult,
 } from '@leadflow-ai/domain';
-import { Check, Copy, Download, PencilLine, X } from 'lucide-react';
+import {
+  Check,
+  Copy,
+  Download,
+  ExternalLink,
+  PencilLine,
+  X,
+} from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button } from './components/ui/button.js';
 import type { OperationsClient } from './operations-client.js';
@@ -113,6 +120,7 @@ export function EnrichmentEvidenceSection({
                   title={record.attribution}
                 >
                   {link.label}
+                  <ExternalLink size={14} aria-hidden="true" />
                   <span className="sr-only"> (opens in a new tab)</span>
                 </a>
               );

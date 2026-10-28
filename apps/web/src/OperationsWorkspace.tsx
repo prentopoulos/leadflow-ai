@@ -7,6 +7,7 @@ import type {
 import {
   AlertTriangle,
   BarChart3,
+  BookOpen,
   Clock3,
   Database,
   FilePlus2,
@@ -23,6 +24,7 @@ import {
   TabsList,
   TabsTrigger,
 } from './components/ui/tabs.js';
+import { Glossary } from './Glossary.js';
 import { Masthead, SimulationStrip } from './Masthead.js';
 import { MetricsDashboard } from './MetricsDashboard.js';
 import {
@@ -34,7 +36,8 @@ import type { RunClient } from './run-client.js';
 import { useSession } from './session-context.js';
 import { useVisiblePolling } from './use-visible-polling.js';
 
-export type OperatorView = 'runs' | 'metrics' | 'pipeline' | 'enrichment';
+export type OperatorView =
+  'runs' | 'metrics' | 'pipeline' | 'enrichment' | 'glossary';
 
 function readable(value: string) {
   return value
@@ -422,6 +425,9 @@ export function OperationsWorkspace({
             <TabsTrigger value="enrichment">
               <Database size={16} aria-hidden="true" /> Enrichment
             </TabsTrigger>
+            <TabsTrigger value="glossary">
+              <BookOpen size={16} aria-hidden="true" /> Glossary
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="runs">
             <RunsView
@@ -434,6 +440,9 @@ export function OperationsWorkspace({
           </TabsContent>
           <TabsContent value="pipeline">
             <MetricsDashboard client={operationsClient} section="pipeline" />
+          </TabsContent>
+          <TabsContent value="glossary">
+            <Glossary />
           </TabsContent>
           <TabsContent value="enrichment">
             <MetricsDashboard client={operationsClient} section="enrichment" />

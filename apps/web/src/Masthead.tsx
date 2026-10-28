@@ -1,4 +1,5 @@
-export type AppView = 'intake' | 'runs' | 'metrics' | 'pipeline' | 'enrichment';
+export type AppView =
+  'intake' | 'runs' | 'metrics' | 'pipeline' | 'enrichment' | 'glossary';
 
 // The one page-level label for fictional leads, spend and outcomes; values
 // below it stay unmarked (owner, 2026-10-27).

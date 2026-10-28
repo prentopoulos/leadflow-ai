@@ -2513,3 +2513,204 @@ kbd {
   color: #f4c95d;
   background: #0b1714;
 }
+
+/* Chart cards lead with one figure, after 21st.dev chart headers. */
+.chart-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.chart-header h2,
+.chart-header h3 {
+  margin: 0;
+}
+
+.chart-kpi {
+  display: grid;
+  margin: 0;
+  text-align: right;
+}
+
+.chart-kpi span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.chart-kpi strong {
+  color: #0b1714;
+  font-family: var(--mono);
+  font-size: 1.35rem;
+}
+
+/* Runs: the list and dossier sit on rounded cards. */
+.run-monitor-layout {
+  gap: 1rem;
+  border-top: 0;
+}
+
+.run-list-pane,
+.monitor-dossier {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.25rem;
+  background: #fff;
+}
+
+.run-monitor-layout .operations-section-heading h2 {
+  font-size: 1.6rem;
+}
+
+.run-filters .ui-button {
+  border-radius: 999px;
+}
+
+.run-item > button {
+  border-radius: 12px;
+}
+
+.run-item.is-selected > button {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* Dossier sections read as stacked cards. */
+.monitor-dossier .result-section,
+.monitor-dossier .run-summary,
+.monitor-dossier .event-history {
+  margin-top: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  background: var(--paper-strong);
+}
+
+.monitor-dossier .evidence-list > li {
+  border: 1px solid #ebe8e0;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  background: #fff;
+}
+
+/* Source links are actions a caller takes, so they read as buttons. */
+.evidence-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.evidence-source:hover {
+  color: #fff;
+  background: var(--accent-dark);
+}
+
+/* Glossary, after 21st.dev FAQ blocks: a search field over grouped cards. */
+.glossary-search {
+  display: flex;
+  max-width: 28rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  padding: 0 1rem;
+  color: var(--muted);
+  background: #fff;
+}
+
+.glossary-search input {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+}
+
+.glossary-search:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.glossary-group {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.25rem;
+  background: #fff;
+}
+
+.glossary-group h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.glossary-group dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.glossary-group dl > div {
+  border: 1px solid #ebe8e0;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  background: var(--paper-strong);
+}
+
+.glossary-group dt {
+  color: #0b1714;
+  font-weight: 750;
+}
+
+.glossary-group dd {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.glossary-empty {
+  margin-top: 1rem;
+  color: var(--muted);
+}
+
+/* Dossier enrichment: each lookup card stacks its source, answer and link
+   with even gaps. */
+.monitor-dossier .evidence-list {
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.monitor-dossier .evidence-list > li {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+  padding: 1rem 1.1rem;
+}
+
+.monitor-dossier .evidence-list > li p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.monitor-dossier .evidence-list .evidence-source {
+  margin-top: 0.15rem;
+}
+
+.monitor-dossier .email-check {
+  margin: 1rem 0 0;
+}

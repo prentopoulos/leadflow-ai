@@ -11,6 +11,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   LabelList,
   ResponsiveContainer,
   Tooltip,
@@ -107,6 +108,11 @@ export function AcquisitionSection({
       dollars: Math.round(row.cpl.valueCents ?? 0) / 100,
       leads: row.leads,
     }));
+  // The cheapest channel is the bar worth noticing, so it alone is dark.
+  const cheapest = chartData.reduce<(typeof chartData)[number] | null>(
+    (best, row) => (best === null || row.dollars < best.dollars ? row : best),
+    null,
+  );
   const notes = [
     provisional ? 'Provisional: costs fall as the flight fills.' : null,
     acquisition.unattributedLeads > 0
@@ -160,7 +166,17 @@ export function AcquisitionSection({
       ) : null}
 
       <div className="chart-section">
-        <h3 id="channel-cpl-title">CPL by channel</h3>
+        <div className="chart-header">
+          <h3 id="channel-cpl-title">CPL by channel</h3>
+          {cheapest === null ? null : (
+            <p className="chart-kpi">
+              <span>Cheapest</span>
+              <strong>
+                {cheapest.label} · {usd.format(cheapest.dollars)}
+              </strong>
+            </p>
+          )}
+        </div>
         <figure className="chart-frame" aria-labelledby="channel-cpl-caption">
           <figcaption id="channel-cpl-caption" className="sr-only">
             Focus the chart and use the arrow keys to step through bars; the
@@ -211,12 +227,19 @@ export function AcquisitionSection({
                   dataKey="dollars"
                   fill="#087f73"
                   stroke="#075e57"
-                  radius={[0, 8, 8, 0]}
+                  radius={13}
                   maxBarSize={26}
                   // Static: polling would restart an animation, and Recharts
                   // draws value labels only once an animation finishes.
                   isAnimationActive={false}
                 >
+                  {chartData.map((row) => (
+                    <Cell
+                      key={row.label}
+                      fill={row === cheapest ? '#0b1714' : '#b9dcd3'}
+                      stroke={row === cheapest ? '#0b1714' : '#075e57'}
+                    />
+                  ))}
                   <LabelList
                     dataKey="dollars"
                     content={({ x, y, width, height, value, index }) => (
