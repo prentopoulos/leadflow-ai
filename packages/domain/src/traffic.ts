@@ -6,6 +6,8 @@ import {
 } from './acquisition.js';
 import {
   currentConsentRecord,
+  MILITARY_AUTO_CARRIERS,
+  type MilitaryAnswers,
   type EnrichmentMode,
   type IntakeSubmission,
 } from './phase1.js';
@@ -188,6 +190,59 @@ const details = [
   null,
 ] as const;
 
+// Military.com flow answers. Each list cycles at its own length, so across
+// the 60 leads every option appears, including skipped (null) answers.
+const yesNo = ['yes', 'no', 'yes', null] as const;
+const incidentLevels = ['none', 'one', 'multiple', 'none'] as const;
+const streets = [
+  '100 Example Street',
+  '200 Sample Avenue',
+  '300 Fixture Road',
+  null,
+] as const;
+
+function plannedMilitaryAnswers(index: number): MilitaryAnswers {
+  const insured = yesNo[index % yesNo.length]!;
+  const vehicleCount = index % 5;
+  return {
+    currentlyInsured: insured,
+    // Only an insured lead names a carrier, as in the live flow.
+    currentCarrier:
+      insured === 'yes'
+        ? MILITARY_AUTO_CARRIERS[index % MILITARY_AUTO_CARRIERS.length]!
+        : null,
+    validLicense: index % 9 === 8 ? 'no' : 'yes',
+    recentIncidents: incidentLevels[index % incidentLevels.length]!,
+    duiDwi: index % 11 === 10 ? 'yes' : 'no',
+    sr22: index % 13 === 12 ? 'yes' : 'no',
+    militaryService: yesNo[(index + 1) % yesNo.length]!,
+    additionalVehicles: Array.from({ length: vehicleCount }, (_, offset) => {
+      const subject =
+        RECORDED_VEHICLE_SUBJECTS[
+          (index + offset + 1) % RECORDED_VEHICLE_SUBJECTS.length
+        ]!;
+      return {
+        year: subject.vehicleYear,
+        make: subject.vehicleMake,
+        model: subject.vehicleModel,
+      };
+    }),
+    multipleDrivers: yesNo[(index + 2) % yesNo.length]!,
+    homeOwner: yesNo[(index + 3) % yesNo.length]!,
+    bundleInterest: yesNo[(index + 1) % 3 === 0 ? 3 : index % 2]!,
+    married: yesNo[(index + 2) % 3]!,
+    gender: index % 3 === 2 ? null : index % 2 === 0 ? 'female' : 'male',
+    birthDate: `${1960 + (index % 40)}-${String((index % 12) + 1).padStart(2, '0')}-${String((index % 28) + 1).padStart(2, '0')}`,
+    streetAddress: streets[index % streets.length]!,
+    aptUnitSuite: index % 6 === 0 ? `Unit ${index + 1}` : null,
+    // Fictional 555-0100 to 555-0199 numbers only.
+    phone:
+      index % 7 === 6
+        ? null
+        : `703555${String(100 + (index % 100)).padStart(4, '0')}`,
+  };
+}
+
 export interface TrafficPlanEntry {
   index: number;
   intake: IntakeSubmission;
@@ -214,6 +269,7 @@ function plannedIntake(index: number): IntakeSubmission {
     emailContactConsent: consent,
     consentRecord: consent ? currentConsentRecord() : null,
     attribution: trafficAttributionFor(index),
+    militaryAnswers: plannedMilitaryAnswers(index),
   };
 }
 

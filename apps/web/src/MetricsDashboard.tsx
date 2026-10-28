@@ -4,6 +4,8 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -21,7 +23,10 @@ import { useVisiblePolling } from './use-visible-polling.js';
 function milliseconds(value: number | null) {
   if (value === null) return 'Insufficient data';
   if (value < 1_000) return `${Math.round(value)} ms`;
-  return `${(value / 1_000).toFixed(value < 10_000 ? 1 : 0)} s`;
+  if (value < 60_000)
+    return `${(value / 1_000).toFixed(value < 10_000 ? 1 : 0)} s`;
+  if (value < 3_600_000) return `${Math.round(value / 60_000)} min`;
+  return `${(value / 3_600_000).toFixed(1)} hr`;
 }
 
 function percent(metric: RateValue) {
@@ -30,12 +35,37 @@ function percent(metric: RateValue) {
     : `${Math.round(metric.value * 100)}%`;
 }
 
-function RateDefinition({ metric }: { metric: RateValue }) {
-  return (
-    <span className="metric-denominator">
-      {metric.numerator} / {metric.denominator}; {metric.excluded} excluded
+// An inline bar for a rate, after 21st.dev analytics tables; the percentage
+// text beside it carries the value, so the bar is decorative.
+function RateBar({ metric }: { metric: RateValue }) {
+  return metric.value === null ? null : (
+    <span className="rate-bar" aria-hidden="true">
+      <span style={{ width: `${Math.round(metric.value * 100)}%` }} />
     </span>
   );
+}
+
+// One short visible count; exclusions stay available on hover and to
+// assistive technology.
+function RateDefinition({ metric }: { metric: RateValue }) {
+  return (
+    <span className="metric-denominator" title={`${metric.excluded} excluded`}>
+      {metric.numerator} of {metric.denominator}
+      <span className="sr-only">; {metric.excluded} excluded</span>
+    </span>
+  );
+}
+
+function combine(left: RateValue, right: RateValue): RateValue {
+  const numerator = left.numerator + right.numerator;
+  const denominator = left.denominator + right.denominator;
+  return {
+    value: denominator === 0 ? null : numerator / denominator,
+    numerator,
+    denominator,
+    excluded: left.excluded + right.excluded,
+    reason: denominator === 0 ? 'insufficient_data' : null,
+  };
 }
 
 function useReducedMotion() {
@@ -50,16 +80,33 @@ function useReducedMotion() {
   return reduced;
 }
 
+const priorityFills: Record<string, { fill: string; stroke: string }> = {
+  high: { fill: '#f4c95d', stroke: '#8a6512' },
+  standard: { fill: '#087f73', stroke: '#075e57' },
+  nurture: { fill: '#c9cec9', stroke: '#5c6460' },
+};
+
 const sourceLabels: Record<string, string> = {
   all: 'All sources',
   nhtsa_vpic: 'NHTSA vPIC',
   zippopotam_us: 'Zippopotam.us',
 };
 
+export type MetricsSection = 'acquisition' | 'pipeline' | 'enrichment';
+
+const sectionTitles: Record<MetricsSection, string> = {
+  acquisition: 'Acquisition',
+  pipeline: 'Pipeline',
+  enrichment: 'Enrichment',
+};
+
+// Each operations tab shows one section so no view needs a long scroll.
 export function MetricsDashboard({
   client = defaultClient,
+  section = 'acquisition',
 }: {
   client?: OperationsClient;
+  section?: MetricsSection;
 }) {
   const [snapshot, setSnapshot] = useState<MetricsResponse | null>(null);
   const [error, setError] = useState<SafeError | null>(null);
@@ -87,17 +134,31 @@ export function MetricsDashboard({
 
   const { report } = snapshot;
   const priorityData = Object.entries(report.priorityDistribution).map(
-    ([label, count]) => ({ label: label.replace('_', ' '), count }),
+    ([key, count]) => ({ key, label: key.replace('_', ' '), count }),
   );
-  const recorded = report.enrichment.filter(
-    (item) => item.classGroup === 'recorded_or_mock',
-  );
-  const live = report.enrichment.filter((item) => item.classGroup === 'live');
+  // One feed per source under the page-level SIMULATION strip: recorded and
+  // live lookups are summed into a single Live row (owner, 2026-10-27).
+  const feed = report.enrichment
+    .filter((item) => item.classGroup === 'live')
+    .map((item) => {
+      const other = report.enrichment.find(
+        (row) =>
+          row.classGroup === 'recorded_or_mock' && row.source === item.source,
+      );
+      return other === undefined
+        ? item
+        : {
+            ...item,
+            success: combine(item.success, other.success),
+            foundRate: combine(item.foundRate, other.foundRate),
+            notAttempted: item.notAttempted + other.notAttempted,
+          };
+    });
 
   return (
     <div className="metrics-dashboard">
       <div className="operations-heading">
-        <h1>Metrics</h1>
+        <h1>{sectionTitles[section]}</h1>
       </div>
 
       {error === null ? null : (
@@ -106,228 +167,283 @@ export function MetricsDashboard({
         </div>
       )}
 
-      {/* A marketing manager's first question is what a lead cost, so the
-          simulated acquisition panel leads the page (owner, 2026-10-27). */}
-      <AcquisitionSection acquisition={report.acquisition} />
-      {/* Hosted runs need the held execution request; locally the API runs
-          each lead in the background, so the control only submits intake. */}
-      <SimulatedTrafficControl
-        systemBundleId={report.systemBundleId}
-        client={
-          hosted ? runClient : { get: runClient.get, resume: runClient.resume }
-        }
-      />
-      {hosted ? null : <AgentToggle />}
+      {section === 'acquisition' ? (
+        <>
+          {/* The traffic run sits above the panel it fills, so it is visible
+              without scrolling. Hosted runs need the held execution request;
+              locally the API runs each lead in the background, so the control
+              only submits intake. */}
+          <SimulatedTrafficControl
+            systemBundleId={report.systemBundleId}
+            client={
+              hosted
+                ? runClient
+                : { get: runClient.get, resume: runClient.resume }
+            }
+          />
+          {hosted ? null : <AgentToggle />}
+          <AcquisitionSection acquisition={report.acquisition} />
+        </>
+      ) : null}
 
-      <section className="metric-ledger" aria-labelledby="metric-ledger-title">
-        <div className="section-heading operations-section-heading">
-          <h2 id="metric-ledger-title">Workload</h2>
-        </div>
-        <dl className="metric-strip">
-          <div>
-            <dt>Lead volume</dt>
-            <dd>{report.leadVolume}</dd>
-          </div>
-          <div>
-            <dt>Approval queue</dt>
-            <dd>{report.approvalQueue}</dd>
-          </div>
-          <div>
-            <dt>Agent failures</dt>
-            <dd
-              className={
-                report.agentFailures.value === null ? 'is-empty' : undefined
-              }
-            >
-              {percent(report.agentFailures)}
-            </dd>
-            <RateDefinition metric={report.agentFailures} />
-          </div>
-          <div>
-            <dt>Median processing</dt>
-            <dd
-              className={
-                report.processingTime.medianMs === null ? 'is-empty' : undefined
-              }
-            >
-              {milliseconds(report.processingTime.medianMs)}
-            </dd>
-            <small>n={report.processingTime.n}</small>
-          </div>
-        </dl>
-      </section>
+      {section === 'pipeline' ? (
+        <>
+          <section
+            className="metric-ledger"
+            aria-labelledby="metric-ledger-title"
+          >
+            <div className="section-heading operations-section-heading">
+              <h2 id="metric-ledger-title">Workload</h2>
+            </div>
+            <dl className="metric-strip">
+              <div>
+                <dt>Lead volume</dt>
+                <dd>{report.leadVolume}</dd>
+              </div>
+              <div>
+                <dt>Approval queue</dt>
+                <dd>{report.approvalQueue}</dd>
+              </div>
+              <div>
+                <dt>Agent failures</dt>
+                <dd
+                  className={
+                    report.agentFailures.value === null ? 'is-empty' : undefined
+                  }
+                >
+                  {percent(report.agentFailures)}
+                </dd>
+                <RateDefinition metric={report.agentFailures} />
+              </div>
+              <div>
+                <dt>Median processing</dt>
+                <dd
+                  className={
+                    report.processingTime.medianMs === null
+                      ? 'is-empty'
+                      : undefined
+                  }
+                >
+                  {milliseconds(report.processingTime.medianMs)}
+                </dd>
+              </div>
+            </dl>
+          </section>
 
-      <div className="metrics-grid">
-        <section className="chart-section" aria-labelledby="priority-title">
-          <h2 id="priority-title">Priority</h2>
-          {/* Keyboard focus lands inside this frame: Recharts' accessibility
+          <div className="metrics-grid">
+            <section className="chart-section" aria-labelledby="priority-title">
+              <div className="chart-header">
+                <h2 id="priority-title">Priority</h2>
+                <p className="chart-kpi">
+                  <span>Stored runs</span>
+                  <strong>
+                    {priorityData.reduce(
+                      (total, item) => total + item.count,
+                      0,
+                    )}
+                  </strong>
+                </p>
+              </div>
+              {/* Keyboard focus lands inside this frame: Recharts' accessibility
               layer steps through bars with the arrow keys, and the caption
               names the table that carries the same values. */}
-          <figure
-            className="chart-frame"
-            aria-labelledby="priority-chart-caption"
-          >
-            <figcaption id="priority-chart-caption" className="chart-caption">
-              Stored runs by priority. Focus the chart and use the arrow keys to
-              step through bars; the table below lists the same counts.
-            </figcaption>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart
-                data={priorityData}
-                margin={{ left: -18, right: 8 }}
-                accessibilityLayer
-                title="Stored runs by priority"
+              <figure
+                className="chart-frame"
+                aria-labelledby="priority-chart-caption"
               >
-                <CartesianGrid stroke="#c8c6bd" vertical={false} />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fill: '#4e5753', fontSize: 12 }}
-                />
-                <YAxis
-                  allowDecimals={false}
-                  tick={{ fill: '#4e5753', fontSize: 12 }}
-                />
-                <Tooltip animationDuration={0} />
-                <Bar
-                  dataKey="count"
-                  fill="#087f73"
-                  stroke="#075e57"
-                  isAnimationActive={!reducedMotion}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </figure>
-          <table className="data-table compact-table">
-            <caption className="sr-only">Priority distribution</caption>
-            <thead>
-              <tr>
-                <th scope="col">Priority</th>
-                <th scope="col">Stored runs</th>
-              </tr>
-            </thead>
-            <tbody>
-              {priorityData.map((item) => (
-                <tr key={item.label}>
-                  <th scope="row">{item.label}</th>
-                  <td>{item.count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+                <figcaption id="priority-chart-caption" className="sr-only">
+                  Stored runs by priority. Focus the chart and use the arrow
+                  keys to step through bars; the table below lists the same
+                  counts.
+                </figcaption>
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart
+                    data={priorityData}
+                    margin={{ top: 22, left: -18, right: 8 }}
+                    accessibilityLayer
+                    title="Stored runs by priority"
+                  >
+                    <CartesianGrid
+                      stroke="#dcd9d0"
+                      strokeDasharray="4 4"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="label"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#4e5753', fontSize: 12 }}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#4e5753', fontSize: 12 }}
+                    />
+                    <Tooltip
+                      animationDuration={0}
+                      cursor={{ fill: 'rgb(11 23 20 / 5%)' }}
+                    />
+                    <Bar
+                      dataKey="count"
+                      radius={[12, 12, 12, 12]}
+                      maxBarSize={64}
+                      isAnimationActive={!reducedMotion}
+                    >
+                      {/* Pill colours; the dark outline keeps each mark at
+                          3:1 against the card. */}
+                      {priorityData.map((item) => (
+                        <Cell
+                          key={item.key}
+                          fill={priorityFills[item.key]?.fill ?? '#9aa39f'}
+                          stroke={priorityFills[item.key]?.stroke ?? '#5c6460'}
+                        />
+                      ))}
+                      <LabelList
+                        dataKey="count"
+                        position="top"
+                        fill="#1a211f"
+                        fontSize={13}
+                        fontWeight={700}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </figure>
+              <table className="data-table compact-table">
+                <caption className="sr-only">Priority distribution</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Priority</th>
+                    <th scope="col">Stored runs</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {priorityData.map((item) => (
+                    <tr key={item.label}>
+                      <th scope="row">{item.label}</th>
+                      <td>{item.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
 
-        <section className="chart-section" aria-labelledby="timing-title">
-          <h2 id="timing-title">Timing</h2>
-          <dl className="definition-list">
-            <div>
-              <dt>Processing median / p90 / mean</dt>
-              <dd>
-                {milliseconds(report.processingTime.medianMs)} /{' '}
-                {milliseconds(report.processingTime.p90Ms)} /{' '}
-                {milliseconds(report.processingTime.meanMs)}
-              </dd>
-              <small>n={report.processingTime.n}</small>
-            </div>
-            <div>
-              <dt>Review median / p90 / mean</dt>
-              <dd>
-                {milliseconds(report.reviewLatency.medianMs)} /{' '}
-                {milliseconds(report.reviewLatency.p90Ms)} /{' '}
-                {milliseconds(report.reviewLatency.meanMs)}
-              </dd>
-              <small>n={report.reviewLatency.n}</small>
-            </div>
-          </dl>
-        </section>
-      </div>
+            <section className="chart-section" aria-labelledby="timing-title">
+              <h2 id="timing-title">Timing</h2>
+              <dl className="definition-list">
+                {/* Medians only: p90, mean and n are analyst detail the
+                    sales team does not act on (owner, 2026-10-27). */}
+                <div>
+                  <dt>Typical processing</dt>
+                  <dd>{milliseconds(report.processingTime.medianMs)}</dd>
+                </div>
+                <div>
+                  <dt>Typical review time</dt>
+                  <dd>
+                    {report.reviewLatency.medianMs === null
+                      ? 'Not reviewed yet'
+                      : milliseconds(report.reviewLatency.medianMs)}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          </div>
 
-      <section
-        className="metric-table-section"
-        aria-labelledby="enrichment-title"
-      >
-        <h2 id="enrichment-title">Enrichment</h2>
-        <div
-          className="table-scroll"
-          tabIndex={0}
-          role="region"
-          aria-labelledby="enrichment-title"
-        >
-          <table className="data-table">
-            <caption className="sr-only">
-              Enrichment rates by class and source
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Evidence class</th>
-                <th scope="col">Source</th>
-                <th scope="col">Success</th>
-                <th scope="col">Found</th>
-                <th scope="col">Not attempted</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...live, ...recorded].map((item) => (
-                <tr key={`${item.classGroup}-${item.source}`}>
-                  <th scope="row">
-                    {item.classGroup === 'recorded_or_mock'
-                      ? 'Recorded / mock'
-                      : 'Live'}
-                  </th>
-                  <td>{sourceLabels[item.source]}</td>
-                  <td>
-                    {percent(item.success)}{' '}
-                    <RateDefinition metric={item.success} />
-                  </td>
-                  <td>
-                    {percent(item.foundRate)}{' '}
-                    <RateDefinition metric={item.foundRate} />
-                  </td>
-                  <td>{item.notAttempted}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+          <div className="metrics-grid">
+            <section
+              className="metric-table-section"
+              aria-labelledby="failure-title"
+            >
+              <h2 id="failure-title">Failures</h2>
+              <dl className="failure-ledger">
+                {Object.entries(report.failuresByStep).map(([step, count]) => (
+                  <div key={step}>
+                    <dt>{step.replaceAll('_', ' ')}</dt>
+                    <dd>{count}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
 
-      <div className="metrics-grid">
+            <section
+              className="synthetic-panel"
+              aria-labelledby="synthetic-title"
+            >
+              <h2 id="synthetic-title">Outcomes</h2>
+              <dl>
+                <div>
+                  <dt>Runs</dt>
+                  <dd>{report.simulation.runs}</dd>
+                </div>
+                <div>
+                  <dt>Contacted</dt>
+                  <dd>{report.simulation.contacted}</dd>
+                </div>
+                <div>
+                  <dt>Responded</dt>
+                  <dd>{report.simulation.responded}</dd>
+                </div>
+                <div>
+                  <dt>Appointment</dt>
+                  <dd>{report.simulation.appointment}</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+        </>
+      ) : null}
+
+      {section === 'enrichment' ? (
         <section
           className="metric-table-section"
-          aria-labelledby="failure-title"
+          aria-labelledby="enrichment-title"
         >
-          <h2 id="failure-title">Failures</h2>
-          <dl className="failure-ledger">
-            {Object.entries(report.failuresByStep).map(([step, count]) => (
-              <div key={step}>
-                <dt>{step.replaceAll('_', ' ')}</dt>
-                <dd>{count}</dd>
-              </div>
-            ))}
-          </dl>
+          <h2 id="enrichment-title" className="sr-only">
+            Enrichment
+          </h2>
+          <div
+            className="table-scroll"
+            tabIndex={0}
+            role="region"
+            aria-labelledby="enrichment-title"
+          >
+            <table className="data-table">
+              <caption className="sr-only">
+                Enrichment rates by class and source
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Evidence class</th>
+                  <th scope="col">Source</th>
+                  <th scope="col">Success</th>
+                  <th scope="col">Found</th>
+                  <th scope="col">Not attempted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {feed.map((item) => (
+                  <tr key={item.source}>
+                    <th scope="row">Live</th>
+                    <td>{sourceLabels[item.source]}</td>
+                    <td>
+                      <RateBar metric={item.success} />
+                      {percent(item.success)}{' '}
+                      <RateDefinition metric={item.success} />
+                    </td>
+                    <td>
+                      <RateBar metric={item.foundRate} />
+                      {percent(item.foundRate)}{' '}
+                      <RateDefinition metric={item.foundRate} />
+                    </td>
+                    <td>{item.notAttempted}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
-
-        <section className="synthetic-panel" aria-labelledby="synthetic-title">
-          <h2 id="synthetic-title">Simulation</h2>
-          <dl>
-            <div>
-              <dt>Runs</dt>
-              <dd>{report.simulation.runs}</dd>
-            </div>
-            <div>
-              <dt>Contacted</dt>
-              <dd>{report.simulation.contacted}</dd>
-            </div>
-            <div>
-              <dt>Responded</dt>
-              <dd>{report.simulation.responded}</dd>
-            </div>
-            <div>
-              <dt>Appointment</dt>
-              <dd>{report.simulation.appointment}</dd>
-            </div>
-          </dl>
-        </section>
-      </div>
+      ) : null}
     </div>
   );
 }

@@ -61,9 +61,9 @@ describe('agent research panel', () => {
   it('shows cited sources with their quotes, links and cost', () => {
     render(<AgentResearch brief={brief} />);
     const panel = screen.getByRole('region', { name: 'Agent research' });
-    expect(panel).toHaveTextContent('from 1 cited source');
-    expect(panel).toHaveTextContent('1 of 2 found claims passed');
-    expect(panel).toHaveTextContent('Cost $0.0111');
+    expect(panel).toHaveTextContent('Written by the agent team');
+    expect(panel).toHaveTextContent('Verified facts1 / 12');
+    expect(panel).toHaveTextContent('Cost$0.01');
     const link = within(panel).getByRole('link', { name: 'content.naic.org' });
     expect(link).toHaveAttribute(
       'href',

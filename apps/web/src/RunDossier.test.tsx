@@ -1,3 +1,4 @@
+import { EXAMPLE_MILITARY_ANSWERS } from '@leadflow-ai/domain';
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import {
@@ -6,6 +7,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import type { RunDetailResponse } from '@leadflow-ai/domain';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -49,6 +51,7 @@ function detail(status: RunDetailResponse['run']['status']): RunDetailResponse {
       createdAt: timestamp,
       intake: {
         schemaVersion: 'intake-v3',
+        militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
         attribution: null,
         identityClass: 'fictional',
         givenName: 'Avery',
@@ -311,7 +314,9 @@ describe('run dossier', () => {
       expect(
         await screen.findByRole('heading', { name: heading }),
       ).toBeInTheDocument();
-      expect(screen.getByText('Interpret qualification')).toBeInTheDocument();
+      expect(
+        screen.getByText('Now: Interpret qualification'),
+      ).toBeInTheDocument();
     },
   );
 
@@ -338,10 +343,12 @@ describe('run dossier', () => {
     expect(screen.getByText('90', { selector: 'strong' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Events' })).toBeInTheDocument();
     expect(screen.getByText('Lead persisted')).toBeInTheDocument();
+    const outcomes = screen.getByRole('heading', { name: 'Outcomes' })
+      .parentElement as HTMLElement;
+    expect(within(outcomes).getAllByText(/^(Yes|No)$/u)).toHaveLength(3);
     expect(
-      screen.getByRole('heading', { name: 'Simulation' }),
+      screen.getByText(/Form answers \(\d+ of \d+ answered\)/u),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/^Simulated (yes|no)$/u)).toHaveLength(3);
   });
 
   it('exposes explicit resume only for an eligible stored failure', async () => {

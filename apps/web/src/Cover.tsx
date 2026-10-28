@@ -1,17 +1,23 @@
 import { ArrowRight } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { SimulationStrip } from './Masthead.js';
 
-const boundaries = [
-  'Fictional leads and test contacts only',
-  'Public vehicle and ZIP lookups, read-only',
-  'No quotes or insurance decisions',
-  'Drafts need consent and a person’s approval; nothing is sent',
+// The agent pipeline in the order a lead moves through it (README "How it
+// works" and "Agent pipeline").
+const pipeline = [
+  'Store',
+  'Score',
+  'Enrich',
+  'Research',
+  'Draft',
+  'Check',
+  'Approve',
 ] as const;
 
 const entries = [
-  { href: '#intake', label: 'Start an intake', primary: true },
-  { href: '#runs', label: 'Review runs and approvals', primary: false },
-  { href: '#metrics', label: 'Open the metrics', primary: false },
+  { href: '#intake', label: 'Intake', primary: true },
+  { href: '#runs', label: 'Runs', primary: false },
+  { href: '#metrics', label: 'Metrics', primary: false },
 ] as const;
 
 // The home screen: the project's original Phase 0 cover, with copy that
@@ -27,11 +33,7 @@ export function Cover() {
           </p>
           <h1 id="cover-title">LeadFlow AI</h1>
           <p className="cover-lede">
-            Scores and enriches fictional insurance leads. Nothing is ever sent.
-          </p>
-          <p className="cover-status">
-            <span aria-hidden="true" className="cover-status-dot" />
-            Running on this machine
+            Score and follow up on auto insurance leads.
           </p>
         </header>
 
@@ -49,15 +51,24 @@ export function Cover() {
         </nav>
 
         <section
-          className="cover-boundaries"
-          aria-labelledby="cover-boundary-title"
+          className="cover-pipeline"
+          aria-labelledby="cover-pipeline-title"
         >
-          <h2 id="cover-boundary-title">Boundaries</h2>
-          <ul>
-            {boundaries.map((boundary) => (
-              <li key={boundary}>{boundary}</li>
+          <h2 id="cover-pipeline-title">Pipeline</h2>
+          <ol>
+            {/* Each step lights in turn, like a lead moving through. */}
+            {pipeline.map((step, index) => (
+              <li key={step} style={{ '--step': index } as CSSProperties}>
+                <span className="step-dot" aria-hidden="true" />
+                <span className="step-label">{step}</span>
+                {index < pipeline.length - 1 ? (
+                  <span className="step-rail" aria-hidden="true">
+                    <span />
+                  </span>
+                ) : null}
+              </li>
             ))}
-          </ul>
+          </ol>
         </section>
       </main>
     </div>

@@ -32,13 +32,11 @@ export function SimulatedTrafficControl({
       className="synthetic-panel traffic-control"
       aria-labelledby="traffic-control-title"
     >
-      <h2 id="traffic-control-title">Simulated traffic</h2>
+      <h2 id="traffic-control-title">Traffic</h2>
       <p>
-        Sends {PLANNED_TRAFFIC_LEADS} fictional leads with simulated channels
-        and campaigns, one every {intervalMs / 1_000} s (about{' '}
-        {Math.round((PLANNED_TRAFFIC_LEADS * intervalMs) / 60_000)} minutes)
-        from this page only. Keep the tab visible: a hidden tab pauses. Drafts
-        still wait for your approval.
+        {PLANNED_TRAFFIC_LEADS} leads, one every {intervalMs / 1_000} s (about{' '}
+        {Math.round((PLANNED_TRAFFIC_LEADS * intervalMs) / 60_000)} min). Keep
+        this tab open.
       </p>
       <div className="traffic-control-actions">
         {running ? (
@@ -53,12 +51,12 @@ export function SimulatedTrafficControl({
         ) : (
           <button
             type="button"
-            className="secondary-action"
+            className="traffic-run"
             onClick={() =>
               void flight.start({ systemBundleId, submit, client, intervalMs })
             }
           >
-            Run simulated traffic
+            Run {PLANNED_TRAFFIC_LEADS} leads
           </button>
         )}
         <p role="status" aria-live="polite">

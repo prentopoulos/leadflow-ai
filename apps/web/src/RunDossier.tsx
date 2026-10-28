@@ -2,6 +2,8 @@ import {
   CHANNEL_LABELS,
   channelFor,
   type Attribution,
+  type IntakeSubmission,
+  type QualificationField,
   type QualificationResult,
   type RunDetailResponse,
   type RunStatus,
@@ -12,6 +14,7 @@ import {
   operationsClient as defaultOperationsClient,
   type OperationsClient,
 } from './operations-client.js';
+import { MILITARY_QUESTIONS } from './military-flow.js';
 import { runClient as defaultRunClient, type RunClient } from './run-client.js';
 import {
   DraftSection,
@@ -37,7 +40,138 @@ function readable(value: string) {
     .replace(/^\w/u, (letter) => letter.toUpperCase());
 }
 
-function Qualification({ result }: { result: QualificationResult }) {
+// Form labels as the intake shows them. Only ZIP Code is the Military.com
+// auto form's own question; the intake form labels the rest as demo fields.
+const formFields: Record<QualificationField, string> = {
+  zipCode: 'ZIP Code',
+  givenName: 'First name',
+  familyName: 'Last name',
+  email: 'Test email',
+  vehicleYear: 'Vehicle year',
+  vehicleMake: 'Vehicle make',
+  vehicleModel: 'Vehicle model',
+  requestIntent: 'Request intent',
+  coverageFocus: 'Coverage focus',
+  needTimeline: 'Need timeline',
+  requestDetails: 'Request details',
+};
+
+function answer(value: string | number | null | undefined) {
+  if (value === null || value === undefined || value === '') return null;
+  return typeof value === 'number' ? String(value) : readable(value);
+}
+
+function vehicleText(
+  year: number | null,
+  make: string | null,
+  model: string | null,
+) {
+  const parts = [year, make, model].filter((part) => part !== null);
+  return parts.length === 0 ? null : parts.join(' ');
+}
+
+// Every answer the lead gave, in the Military.com flow's order and wording,
+// then LeadFlow's scoring questions, so blanks are easy to spot.
+function FormAnswers({ intake }: { intake: IntakeSubmission }) {
+  const m = intake.militaryAnswers;
+  const q = MILITARY_QUESTIONS;
+  const flow: Array<[string, string | null]> = [
+    [`${q.zip} (ZIP Code)`, intake.zipCode],
+    [q.currentlyInsured, answer(m.currentlyInsured)],
+    [q.currentCarrier, m.currentCarrier],
+    [q.validLicense, answer(m.validLicense)],
+    [q.recentIncidents, answer(m.recentIncidents)],
+    [q.duiDwi, answer(m.duiDwi)],
+    [q.sr22, answer(m.sr22)],
+    [q.militaryService, answer(m.militaryService)],
+    [
+      q.vehicle,
+      vehicleText(intake.vehicleYear, intake.vehicleMake, intake.vehicleModel),
+    ],
+    ...m.additionalVehicles.map((vehicle, index): [string, string | null] => [
+      `Vehicle ${index + 2}`,
+      vehicleText(vehicle.year, vehicle.make, vehicle.model),
+    ]),
+    [q.multipleDrivers, answer(m.multipleDrivers)],
+    [q.homeOwner, answer(m.homeOwner)],
+    [q.bundleInterest, answer(m.bundleInterest)],
+    [q.married, answer(m.married)],
+    [q.gender, answer(m.gender)],
+    [q.birthDate, m.birthDate],
+    [
+      q.address,
+      m.streetAddress === null
+        ? null
+        : [m.streetAddress, m.aptUnitSuite].filter(Boolean).join(', '),
+    ],
+    [q.name, `${intake.givenName} ${intake.familyName}`],
+    [q.email, intake.email],
+    [
+      q.phone,
+      m.phone === null
+        ? null
+        : `${m.phone.slice(0, 3)}-${m.phone.slice(3, 6)}-${m.phone.slice(6)}`,
+    ],
+  ];
+  const scoring: Array<[string, string | null]> = [
+    ['Request intent', answer(intake.requestIntent)],
+    ['Coverage focus', answer(intake.coverageFocus)],
+    ['Need timeline', answer(intake.needTimeline)],
+    ['Request details', intake.requestDetails],
+    ['Email contact consent', intake.emailContactConsent ? 'Yes' : 'No'],
+  ];
+  const all = [...flow, ...scoring];
+  const answered = all.filter(([, value]) => value !== null).length;
+  const rows = (items: Array<[string, string | null]>) =>
+    items.map(([question, value]) => (
+      <tr key={question}>
+        <th scope="row">{question}</th>
+        <td className={value === null ? 'answer-missing' : undefined}>
+          {value ?? 'Not answered'}
+        </td>
+      </tr>
+    ));
+  return (
+    <details className="form-answers">
+      <summary>
+        Form answers ({answered} of {all.length} answered)
+      </summary>
+      <div className="table-scroll">
+        <table className="data-table">
+          <caption className="sr-only">Form answers</caption>
+          <thead>
+            <tr>
+              <th scope="col">Question</th>
+              <th scope="col">Answer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="answers-group">
+              <th scope="rowgroup" colSpan={2}>
+                Military.com auto quote
+              </th>
+            </tr>
+            {rows(flow)}
+            <tr className="answers-group">
+              <th scope="rowgroup" colSpan={2}>
+                LeadFlow scoring questions
+              </th>
+            </tr>
+            {rows(scoring)}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
+}
+
+function Qualification({
+  result,
+  intake,
+}: {
+  result: QualificationResult;
+  intake: IntakeSubmission;
+}) {
   if (result.integrityHold !== null) {
     return (
       <section
@@ -92,13 +226,20 @@ function Qualification({ result }: { result: QualificationResult }) {
         ))}
       </div>
       <div className="missing-information">
-        <strong>Missing</strong>
-        <p>
-          {result.missingInformation.length === 0
-            ? 'None.'
-            : result.missingInformation.map(readable).join(', ')}
-        </p>
+        <strong>Missing from the form</strong>
+        {result.missingInformation.length === 0 ? (
+          <p>Nothing: every scored field was answered.</p>
+        ) : (
+          <ul className="missing-list">
+            {result.missingInformation.map((field) => (
+              <li key={field}>
+                <span className="missing-pill">{formFields[field]}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
+      <FormAnswers intake={intake} />
     </section>
   );
 }
@@ -126,9 +267,7 @@ function AttributionBlock({
       className="result-section simulation-result"
       aria-labelledby="attribution-title"
     >
-      <h3 id="attribution-title">
-        Acquisition <span className="simulated-tag">SIMULATED</span>
-      </h3>
+      <h3 id="attribution-title">Acquisition</h3>
       <dl>
         <div>
           <dt>Channel</dt>
@@ -153,7 +292,7 @@ function AttributionBlock({
             {attribution.clickId === null ? null : (
               <div>
                 <dt>Click ID</dt>
-                <dd>{attribution.clickId} (synthetic)</dd>
+                <dd>{attribution.clickId}</dd>
               </div>
             )}
           </>
@@ -265,33 +404,11 @@ export function RunDossier({
       ) : null}
       <section className="run-summary" aria-labelledby="stored-run-title">
         <h3 id="stored-run-title">{readable(detail.run.status)}</h3>
-        <dl>
-          <div>
-            <dt>Attempt</dt>
-            <dd>{detail.run.attempt}</dd>
-          </div>
-          <div>
-            <dt>Retries</dt>
-            <dd>{detail.run.retryCount}</dd>
-          </div>
-          <div>
-            <dt>Current step</dt>
-            <dd>
-              {detail.run.currentStep === null
-                ? 'None'
-                : readable(detail.run.currentStep)}
-            </dd>
-          </div>
-          <div>
-            <dt>Evidence</dt>
-            <dd>
-              {readable(detail.run.evidenceCompleteness)}
-              {detail.run.enrichmentMode === null
-                ? ''
-                : ` · ${detail.run.enrichmentMode}`}
-            </dd>
-          </div>
-        </dl>
+        {/* Attempts, retries and evidence completeness are operator
+            diagnostics; the person handling the lead sees only progress. */}
+        {detail.run.currentStep === null ? null : (
+          <p>Now: {readable(detail.run.currentStep)}</p>
+        )}
         {detail.run.holds.length > 0 ? (
           <p className="safe-error">Draft blocked by verification</p>
         ) : null}
@@ -320,6 +437,13 @@ export function RunDossier({
         ) : null}
       </section>
 
+      {detail.qualification !== null ? (
+        <Qualification
+          result={detail.qualification}
+          intake={detail.lead.intake}
+        />
+      ) : null}
+
       <DraftSection
         draft={detail.draft}
         skipReason={detail.run.draftSkipReason}
@@ -337,9 +461,30 @@ export function RunDossier({
         completeness={detail.run.evidenceCompleteness}
       />
 
-      {detail.qualification !== null ? (
-        <Qualification result={detail.qualification} />
+      {detail.simulation !== null ? (
+        <section
+          className="result-section simulation-result"
+          aria-labelledby="simulation-title"
+        >
+          <h3 id="simulation-title">Outcomes</h3>
+          <dl>
+            <div>
+              <dt>Contacted</dt>
+              <dd>{detail.simulation.outcome.contacted ? 'Yes' : 'No'}</dd>
+            </div>
+            <div>
+              <dt>Responded</dt>
+              <dd>{detail.simulation.outcome.responded ? 'Yes' : 'No'}</dd>
+            </div>
+            <div>
+              <dt>Appointment</dt>
+              <dd>{detail.simulation.outcome.appointment ? 'Yes' : 'No'}</dd>
+            </div>
+          </dl>
+        </section>
       ) : null}
+
+      <AttributionBlock attribution={detail.lead.intake.attribution} />
 
       <section className="event-history" aria-labelledby="event-history-title">
         <h3 id="event-history-title">Events</h3>
@@ -369,43 +514,6 @@ export function RunDossier({
           </ol>
         </details>
       </section>
-
-      {detail.simulation !== null ? (
-        <section
-          className="result-section simulation-result"
-          aria-labelledby="simulation-title"
-        >
-          <h3 id="simulation-title">Simulation</h3>
-          <dl>
-            <div>
-              <dt>Contacted</dt>
-              <dd>
-                {detail.simulation.outcome.contacted
-                  ? 'Simulated yes'
-                  : 'Simulated no'}
-              </dd>
-            </div>
-            <div>
-              <dt>Responded</dt>
-              <dd>
-                {detail.simulation.outcome.responded
-                  ? 'Simulated yes'
-                  : 'Simulated no'}
-              </dd>
-            </div>
-            <div>
-              <dt>Appointment</dt>
-              <dd>
-                {detail.simulation.outcome.appointment
-                  ? 'Simulated yes'
-                  : 'Simulated no'}
-              </dd>
-            </div>
-          </dl>
-        </section>
-      ) : null}
-
-      <AttributionBlock attribution={detail.lead.intake.attribution} />
     </div>
   );
 }

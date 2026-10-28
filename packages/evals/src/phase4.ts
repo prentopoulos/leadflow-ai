@@ -5,6 +5,7 @@
 // fixture and acquisition metrics. Hosted Phase 4 cases stay not_run until
 // the owner-authorized probe runs.
 import {
+  EXAMPLE_MILITARY_ANSWERS,
   AttributionSchema,
   IdempotencyKeySchema,
   IntakeSubmissionSchema,
@@ -234,6 +235,7 @@ const LEAD_ID = '00000000-0000-4000-8000-000000000041';
 
 const baseIntake: IntakeSubmission = {
   schemaVersion: 'intake-v3',
+  militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
   identityClass: 'fictional',
   givenName: 'Avery',
   familyName: 'Example',

@@ -1,3 +1,4 @@
+import { AGENT_LIMITS, AGENT_TOPICS } from '@leadflow-ai/domain';
 import type {
   AgentBriefRecord,
   DraftView,
@@ -6,7 +7,14 @@ import type {
   SafeError,
   VerificationResult,
 } from '@leadflow-ai/domain';
-import { Check, Copy, Download, PencilLine, X } from 'lucide-react';
+import {
+  Check,
+  Copy,
+  Download,
+  ExternalLink,
+  PencilLine,
+  X,
+} from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button } from './components/ui/button.js';
 import type { OperationsClient } from './operations-client.js';
@@ -22,11 +30,31 @@ const sourceNames = {
   zippopotam_us: 'Zippopotam.us',
 } as const;
 
-const classLabels = {
-  live: 'Live',
-  recorded: 'Recorded',
-  mock: 'Mock',
-} as const;
+// A public page behind each record that whoever handles the lead can open
+// during a call: NHTSA's vehicle page (recalls and safety ratings) when the
+// model is known, otherwise the exact vPIC or Zippopotam.us query.
+function sourceLink(record: EnrichmentEvidence) {
+  const subject = record.subject;
+  if (subject.kind === 'zip') {
+    return {
+      href: `https://api.zippopotam.us/us/${subject.zipCode}`,
+      label: 'Open Zippopotam.us ZIP data',
+    };
+  }
+  if (subject.make === null || subject.modelYear === null) return null;
+  const make = encodeURIComponent(subject.make.toUpperCase());
+  if (subject.model !== null) {
+    const model = encodeURIComponent(subject.model.toUpperCase());
+    return {
+      href: `https://www.nhtsa.gov/vehicle/${subject.modelYear}/${make}/${model}`,
+      label: 'Open NHTSA recalls and safety ratings',
+    };
+  }
+  return {
+    href: `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/${make}/modelyear/${subject.modelYear}?format=json`,
+    label: 'Open NHTSA vPIC data',
+  };
+}
 
 function time(value: string | null) {
   return value === null ? '—' : new Date(value).toLocaleString();
@@ -80,27 +108,24 @@ export function EnrichmentEvidenceSection({
             <div className="evidence-heading">
               <strong>{sourceNames[record.source]}</strong>
               <span className="state-tag">{readable(record.outcome)}</span>
-              <span
-                className={`class-tag class-${record.evidenceClass}`}
-                title="Evidence class"
-              >
-                {classLabels[record.evidenceClass]}
-              </span>
             </div>
             <Claim record={record} />
-            <dl className="evidence-facts">
-              <div>
-                <dt>Retrieved</dt>
-                <dd>{time(record.retrievedAt)}</dd>
-              </div>
-              {record.recordedCapturedAt === null ? null : (
-                <div>
-                  <dt>Live capture</dt>
-                  <dd>{time(record.recordedCapturedAt)}</dd>
-                </div>
-              )}
-            </dl>
-            <small>{record.attribution}</small>
+            {(() => {
+              const link = sourceLink(record);
+              return link === null ? null : (
+                <a
+                  className="evidence-source"
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={record.attribution}
+                >
+                  {link.label}
+                  <ExternalLink size={14} aria-hidden="true" />
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              );
+            })()}
           </li>
         ))}
       </ul>
@@ -121,6 +146,7 @@ export function VerificationSection({
   holds: readonly string[];
 }) {
   if (verification === null) return null;
+  const failed = verification.rules.filter((rule) => rule.outcome === 'fail');
   return (
     <section className="result-section" aria-labelledby="verification-title">
       <h3 id="verification-title">
@@ -128,23 +154,20 @@ export function VerificationSection({
           ? 'Blocked'
           : 'Verified'}
       </h3>
-      <ul className="rule-list">
-        {verification.rules.map((rule) => (
-          <li key={rule.ruleId} className={`rule-${rule.outcome}`}>
-            <span className="rule-mark" aria-hidden="true">
-              {rule.outcome === 'pass'
-                ? '✓'
-                : rule.outcome === 'fail'
-                  ? '✕'
-                  : '–'}
-            </span>
-            <span>
-              <strong>{rule.ruleId}</strong> {readable(rule.outcome)}
+      {/* One line for the person handling the lead; only failed checks are
+          named, because a passed rule list tells them nothing to act on. */}
+      {failed.length === 0 ? (
+        <p>All draft checks passed.</p>
+      ) : (
+        <ul className="rule-list">
+          {failed.map((rule) => (
+            <li key={rule.ruleId} className="rule-fail">
+              <strong>{rule.ruleId}</strong>
               {rule.matches.length > 0 ? ` · ${rule.matches.join(', ')}` : ''}
-            </span>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
@@ -169,23 +192,38 @@ const roleNames: Record<AgentBriefRecord['calls'][number]['role'], string> = {
   critic: 'Critic',
 };
 
-const dollars = (micros: number) => `$${(micros / 1_000_000).toFixed(4)}`;
+const dollars = (micros: number, places = 4) =>
+  `$${(micros / 1_000_000).toFixed(places)}`;
 
-function sourceLabel(url: string, title: string | null) {
-  if (title !== null && title.trim() !== '') return title;
+const topicNames = {
+  vehicle: 'Vehicle',
+  area: 'Area',
+  coverage: 'Coverage',
+} as const;
+
+function sourceLabel(url: string) {
   try {
-    return new URL(url).hostname;
+    return new URL(url).hostname.replace(/^www\./u, '');
   } catch {
     return url;
   }
 }
 
-// The agent team's stored brief: cited sources, cost and any fallback.
+// The agent team's stored brief, after 21st.dev stat chips and grouped
+// cards: a one-line outcome, a row of figures, then the facts used in the
+// draft by topic, each with its source. Quotes and model calls stay one
+// click away.
 export function AgentResearch({ brief }: { brief: AgentBriefRecord }) {
   const cited = brief.claims.filter((claim) =>
     brief.paragraphClaimIds.includes(claim.claimId),
   );
   const shown = brief.status === 'drafted' ? cited : brief.claims;
+  const sources = new Set(shown.map((claim) => claim.url)).size;
+  const maxFacts = AGENT_LIMITS.maxClaimsPerTopic * AGENT_TOPICS.length;
+  const topics = AGENT_TOPICS.map((topic) => ({
+    topic,
+    claims: shown.filter((claim) => claim.topic === topic),
+  })).filter((group) => group.claims.length > 0);
   return (
     <section className="agent-research" aria-labelledby="agent-research-title">
       <div className="draft-heading">
@@ -194,44 +232,98 @@ export function AgentResearch({ brief }: { brief: AgentBriefRecord }) {
       </div>
       <p className="agent-summary">
         {brief.status === 'drafted'
-          ? `The paragraph after the location sentence was written by the agent team from ${cited.length} cited ${cited.length === 1 ? 'source' : 'sources'}.`
-          : `Template draft used: ${fallbackReasons[brief.fallbackReason ?? 'model_error']}.`}{' '}
-        {brief.claims.length} of {brief.candidateClaims} found claims passed the
-        source check. Cost {dollars(brief.totalCostMicros)}.
+          ? 'Written by the agent team from checked sources.'
+          : `Template draft used: ${fallbackReasons[brief.fallbackReason ?? 'model_error']}.`}
       </p>
-      {shown.length === 0 ? null : (
-        <ol className="agent-sources">
-          {shown.map((claim) => (
-            <li key={claim.claimId}>
-              <p>
-                <span className="mono">{claim.claimId}</span> {claim.text}
-              </p>
-              <blockquote>{claim.quote}</blockquote>
-              {claim.url.startsWith('https://') ? (
-                <a href={claim.url} target="_blank" rel="noopener noreferrer">
-                  {sourceLabel(claim.url, claim.title)}
-                </a>
-              ) : null}
-            </li>
-          ))}
-        </ol>
-      )}
+      <dl className="agent-stats">
+        <div>
+          <dt>Sources</dt>
+          <dd>{sources}</dd>
+        </div>
+        {/* Shown against the most the team keeps (four per topic), so a
+            full brief reads 12 / 12 rather than a fraction of everything
+            found; the found count stays on hover. */}
+        <div
+          title={`${brief.candidateClaims} found; the best-supported are kept, up to ${AGENT_LIMITS.maxClaimsPerTopic} per topic.`}
+        >
+          <dt>Verified facts</dt>
+          <dd>
+            {brief.claims.length} / {maxFacts}
+          </dd>
+        </div>
+        <div>
+          <dt>Rewrites</dt>
+          <dd>{brief.attempts}</dd>
+        </div>
+        <div>
+          <dt>Cost</dt>
+          <dd>{dollars(brief.totalCostMicros, 2)}</dd>
+        </div>
+      </dl>
+      {topics.map(({ topic, claims }) => (
+        <div key={topic} className="agent-topic">
+          <h5>{topicNames[topic]}</h5>
+          <ul className="agent-facts">
+            {claims.map((claim) => (
+              <li key={claim.claimId}>
+                <p>{claim.text}</p>
+                <div className="agent-fact-meta">
+                  {claim.url.startsWith('https://') ? (
+                    <a
+                      className="evidence-source"
+                      href={claim.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={claim.title ?? undefined}
+                    >
+                      {sourceLabel(claim.url)}
+                      <ExternalLink size={13} aria-hidden="true" />
+                    </a>
+                  ) : null}
+                  <details>
+                    <summary>Quote</summary>
+                    <blockquote>{claim.quote}</blockquote>
+                  </details>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
       <details className="draft-history">
         <summary>Model calls ({brief.calls.length})</summary>
-        <ul className="agent-calls">
-          {brief.calls.map((call, index) => (
-            <li key={index}>
-              {roleNames[call.role]}
-              {call.topic === null ? '' : ` (${call.topic})`}
-              {call.attempt > 1 ? `, attempt ${call.attempt}` : ''} ·{' '}
-              {call.model} · {readable(call.outcome)}
-              {call.errorCode === null
-                ? ''
-                : ` (${readable(call.errorCode)})`}{' '}
-              · {dollars(call.costMicros)}
-            </li>
-          ))}
-        </ul>
+        <div className="table-scroll">
+          <table className="data-table">
+            <caption className="sr-only">Model calls</caption>
+            <thead>
+              <tr>
+                <th scope="col">Step</th>
+                <th scope="col">Model</th>
+                <th scope="col">Result</th>
+                <th scope="col">Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              {brief.calls.map((call, index) => (
+                <tr key={index}>
+                  <th scope="row">
+                    {roleNames[call.role]}
+                    {call.topic === null ? '' : ` · ${topicNames[call.topic]}`}
+                    {call.attempt > 1 ? ` · try ${call.attempt}` : ''}
+                  </th>
+                  <td>{call.model}</td>
+                  <td>
+                    {readable(call.outcome)}
+                    {call.errorCode === null
+                      ? ''
+                      : ` (${readable(call.errorCode)})`}
+                  </td>
+                  <td>{dollars(call.costMicros)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </details>
     </section>
   );
