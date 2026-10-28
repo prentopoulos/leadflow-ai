@@ -22,15 +22,30 @@ const sourceNames = {
   zippopotam_us: 'Zippopotam.us',
 } as const;
 
-// The exact public query behind a record, so whoever handles the lead can
-// open the source data during a call.
-function sourceUrl(record: EnrichmentEvidence) {
+// A public page behind each record that whoever handles the lead can open
+// during a call: NHTSA's vehicle page (recalls and safety ratings) when the
+// model is known, otherwise the exact vPIC or Zippopotam.us query.
+function sourceLink(record: EnrichmentEvidence) {
   const subject = record.subject;
   if (subject.kind === 'zip') {
-    return `https://api.zippopotam.us/us/${subject.zipCode}`;
+    return {
+      href: `https://api.zippopotam.us/us/${subject.zipCode}`,
+      label: 'Open Zippopotam.us ZIP data',
+    };
   }
   if (subject.make === null || subject.modelYear === null) return null;
-  return `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/${encodeURIComponent(subject.make)}/modelyear/${subject.modelYear}?format=json`;
+  const make = encodeURIComponent(subject.make.toUpperCase());
+  if (subject.model !== null) {
+    const model = encodeURIComponent(subject.model.toUpperCase());
+    return {
+      href: `https://www.nhtsa.gov/vehicle/${subject.modelYear}/${make}/${model}`,
+      label: 'Open NHTSA recalls and safety ratings',
+    };
+  }
+  return {
+    href: `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/${make}/modelyear/${subject.modelYear}?format=json`,
+    label: 'Open NHTSA vPIC data',
+  };
 }
 
 function time(value: string | null) {
@@ -87,18 +102,21 @@ export function EnrichmentEvidenceSection({
               <span className="state-tag">{readable(record.outcome)}</span>
             </div>
             <Claim record={record} />
-            {sourceUrl(record) === null ? null : (
-              <a
-                className="evidence-source"
-                href={sourceUrl(record) ?? undefined}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={record.attribution}
-              >
-                Open {sourceNames[record.source]} data
-                <span className="sr-only"> (opens in a new tab)</span>
-              </a>
-            )}
+            {(() => {
+              const link = sourceLink(record);
+              return link === null ? null : (
+                <a
+                  className="evidence-source"
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={record.attribution}
+                >
+                  {link.label}
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              );
+            })()}
           </li>
         ))}
       </ul>
