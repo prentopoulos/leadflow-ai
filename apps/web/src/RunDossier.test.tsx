@@ -347,7 +347,7 @@ describe('run dossier', () => {
       .parentElement as HTMLElement;
     expect(within(outcomes).getAllByText(/^(Yes|No)$/u)).toHaveLength(3);
     expect(
-      screen.getByText(/Form answers \(\d+ of 11 answered\)/u),
+      screen.getByText(/Form answers \(\d+ of \d+ answered\)/u),
     ).toBeInTheDocument();
   });
 

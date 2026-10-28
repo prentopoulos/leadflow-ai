@@ -2765,3 +2765,189 @@ kbd {
   color: var(--caution-ink);
   font-weight: 700;
 }
+
+/* Intake after 21st.dev forms: the form and run pane are rounded cards,
+   each Military.com question is its own row and yes/no answers are pill
+   toggles that stay real radio inputs. */
+.workspace {
+  gap: 1rem;
+  border: 0;
+  background: transparent;
+}
+
+.intake-pane,
+.run-pane {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.run-pane {
+  border-left: 1px solid var(--line);
+  background: var(--paper-strong);
+}
+
+.intake-pane .form-section {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem 1.25rem 1.25rem;
+  background: var(--paper-strong);
+}
+
+.intake-pane .form-section legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 0.25rem;
+}
+
+.intake-pane .form-section legend + * {
+  clear: both;
+}
+
+.intake-pane .legend-number {
+  border-color: #0b1714;
+  color: #f4c95d;
+  background: #0b1714;
+}
+
+.form-section-note {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.flow-question {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid #ebe8e0;
+  padding: 0.9rem 0;
+}
+
+.flow-question > legend,
+.flow-question > label,
+.flow-question-title {
+  padding: 0;
+  color: #0b1714;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+fieldset.flow-question > legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 0.55rem;
+}
+
+fieldset.flow-question > legend + * {
+  clear: both;
+}
+
+.intake-pane input:not([type='radio']):not([type='checkbox']),
+.intake-pane select,
+.intake-pane textarea {
+  border-radius: 10px;
+  background: #fff;
+}
+
+.choice-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.choice-pill {
+  position: relative;
+  cursor: pointer;
+}
+
+.choice-pill input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.choice-pill span {
+  display: inline-flex;
+  min-width: 5.5rem;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  padding: 0 1.1rem;
+  color: var(--ink);
+  background: #fff;
+  font-weight: 650;
+}
+
+.choice-pill:hover span {
+  border-color: var(--accent);
+}
+
+.choice-pill input:checked + span {
+  border-color: #0b1714;
+  color: #f4fbf8;
+  background: #0b1714;
+}
+
+.choice-pill input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.additional-vehicles {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.extra-vehicle {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+}
+
+.icon-action {
+  display: inline-grid;
+  width: 44px;
+  min-height: 44px;
+  place-items: center;
+  padding: 0;
+  color: var(--ink);
+  background: #fff;
+}
+
+.add-vehicle {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 0.4rem;
+  border-radius: 999px;
+}
+
+.intake-pane .primary-action {
+  border-color: var(--accent-dark);
+  border-radius: 999px;
+  padding-inline: 1.6rem;
+  color: #fff;
+  background: var(--accent);
+}
+
+.intake-pane .secondary-action {
+  border-radius: 999px;
+}
+
+.answers-group th {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+@media (max-width: 560px) {
+  .extra-vehicle {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}

@@ -14,6 +14,7 @@ import {
   operationsClient as defaultOperationsClient,
   type OperationsClient,
 } from './operations-client.js';
+import { MILITARY_QUESTIONS } from './military-flow.js';
 import { runClient as defaultRunClient, type RunClient } from './run-client.js';
 import {
   DraftSection,
@@ -55,48 +56,108 @@ const formFields: Record<QualificationField, string> = {
   requestDetails: 'Request details',
 };
 
-function answer(value: string | number | null) {
-  if (value === null || value === '') return null;
+function answer(value: string | number | null | undefined) {
+  if (value === null || value === undefined || value === '') return null;
   return typeof value === 'number' ? String(value) : readable(value);
 }
 
-// Every field the lead filled in, so whoever handles it can see exactly
-// what was left blank.
+function vehicleText(
+  year: number | null,
+  make: string | null,
+  model: string | null,
+) {
+  const parts = [year, make, model].filter((part) => part !== null);
+  return parts.length === 0 ? null : parts.join(' ');
+}
+
+// Every answer the lead gave, in the Military.com flow's order and wording,
+// then LeadFlow's scoring questions, so blanks are easy to spot.
 function FormAnswers({ intake }: { intake: IntakeSubmission }) {
-  const rows = (Object.keys(formFields) as QualificationField[]).map(
-    (field) => ({
-      field,
-      value: answer(field === 'email' ? intake.email : intake[field]),
-    }),
-  );
-  const answered = rows.filter((row) => row.value !== null).length;
+  const m = intake.militaryAnswers;
+  const q = MILITARY_QUESTIONS;
+  const flow: Array<[string, string | null]> = [
+    [`${q.zip} (ZIP Code)`, intake.zipCode],
+    [q.currentlyInsured, answer(m.currentlyInsured)],
+    [q.currentCarrier, m.currentCarrier],
+    [q.validLicense, answer(m.validLicense)],
+    [q.recentIncidents, answer(m.recentIncidents)],
+    [q.duiDwi, answer(m.duiDwi)],
+    [q.sr22, answer(m.sr22)],
+    [q.militaryService, answer(m.militaryService)],
+    [
+      q.vehicle,
+      vehicleText(intake.vehicleYear, intake.vehicleMake, intake.vehicleModel),
+    ],
+    ...m.additionalVehicles.map((vehicle, index): [string, string | null] => [
+      `Vehicle ${index + 2}`,
+      vehicleText(vehicle.year, vehicle.make, vehicle.model),
+    ]),
+    [q.multipleDrivers, answer(m.multipleDrivers)],
+    [q.homeOwner, answer(m.homeOwner)],
+    [q.bundleInterest, answer(m.bundleInterest)],
+    [q.married, answer(m.married)],
+    [q.gender, answer(m.gender)],
+    [q.birthDate, m.birthDate],
+    [
+      q.address,
+      m.streetAddress === null
+        ? null
+        : [m.streetAddress, m.aptUnitSuite].filter(Boolean).join(', '),
+    ],
+    [q.name, `${intake.givenName} ${intake.familyName}`],
+    [q.email, intake.email],
+    [
+      q.phone,
+      m.phone === null
+        ? null
+        : `${m.phone.slice(0, 3)}-${m.phone.slice(3, 6)}-${m.phone.slice(6)}`,
+    ],
+  ];
+  const scoring: Array<[string, string | null]> = [
+    ['Request intent', answer(intake.requestIntent)],
+    ['Coverage focus', answer(intake.coverageFocus)],
+    ['Need timeline', answer(intake.needTimeline)],
+    ['Request details', intake.requestDetails],
+    ['Email contact consent', intake.emailContactConsent ? 'Yes' : 'No'],
+  ];
+  const all = [...flow, ...scoring];
+  const answered = all.filter(([, value]) => value !== null).length;
+  const rows = (items: Array<[string, string | null]>) =>
+    items.map(([question, value]) => (
+      <tr key={question}>
+        <th scope="row">{question}</th>
+        <td className={value === null ? 'answer-missing' : undefined}>
+          {value ?? 'Not answered'}
+        </td>
+      </tr>
+    ));
   return (
     <details className="form-answers">
       <summary>
-        Form answers ({answered} of {rows.length} answered)
+        Form answers ({answered} of {all.length} answered)
       </summary>
       <div className="table-scroll">
         <table className="data-table">
           <caption className="sr-only">Form answers</caption>
           <thead>
             <tr>
-              <th scope="col">Field</th>
+              <th scope="col">Question</th>
               <th scope="col">Answer</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ field, value }) => (
-              <tr key={field}>
-                <th scope="row">{formFields[field]}</th>
-                <td className={value === null ? 'answer-missing' : undefined}>
-                  {value ?? 'Not answered'}
-                </td>
-              </tr>
-            ))}
-            <tr>
-              <th scope="row">Email contact consent</th>
-              <td>{intake.emailContactConsent ? 'Yes' : 'No'}</td>
+            <tr className="answers-group">
+              <th scope="rowgroup" colSpan={2}>
+                Military.com auto quote
+              </th>
             </tr>
+            {rows(flow)}
+            <tr className="answers-group">
+              <th scope="rowgroup" colSpan={2}>
+                LeadFlow scoring questions
+              </th>
+            </tr>
+            {rows(scoring)}
           </tbody>
         </table>
       </div>
