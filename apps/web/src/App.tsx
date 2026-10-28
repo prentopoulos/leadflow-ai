@@ -15,6 +15,12 @@ import {
   type IntakeClientResult,
 } from './intake-client.js';
 import { Masthead, SimulationStrip } from './Masthead.js';
+import {
+  AdditionalVehicles,
+  CarrierQuestion,
+  ChoiceQuestion,
+} from './MilitaryFlow.js';
+import { MILITARY_QUESTIONS, readMilitaryAnswers } from './military-flow.js';
 import { RunDossier } from './RunDossier.js';
 import { runClient as defaultRunClient, type RunClient } from './run-client.js';
 import { useSession } from './session-context.js';
@@ -54,6 +60,8 @@ const fieldLabels = {
   needTimeline: 'Need timeline',
   requestDetails: 'Request details',
   emailContactConsent: 'Email contact consent',
+  birthDate: 'Birthdate',
+  phone: 'Phone number',
 } as const;
 
 type FieldName = keyof typeof fieldLabels;
@@ -75,6 +83,10 @@ function getFieldErrorMessage(field: FieldName, fallback: string) {
     case 'givenName':
     case 'familyName':
       return `Enter a fictional ${field === 'givenName' ? 'first' : 'last'} name.`;
+    case 'phone':
+      return 'Use a fictional 555-01XX number, such as 703-555-0100.';
+    case 'birthDate':
+      return 'Enter a full birthdate, or leave it blank.';
     case 'vehicleMake':
       return 'Enter a make with at least one letter or number, or leave it blank.';
     default:
@@ -132,6 +144,9 @@ export function App({
   );
   const [accepted, setAccepted] = useState<IntakeAcceptedResponse | null>(null);
   const [executionNotice, setExecutionNotice] = useState<string | null>(null);
+  // A form reset clears inputs but not component state, so remounting the
+  // extra-vehicle rows on reset removes any rows that were added.
+  const [resetCount, setResetCount] = useState(0);
   const session = useSession();
   const hosted = session.mode === 'cloud';
   const errorSummaryRef = useRef<HTMLDivElement>(null);
@@ -211,13 +226,16 @@ export function App({
       consentRecord: consentGiven ? currentConsentRecord() : null,
       // The form never captures URL parameters; only simulated traffic carries attribution.
       attribution: null,
+      militaryAnswers: readMilitaryAnswers(formData),
     };
     const result = IntakeSubmissionSchema.safeParse(candidate);
 
     if (!result.success) {
       const nextErrors: FieldErrors = {};
       for (const issue of result.error.issues) {
-        const field = issue.path[0];
+        // Flow answers report the nested field, such as phone.
+        const field =
+          issue.path[0] === 'militaryAnswers' ? issue.path[1] : issue.path[0];
         if (
           typeof field === 'string' &&
           field in fieldLabels &&
@@ -283,6 +301,7 @@ export function App({
     setSubmissionStatus('idle');
     setAccepted(null);
     setExecutionNotice(null);
+    setResetCount((count) => count + 1);
     requestIdentityRef.current = null;
   }
 
@@ -350,11 +369,17 @@ export function App({
               <fieldset className="form-section source-section">
                 <legend>
                   <span className="legend-number">A</span>
-                  Location
+                  Military.com auto quote
                 </legend>
-                <div className="field field-short">
+                <p className="form-section-note">
+                  The questions of the Military.com auto quote flow, in its
+                  order and wording.
+                </p>
+
+                <div className="flow-question">
                   <label htmlFor="zipCode">
-                    ZIP Code <span aria-hidden="true">*</span>
+                    {MILITARY_QUESTIONS.zip}: ZIP Code{' '}
+                    <span aria-hidden="true">*</span>
                   </label>
                   <input
                     id="zipCode"
@@ -368,48 +393,147 @@ export function App({
                   />
                   <FieldError field="zipCode" errors={errors} />
                 </div>
-              </fieldset>
 
-              <fieldset className="form-section demo-section">
-                <legend>
-                  <span className="legend-number">B</span>
-                  LeadFlow demo fields
-                </legend>
+                <ChoiceQuestion field="currentlyInsured" />
+                <CarrierQuestion />
+                <ChoiceQuestion field="validLicense" />
+                <ChoiceQuestion field="recentIncidents" />
+                <ChoiceQuestion field="duiDwi" />
+                <ChoiceQuestion field="sr22" />
+                <ChoiceQuestion field="militaryService" />
 
-                <div className="field-grid two-columns">
-                  <div className="field">
-                    <label htmlFor="givenName">
-                      First name <span aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      id="givenName"
-                      name="givenName"
-                      autoComplete="off"
-                      required
-                      defaultValue="Avery"
-                      {...fieldA11y('givenName', errors)}
-                    />
-                    <FieldError field="givenName" errors={errors} />
+                <div className="flow-question">
+                  <span className="flow-question-title">
+                    {MILITARY_QUESTIONS.vehicle}
+                  </span>
+                  <div className="field-grid vehicle-grid">
+                    <div className="field">
+                      <label htmlFor="vehicleYear">Year</label>
+                      <input
+                        id="vehicleYear"
+                        name="vehicleYear"
+                        type="number"
+                        min="1981"
+                        max="2027"
+                        inputMode="numeric"
+                        defaultValue="2020"
+                        {...fieldA11y('vehicleYear', errors)}
+                      />
+                      <FieldError field="vehicleYear" errors={errors} />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="vehicleMake">Make</label>
+                      <input
+                        id="vehicleMake"
+                        name="vehicleMake"
+                        autoComplete="off"
+                        defaultValue="Subaru"
+                        {...fieldA11y('vehicleMake', errors)}
+                      />
+                      <FieldError field="vehicleMake" errors={errors} />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="vehicleModel">Model</label>
+                      <input
+                        id="vehicleModel"
+                        name="vehicleModel"
+                        autoComplete="off"
+                        defaultValue="Outback"
+                        {...fieldA11y('vehicleModel', errors)}
+                      />
+                      <FieldError field="vehicleModel" errors={errors} />
+                    </div>
                   </div>
-                  <div className="field">
-                    <label htmlFor="familyName">
-                      Last name <span aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      id="familyName"
-                      name="familyName"
-                      autoComplete="off"
-                      required
-                      defaultValue="Jordan"
-                      {...fieldA11y('familyName', errors)}
-                    />
-                    <FieldError field="familyName" errors={errors} />
+                  <AdditionalVehicles key={resetCount} />
+                </div>
+
+                <ChoiceQuestion field="multipleDrivers" />
+                <ChoiceQuestion field="homeOwner" />
+                <ChoiceQuestion field="bundleInterest" />
+                <ChoiceQuestion field="married" />
+                <ChoiceQuestion field="gender" />
+
+                <div className="flow-question">
+                  <label htmlFor="birthDate">
+                    {MILITARY_QUESTIONS.birthDate}
+                  </label>
+                  <input
+                    id="birthDate"
+                    name="birthDate"
+                    type="date"
+                    defaultValue="1985-06-15"
+                    {...fieldA11y('birthDate', errors)}
+                  />
+                  <FieldError field="birthDate" errors={errors} />
+                </div>
+
+                <div className="flow-question">
+                  <span className="flow-question-title">
+                    {MILITARY_QUESTIONS.address}
+                  </span>
+                  <div className="field-grid two-columns">
+                    <div className="field">
+                      <label htmlFor="streetAddress">Street address</label>
+                      <input
+                        id="streetAddress"
+                        name="streetAddress"
+                        autoComplete="off"
+                        defaultValue="100 Example Street"
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="aptUnitSuite">
+                        Apt, Unit, Suite (optional)
+                      </label>
+                      <input
+                        id="aptUnitSuite"
+                        name="aptUnitSuite"
+                        autoComplete="off"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="field">
+                <div className="flow-question">
+                  <span className="flow-question-title">
+                    {MILITARY_QUESTIONS.name}
+                  </span>
+                  <div className="field-grid two-columns">
+                    <div className="field">
+                      <label htmlFor="givenName">
+                        First name <span aria-hidden="true">*</span>
+                      </label>
+                      <input
+                        id="givenName"
+                        name="givenName"
+                        autoComplete="off"
+                        required
+                        defaultValue="Avery"
+                        {...fieldA11y('givenName', errors)}
+                      />
+                      <FieldError field="givenName" errors={errors} />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="familyName">
+                        Last name <span aria-hidden="true">*</span>
+                      </label>
+                      <input
+                        id="familyName"
+                        name="familyName"
+                        autoComplete="off"
+                        required
+                        defaultValue="Jordan"
+                        {...fieldA11y('familyName', errors)}
+                      />
+                      <FieldError field="familyName" errors={errors} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flow-question">
                   <label htmlFor="email">
-                    Test email <span aria-hidden="true">*</span>
+                    {MILITARY_QUESTIONS.email} Test email{' '}
+                    <span aria-hidden="true">*</span>
                   </label>
                   <input
                     id="email"
@@ -423,47 +547,31 @@ export function App({
                   <FieldError field="email" errors={errors} />
                 </div>
 
-                <div className="subsection-heading">
-                  <span>Vehicle</span>
+                <div className="flow-question">
+                  <label htmlFor="phone">
+                    {MILITARY_QUESTIONS.phone} Fictional 555-01XX number
+                  </label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    autoComplete="off"
+                    defaultValue="703-555-0100"
+                    {...fieldA11y('phone', errors)}
+                  />
+                  <FieldError field="phone" errors={errors} />
                 </div>
-                <div className="field-grid vehicle-grid">
-                  <div className="field">
-                    <label htmlFor="vehicleYear">Year</label>
-                    <input
-                      id="vehicleYear"
-                      name="vehicleYear"
-                      type="number"
-                      min="1981"
-                      max="2027"
-                      inputMode="numeric"
-                      defaultValue="2020"
-                      {...fieldA11y('vehicleYear', errors)}
-                    />
-                    <FieldError field="vehicleYear" errors={errors} />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="vehicleMake">Make</label>
-                    <input
-                      id="vehicleMake"
-                      name="vehicleMake"
-                      autoComplete="off"
-                      defaultValue="Subaru"
-                      {...fieldA11y('vehicleMake', errors)}
-                    />
-                    <FieldError field="vehicleMake" errors={errors} />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="vehicleModel">Model</label>
-                    <input
-                      id="vehicleModel"
-                      name="vehicleModel"
-                      autoComplete="off"
-                      defaultValue="Outback"
-                      {...fieldA11y('vehicleModel', errors)}
-                    />
-                    <FieldError field="vehicleModel" errors={errors} />
-                  </div>
-                </div>
+              </fieldset>
+
+              <fieldset className="form-section demo-section">
+                <legend>
+                  <span className="legend-number">B</span>
+                  LeadFlow scoring questions
+                </legend>
+                <p className="form-section-note">
+                  Not on Military.com. LeadFlow scores marketing readiness from
+                  these.
+                </p>
 
                 <div className="field-grid two-columns">
                   <div className="field">

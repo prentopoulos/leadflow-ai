@@ -4,6 +4,8 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -30,6 +32,16 @@ function percent(metric: RateValue) {
   return metric.value === null
     ? 'Insufficient data'
     : `${Math.round(metric.value * 100)}%`;
+}
+
+// An inline bar for a rate, after 21st.dev analytics tables; the percentage
+// text beside it carries the value, so the bar is decorative.
+function RateBar({ metric }: { metric: RateValue }) {
+  return metric.value === null ? null : (
+    <span className="rate-bar" aria-hidden="true">
+      <span style={{ width: `${Math.round(metric.value * 100)}%` }} />
+    </span>
+  );
 }
 
 // One short visible count; exclusions stay available on hover and to
@@ -66,6 +78,12 @@ function useReducedMotion() {
   }, []);
   return reduced;
 }
+
+const priorityFills: Record<string, { fill: string; stroke: string }> = {
+  high: { fill: '#f4c95d', stroke: '#8a6512' },
+  standard: { fill: '#087f73', stroke: '#075e57' },
+  nurture: { fill: '#c9cec9', stroke: '#5c6460' },
+};
 
 const sourceLabels: Record<string, string> = {
   all: 'All sources',
@@ -115,7 +133,7 @@ export function MetricsDashboard({
 
   const { report } = snapshot;
   const priorityData = Object.entries(report.priorityDistribution).map(
-    ([label, count]) => ({ label: label.replace('_', ' '), count }),
+    ([key, count]) => ({ key, label: key.replace('_', ' '), count }),
   );
   // One feed per source under the page-level SIMULATION strip: recorded and
   // live lookups are summed into a single Live row (owner, 2026-10-27).
@@ -212,7 +230,18 @@ export function MetricsDashboard({
 
           <div className="metrics-grid">
             <section className="chart-section" aria-labelledby="priority-title">
-              <h2 id="priority-title">Priority</h2>
+              <div className="chart-header">
+                <h2 id="priority-title">Priority</h2>
+                <p className="chart-kpi">
+                  <span>Stored runs</span>
+                  <strong>
+                    {priorityData.reduce(
+                      (total, item) => total + item.count,
+                      0,
+                    )}
+                  </strong>
+                </p>
+              </div>
               {/* Keyboard focus lands inside this frame: Recharts' accessibility
               layer steps through bars with the arrow keys, and the caption
               names the table that carries the same values. */}
@@ -228,26 +257,54 @@ export function MetricsDashboard({
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart
                     data={priorityData}
-                    margin={{ left: -18, right: 8 }}
+                    margin={{ top: 22, left: -18, right: 8 }}
                     accessibilityLayer
                     title="Stored runs by priority"
                   >
-                    <CartesianGrid stroke="#c8c6bd" vertical={false} />
+                    <CartesianGrid
+                      stroke="#dcd9d0"
+                      strokeDasharray="4 4"
+                      vertical={false}
+                    />
                     <XAxis
                       dataKey="label"
+                      axisLine={false}
+                      tickLine={false}
                       tick={{ fill: '#4e5753', fontSize: 12 }}
                     />
                     <YAxis
                       allowDecimals={false}
+                      axisLine={false}
+                      tickLine={false}
                       tick={{ fill: '#4e5753', fontSize: 12 }}
                     />
-                    <Tooltip animationDuration={0} />
+                    <Tooltip
+                      animationDuration={0}
+                      cursor={{ fill: 'rgb(11 23 20 / 5%)' }}
+                    />
                     <Bar
                       dataKey="count"
-                      fill="#087f73"
-                      stroke="#075e57"
+                      radius={[12, 12, 12, 12]}
+                      maxBarSize={64}
                       isAnimationActive={!reducedMotion}
-                    />
+                    >
+                      {/* Pill colours; the dark outline keeps each mark at
+                          3:1 against the card. */}
+                      {priorityData.map((item) => (
+                        <Cell
+                          key={item.key}
+                          fill={priorityFills[item.key]?.fill ?? '#9aa39f'}
+                          stroke={priorityFills[item.key]?.stroke ?? '#5c6460'}
+                        />
+                      ))}
+                      <LabelList
+                        dataKey="count"
+                        position="top"
+                        fill="#1a211f"
+                        fontSize={13}
+                        fontWeight={700}
+                      />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </figure>
@@ -368,10 +425,12 @@ export function MetricsDashboard({
                     <th scope="row">Live</th>
                     <td>{sourceLabels[item.source]}</td>
                     <td>
+                      <RateBar metric={item.success} />
                       {percent(item.success)}{' '}
                       <RateDefinition metric={item.success} />
                     </td>
                     <td>
+                      <RateBar metric={item.foundRate} />
                       {percent(item.foundRate)}{' '}
                       <RateDefinition metric={item.foundRate} />
                     </td>

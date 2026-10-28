@@ -1,4 +1,5 @@
 import {
+  EXAMPLE_MILITARY_ANSWERS,
   AGENT_LIMITS,
   agentProjectionFrom,
   currentConsentRecord,
@@ -22,6 +23,7 @@ import {
 
 const intake: IntakeSubmission = {
   schemaVersion: 'intake-v3',
+  militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
   attribution: null,
   identityClass: 'fictional',
   givenName: 'Zebulon',

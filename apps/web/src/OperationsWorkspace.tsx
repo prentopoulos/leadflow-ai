@@ -7,6 +7,7 @@ import type {
 import {
   AlertTriangle,
   BarChart3,
+  BookOpen,
   Clock3,
   Database,
   FilePlus2,
@@ -23,6 +24,7 @@ import {
   TabsList,
   TabsTrigger,
 } from './components/ui/tabs.js';
+import { Glossary } from './Glossary.js';
 import { Masthead, SimulationStrip } from './Masthead.js';
 import { MetricsDashboard } from './MetricsDashboard.js';
 import {
@@ -34,7 +36,8 @@ import type { RunClient } from './run-client.js';
 import { useSession } from './session-context.js';
 import { useVisiblePolling } from './use-visible-polling.js';
 
-export type OperatorView = 'runs' | 'metrics' | 'pipeline' | 'enrichment';
+export type OperatorView =
+  'runs' | 'metrics' | 'pipeline' | 'enrichment' | 'glossary';
 
 function readable(value: string) {
   return value
@@ -91,30 +94,20 @@ function RunItem({
             {readable(item.status)}
           </span>
         </span>
+        {/* Priority leads the card as a coloured pill; retries, evidence and
+            lease are operator diagnostics kept in the dossier and the
+            accessible name's attention flag (owner, 2026-10-27). */}
         <span className="run-item-grid">
-          <span>
-            <small>Priority</small>
+          <span className={`priority-pill priority-${item.priority}`}>
             {readable(item.priority)}
-          </span>
-          <span>
-            <small>Age</small>
-            {age(item.createdAt)}
-          </span>
-          <span>
-            <small>Retries</small>
-            {item.retryCount}
-          </span>
-          <span>
-            <small>Evidence</small>
-            {readable(item.evidenceCompleteness)}
           </span>
           <span>
             <small>Draft</small>
             {readable(item.draftState)}
           </span>
           <span>
-            <small>Lease</small>
-            {readable(item.leaseState)}
+            <small>Age</small>
+            {age(item.createdAt)}
           </span>
         </span>
         {attention ? (
@@ -432,6 +425,9 @@ export function OperationsWorkspace({
             <TabsTrigger value="enrichment">
               <Database size={16} aria-hidden="true" /> Enrichment
             </TabsTrigger>
+            <TabsTrigger value="glossary">
+              <BookOpen size={16} aria-hidden="true" /> Glossary
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="runs">
             <RunsView
@@ -444,6 +440,9 @@ export function OperationsWorkspace({
           </TabsContent>
           <TabsContent value="pipeline">
             <MetricsDashboard client={operationsClient} section="pipeline" />
+          </TabsContent>
+          <TabsContent value="glossary">
+            <Glossary />
           </TabsContent>
           <TabsContent value="enrichment">
             <MetricsDashboard client={operationsClient} section="enrichment" />

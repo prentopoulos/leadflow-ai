@@ -1,3 +1,4 @@
+import { EXAMPLE_MILITARY_ANSWERS } from '@leadflow-ai/domain';
 // @vitest-environment jsdom
 import type { IntakeSubmission } from '@leadflow-ai/domain';
 import { describe, expect, it, vi } from 'vitest';
@@ -5,6 +6,7 @@ import { submitIntake } from './intake-client.js';
 
 const intake: IntakeSubmission = {
   schemaVersion: 'intake-v3',
+  militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
   attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',

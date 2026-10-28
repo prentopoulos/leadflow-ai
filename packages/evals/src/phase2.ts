@@ -4,6 +4,7 @@
 // and names the check that measures it.
 import { createHash } from 'node:crypto';
 import {
+  EXAMPLE_MILITARY_ANSWERS,
   COMPLIANCE_NOTICE,
   DurationSummarySchema,
   ENRICHMENT_ENDPOINTS,
@@ -221,6 +222,7 @@ export const PHASE_TWO_CASES = [
 
 const intake: IntakeSubmission = {
   schemaVersion: 'intake-v3',
+  militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
   attribution: null,
   identityClass: 'fictional',
   givenName: 'Avery',

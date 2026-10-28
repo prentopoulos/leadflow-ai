@@ -2217,3 +2217,1316 @@ kbd {
   margin-top: 0.35rem;
   font-size: 0.85rem;
 }
+
+/* Workspace emphasis, after 21st.dev stat-card and segmented-tab patterns:
+   the cover's dark band and gold carry into the header, tabs are a pill
+   control, sections sit on rounded white cards and the CPL tile is the dark
+   hero number. Layout is unchanged (owner, 2026-10-27). */
+.masthead {
+  border-bottom: 0;
+  width: 100%;
+  max-width: none;
+  padding-inline: max(1rem, calc((100% - 88rem) / 2));
+  background: #0b1714;
+}
+
+.masthead .brand {
+  color: #dce8e3;
+}
+
+.masthead .brand-mark {
+  border-color: #f4c95d;
+  color: #f4c95d;
+}
+
+.masthead .workspace-nav a {
+  color: #bdd0c8;
+  font-size: 0.85rem;
+}
+
+.masthead .workspace-nav a:hover,
+.masthead .workspace-nav a[aria-current='page'] {
+  border-bottom-color: #86efc5;
+  color: #f4fbf8;
+}
+
+.ui-tabs-list {
+  width: fit-content;
+  max-width: 100%;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px;
+  background: var(--paper-muted);
+}
+
+.ui-tabs-trigger {
+  min-height: 40px;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 1.05rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.ui-tabs-trigger:hover {
+  color: var(--ink);
+  background: rgb(255 255 255 / 70%);
+}
+
+.ui-tabs-trigger[data-state='active'] {
+  color: #f4fbf8;
+  background: #0b1714;
+}
+
+.operations-heading h1 {
+  color: #0b1714;
+}
+
+.metrics-dashboard > section,
+.metrics-grid > section {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.25rem;
+  background: #fff;
+}
+
+.metrics-grid {
+  gap: 1rem;
+}
+
+.metric-strip {
+  gap: 0.75rem;
+  border: 0;
+}
+
+.metric-strip > div,
+.metric-strip > div + div,
+.acquisition-section .acquisition-strip > div:nth-child(n) {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  background: var(--paper-strong);
+}
+
+.metric-strip dt {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.metric-strip dd {
+  color: #0b1714;
+  font-weight: 700;
+}
+
+.acquisition-section .acquisition-strip > div:nth-child(3) {
+  border-color: #0b1714;
+  background: #0b1714;
+}
+
+.acquisition-section .acquisition-strip > div:nth-child(3) dt,
+.acquisition-section .acquisition-strip > div:nth-child(3) .metric-detail {
+  color: #bdd0c8;
+}
+
+.acquisition-section .acquisition-strip > div:nth-child(3) dd:first-of-type {
+  color: #f4c95d;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+}
+
+.traffic-control {
+  border-color: #b9dcd3;
+  background: var(--accent-soft);
+}
+
+.traffic-run {
+  border-color: var(--accent-dark);
+  border-radius: 999px;
+  padding-inline: 1.4rem;
+  color: #fff;
+  background: var(--accent);
+}
+
+.traffic-run:hover {
+  background: var(--accent-dark);
+}
+
+.score-value {
+  font-size: 3rem;
+}
+
+.acquisition-section
+  .acquisition-strip
+  > div:nth-child(3)
+  dd.is-empty:first-of-type {
+  font-size: 1.1rem;
+}
+
+.metrics-dashboard > .traffic-control {
+  border-color: #b9dcd3;
+  background: var(--accent-soft);
+}
+
+/* The tab's h1 already names the section. */
+.acquisition-heading h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Run cards lead with priority, so the queue scans by what to call first. */
+.priority-pill {
+  align-self: center;
+  justify-self: start;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  color: var(--ink);
+  background: var(--paper-muted);
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.priority-high {
+  color: #3d2c05;
+  background: #f4c95d;
+}
+
+.priority-standard {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+}
+
+/* Tables after 21st.dev: a rounded frame, a quiet header band, roomy rows
+   with hairline dividers and a hover tint. */
+.table-scroll {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.table-scroll .data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-scroll .data-table caption {
+  padding: 0.85rem 1rem 0.6rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.table-scroll .data-table thead th {
+  border-top: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 0.65rem 1rem;
+  color: var(--muted);
+  background: #f7f5ef;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+}
+
+.table-scroll .data-table tbody th,
+.table-scroll .data-table td {
+  border-top: 0;
+  border-bottom: 1px solid #ebe8e0;
+  padding: 0.8rem 1rem;
+  vertical-align: middle;
+}
+
+.table-scroll .data-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.table-scroll .data-table tbody tr:hover > * {
+  background: #faf8f3;
+}
+
+.table-scroll .data-table tbody th {
+  font-weight: 650;
+}
+
+.rate-bar {
+  display: block;
+  width: 100%;
+  max-width: 9rem;
+  height: 6px;
+  margin-bottom: 0.4rem;
+  border-radius: 999px;
+  background: #e6ebe8;
+}
+
+.rate-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+/* Outcomes and failures read as small stat cards. */
+.synthetic-panel dl,
+.failure-ledger {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.synthetic-panel dl > div,
+.failure-ledger > div {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  background: var(--paper-strong);
+}
+
+.synthetic-panel dt,
+.failure-ledger dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+  text-transform: capitalize;
+}
+
+.synthetic-panel dd,
+.failure-ledger dd {
+  margin: 0.2rem 0 0;
+  color: #0b1714;
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* The strip shares the header's dark band; a faint mint rule separates them. */
+.simulation-strip {
+  border-bottom: 1px solid rgb(134 239 197 / 16%);
+  color: #f4c95d;
+  background: #0b1714;
+}
+
+/* Chart cards lead with one figure, after 21st.dev chart headers. */
+.chart-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.chart-header h2,
+.chart-header h3 {
+  margin: 0;
+}
+
+.chart-kpi {
+  display: grid;
+  margin: 0;
+  text-align: right;
+}
+
+.chart-kpi span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.chart-kpi strong {
+  color: #0b1714;
+  font-family: var(--mono);
+  font-size: 1.35rem;
+}
+
+/* Runs: the list and dossier sit on rounded cards. */
+.run-monitor-layout {
+  gap: 1rem;
+  border-top: 0;
+}
+
+.run-list-pane,
+.monitor-dossier {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.25rem;
+  background: #fff;
+}
+
+.run-monitor-layout .operations-section-heading h2 {
+  font-size: 1.6rem;
+}
+
+.run-filters .ui-button {
+  border-radius: 999px;
+}
+
+.run-item > button {
+  border-radius: 12px;
+}
+
+.run-item.is-selected > button {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* Dossier sections read as stacked cards. */
+.monitor-dossier .result-section,
+.monitor-dossier .run-summary,
+.monitor-dossier .event-history {
+  margin-top: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  background: var(--paper-strong);
+}
+
+.monitor-dossier .evidence-list > li {
+  border: 1px solid #ebe8e0;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  background: #fff;
+}
+
+/* Source links are actions a caller takes, so they read as buttons. */
+.evidence-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.evidence-source:hover {
+  color: #fff;
+  background: var(--accent-dark);
+}
+
+/* Glossary, after 21st.dev FAQ blocks: a search field over grouped cards. */
+.glossary-search {
+  display: flex;
+  max-width: 28rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  padding: 0 1rem;
+  color: var(--muted);
+  background: #fff;
+}
+
+.glossary-search input {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+}
+
+.glossary-search:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.glossary-group {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.25rem;
+  background: #fff;
+}
+
+.glossary-group h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.glossary-group dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.glossary-group dl > div {
+  border: 1px solid #ebe8e0;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  background: var(--paper-strong);
+}
+
+.glossary-group dt {
+  color: #0b1714;
+  font-weight: 750;
+}
+
+.glossary-group dd {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.glossary-empty {
+  margin-top: 1rem;
+  color: var(--muted);
+}
+
+/* Dossier enrichment: each lookup card stacks its source, answer and link
+   with even gaps. */
+.monitor-dossier .evidence-list {
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.monitor-dossier .evidence-list > li {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+  padding: 1rem 1.1rem;
+}
+
+.monitor-dossier .evidence-list > li p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.monitor-dossier .evidence-list .evidence-source {
+  margin-top: 0.15rem;
+}
+
+.monitor-dossier .email-check {
+  margin: 1rem 0 0;
+}
+
+/* Missing form fields are named exactly, with the full answers one click
+   away. */
+.missing-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.missing-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.missing-pill {
+  border: 1px solid var(--caution);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  color: var(--caution-ink);
+  background: var(--caution-soft);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.missing-list small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.form-answers {
+  margin-top: 1rem;
+}
+
+.form-answers summary {
+  cursor: pointer;
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+.form-answers .table-scroll {
+  margin-top: 0.75rem;
+}
+
+.answer-missing {
+  color: var(--caution-ink);
+  font-weight: 700;
+}
+
+/* Intake after 21st.dev forms: the form and run pane are rounded cards,
+   each Military.com question is its own row and yes/no answers are pill
+   toggles that stay real radio inputs. */
+.workspace {
+  gap: 1rem;
+  border: 0;
+  background: transparent;
+}
+
+.intake-pane,
+.run-pane {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.run-pane {
+  border-left: 1px solid var(--line);
+  background: var(--paper-strong);
+}
+
+.intake-pane .form-section {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem 1.25rem 1.25rem;
+  background: var(--paper-strong);
+}
+
+.intake-pane .form-section legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 0.25rem;
+}
+
+.intake-pane .form-section legend + * {
+  clear: both;
+}
+
+.intake-pane .legend-number {
+  border-color: #0b1714;
+  color: #f4c95d;
+  background: #0b1714;
+}
+
+.form-section-note {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.flow-question {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid #ebe8e0;
+  padding: 0.9rem 0;
+}
+
+.flow-question > legend,
+.flow-question > label,
+.flow-question-title {
+  padding: 0;
+  color: #0b1714;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+fieldset.flow-question > legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 0.55rem;
+}
+
+fieldset.flow-question > legend + * {
+  clear: both;
+}
+
+.intake-pane input:not([type='radio']):not([type='checkbox']),
+.intake-pane select,
+.intake-pane textarea {
+  border-radius: 10px;
+  background: #fff;
+}
+
+.choice-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.choice-pill {
+  position: relative;
+  cursor: pointer;
+}
+
+.choice-pill input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.choice-pill span {
+  display: inline-flex;
+  min-width: 5.5rem;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  padding: 0 1.1rem;
+  color: var(--ink);
+  background: #fff;
+  font-weight: 650;
+}
+
+.choice-pill:hover span {
+  border-color: var(--accent);
+}
+
+.choice-pill input:checked + span {
+  border-color: #0b1714;
+  color: #f4fbf8;
+  background: #0b1714;
+}
+
+.choice-pill input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.additional-vehicles {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.extra-vehicle {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+}
+
+.icon-action {
+  display: inline-grid;
+  width: 44px;
+  min-height: 44px;
+  place-items: center;
+  padding: 0;
+  color: var(--ink);
+  background: #fff;
+}
+
+.add-vehicle {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 0.4rem;
+  border-radius: 999px;
+}
+
+.intake-pane .primary-action {
+  border-color: var(--accent-dark);
+  border-radius: 999px;
+  padding-inline: 1.6rem;
+  color: #fff;
+  background: var(--accent);
+}
+
+.intake-pane .secondary-action {
+  border-radius: 999px;
+}
+
+.answers-group th {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+@media (max-width: 560px) {
+  .extra-vehicle {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+/* Cover pipeline after 21st.dev steppers: single-word steps on one line,
+   joined by a rail. Steps light one by one (1.6 s each) and stay lit while
+   the rail fills forward; the finished line holds, fades and starts again. */
+.cover-pipeline ol {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0;
+}
+
+.cover-pipeline li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  border: 0;
+  padding: 0;
+  background: none;
+  font-weight: 700;
+}
+
+.step-dot {
+  position: relative;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--cover-mint);
+  border-radius: 50%;
+  background: #0b1714;
+}
+
+.step-label {
+  color: var(--cover-soft);
+}
+
+.step-rail {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  overflow: hidden;
+  background: rgb(134 239 197 / 22%);
+}
+
+.step-rail > span {
+  display: block;
+  height: 100%;
+  background: var(--cover-mint);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.cover-pipeline li:nth-child(1) .step-dot {
+  animation: pipeline-dot-1 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(1) .step-label {
+  animation: pipeline-label-1 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-1 {
+  0% {
+    background: #0b1714;
+  }
+
+  1%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-1 {
+  0% {
+    color: var(--cover-soft);
+  }
+
+  1%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(1) .step-rail > span {
+  animation: pipeline-rail-1 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-1 {
+  0% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  12.5%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(2) .step-dot {
+  animation: pipeline-dot-2 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(2) .step-label {
+  animation: pipeline-label-2 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-2 {
+  0%,
+  12.5% {
+    background: #0b1714;
+  }
+
+  13.5%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-2 {
+  0%,
+  12.5% {
+    color: var(--cover-soft);
+  }
+
+  13.5%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(2) .step-rail > span {
+  animation: pipeline-rail-2 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-2 {
+  0%,
+  12.5% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  25%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(3) .step-dot {
+  animation: pipeline-dot-3 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(3) .step-label {
+  animation: pipeline-label-3 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-3 {
+  0%,
+  25% {
+    background: #0b1714;
+  }
+
+  26%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-3 {
+  0%,
+  25% {
+    color: var(--cover-soft);
+  }
+
+  26%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(3) .step-rail > span {
+  animation: pipeline-rail-3 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-3 {
+  0%,
+  25% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  37.5%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(4) .step-dot {
+  animation: pipeline-dot-4 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(4) .step-label {
+  animation: pipeline-label-4 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-4 {
+  0%,
+  37.5% {
+    background: #0b1714;
+  }
+
+  38.5%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-4 {
+  0%,
+  37.5% {
+    color: var(--cover-soft);
+  }
+
+  38.5%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(4) .step-rail > span {
+  animation: pipeline-rail-4 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-4 {
+  0%,
+  37.5% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  50%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(5) .step-dot {
+  animation: pipeline-dot-5 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(5) .step-label {
+  animation: pipeline-label-5 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-5 {
+  0%,
+  50% {
+    background: #0b1714;
+  }
+
+  51%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-5 {
+  0%,
+  50% {
+    color: var(--cover-soft);
+  }
+
+  51%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(5) .step-rail > span {
+  animation: pipeline-rail-5 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-5 {
+  0%,
+  50% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  62.5%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(6) .step-dot {
+  animation: pipeline-dot-6 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(6) .step-label {
+  animation: pipeline-label-6 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-6 {
+  0%,
+  62.5% {
+    background: #0b1714;
+  }
+
+  63.5%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-6 {
+  0%,
+  62.5% {
+    color: var(--cover-soft);
+  }
+
+  63.5%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(6) .step-rail > span {
+  animation: pipeline-rail-6 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-6 {
+  0%,
+  62.5% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  75%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(7) .step-dot {
+  animation: pipeline-dot-7 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(7) .step-label {
+  animation: pipeline-label-7 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-7 {
+  0%,
+  75% {
+    background: #0b1714;
+  }
+
+  76%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-7 {
+  0%,
+  75% {
+    color: var(--cover-soft);
+  }
+
+  76%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-dot,
+  .step-label,
+  .step-rail > span {
+    animation: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .cover-pipeline ol {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 1.25rem;
+  }
+
+  .step-rail {
+    display: none;
+  }
+}
+
+/* Agent research after 21st.dev stat chips and grouped cards. */
+.agent-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+}
+
+.agent-stats > div {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+  background: #fff;
+}
+
+.agent-stats dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.agent-stats dd {
+  margin: 0.15rem 0 0;
+  color: #0b1714;
+  font-family: var(--mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.agent-topic h5 {
+  margin: 1rem 0 0.5rem;
+  color: var(--accent-dark);
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.agent-facts {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agent-facts > li {
+  border: 1px solid #ebe8e0;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  background: #fff;
+}
+
+.agent-facts p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.agent-fact-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.agent-fact-meta .evidence-source {
+  margin-top: 0;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.agent-fact-meta details summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.agent-fact-meta blockquote {
+  margin: 0.4rem 0 0;
+  border-left: 3px solid var(--line);
+  padding-left: 0.6rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 560px) {
+  .agent-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

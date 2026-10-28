@@ -1,3 +1,4 @@
+import { EXAMPLE_MILITARY_ANSWERS } from '@leadflow-ai/domain';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RunDetailResponse } from '@leadflow-ai/domain';
 import {
@@ -26,6 +27,7 @@ const responseFixture: RunDetailResponse = {
     createdAt: timestamp,
     intake: {
       schemaVersion: 'intake-v3',
+      militaryAnswers: EXAMPLE_MILITARY_ANSWERS,
       attribution: null,
       identityClass: 'fictional',
       givenName: 'Avery',

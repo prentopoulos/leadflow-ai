@@ -47,15 +47,19 @@ describe('Phase 1 intake workspace', () => {
     ).toBeInTheDocument();
   });
 
-  it('separates the verified ZIP field from LeadFlow demo fields', () => {
+  it('copies the Military.com flow and separates the LeadFlow scoring step', () => {
     render(<App />);
 
     expect(
-      screen.getByRole('group', { name: /Location/i }),
+      screen.getByRole('group', { name: /Military.com auto quote/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('group', { name: /LeadFlow demo fields/i }),
+      screen.getByRole('group', { name: 'Are you currently insured?' }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('group', { name: /LeadFlow scoring questions/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/phone number/i)).toHaveValue('703-555-0100');
     expect(screen.getByLabelText(/ZIP Code/i)).toHaveValue('22150');
     expect(screen.getByLabelText(/Test email/i)).toHaveValue(
       'avery.jordan@example.com',
@@ -149,6 +153,16 @@ describe('Phase 1 intake workspace', () => {
     expect(idempotencyKeyFactory).toHaveBeenCalledOnce();
     expect(intakeClient.mock.calls[0]?.[1]).toBe('stable-retry-key');
     expect(intakeClient.mock.calls[1]?.[1]).toBe('stable-retry-key');
+  });
+
+  it('removes added vehicles when the form is reset', () => {
+    render(<App />);
+    fireEvent.click(
+      screen.getByRole('button', { name: /Add another vehicle/u }),
+    );
+    expect(screen.getByLabelText('Vehicle 2 year')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Restore example' }));
+    expect(screen.queryByLabelText('Vehicle 2 year')).not.toBeInTheDocument();
   });
 
   it('declares 390px and reduced-motion safeguards', () => {
