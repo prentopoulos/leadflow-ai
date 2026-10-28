@@ -2714,3 +2714,54 @@ kbd {
 .monitor-dossier .email-check {
   margin: 1rem 0 0;
 }
+
+/* Missing form fields are named exactly, with the full answers one click
+   away. */
+.missing-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.missing-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.missing-pill {
+  border: 1px solid var(--caution);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  color: var(--caution-ink);
+  background: var(--caution-soft);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.missing-list small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.form-answers {
+  margin-top: 1rem;
+}
+
+.form-answers summary {
+  cursor: pointer;
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+.form-answers .table-scroll {
+  margin-top: 0.75rem;
+}
+
+.answer-missing {
+  color: var(--caution-ink);
+  font-weight: 700;
+}

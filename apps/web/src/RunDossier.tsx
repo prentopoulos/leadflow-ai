@@ -2,6 +2,8 @@ import {
   CHANNEL_LABELS,
   channelFor,
   type Attribution,
+  type IntakeSubmission,
+  type QualificationField,
   type QualificationResult,
   type RunDetailResponse,
   type RunStatus,
@@ -37,7 +39,85 @@ function readable(value: string) {
     .replace(/^\w/u, (letter) => letter.toUpperCase());
 }
 
-function Qualification({ result }: { result: QualificationResult }) {
+// Form labels as the intake shows them. Only ZIP Code is verified against
+// the Military.com auto landing form (IntakeFieldProvenanceSchema); every
+// other field is a labelled LeadFlow demo field.
+const formFields: Record<
+  QualificationField,
+  { label: string; source: string }
+> = {
+  zipCode: { label: 'ZIP Code', source: 'Military.com form' },
+  givenName: { label: 'First name', source: 'LeadFlow demo field' },
+  familyName: { label: 'Last name', source: 'LeadFlow demo field' },
+  email: { label: 'Test email', source: 'LeadFlow demo field' },
+  vehicleYear: { label: 'Vehicle year', source: 'LeadFlow demo field' },
+  vehicleMake: { label: 'Vehicle make', source: 'LeadFlow demo field' },
+  vehicleModel: { label: 'Vehicle model', source: 'LeadFlow demo field' },
+  requestIntent: { label: 'Request intent', source: 'LeadFlow demo field' },
+  coverageFocus: { label: 'Coverage focus', source: 'LeadFlow demo field' },
+  needTimeline: { label: 'Need timeline', source: 'LeadFlow demo field' },
+  requestDetails: { label: 'Request details', source: 'LeadFlow demo field' },
+};
+
+function answer(value: string | number | null) {
+  if (value === null || value === '') return null;
+  return typeof value === 'number' ? String(value) : readable(value);
+}
+
+// Every field the lead filled in, so whoever handles it can see exactly
+// what was left blank.
+function FormAnswers({ intake }: { intake: IntakeSubmission }) {
+  const rows = (Object.keys(formFields) as QualificationField[]).map(
+    (field) => ({
+      field,
+      value: answer(field === 'email' ? intake.email : intake[field]),
+    }),
+  );
+  const answered = rows.filter((row) => row.value !== null).length;
+  return (
+    <details className="form-answers">
+      <summary>
+        Form answers ({answered} of {rows.length} answered)
+      </summary>
+      <div className="table-scroll">
+        <table className="data-table">
+          <caption className="sr-only">Form answers</caption>
+          <thead>
+            <tr>
+              <th scope="col">Field</th>
+              <th scope="col">Form</th>
+              <th scope="col">Answer</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ field, value }) => (
+              <tr key={field}>
+                <th scope="row">{formFields[field].label}</th>
+                <td>{formFields[field].source}</td>
+                <td className={value === null ? 'answer-missing' : undefined}>
+                  {value ?? 'Not answered'}
+                </td>
+              </tr>
+            ))}
+            <tr>
+              <th scope="row">Email contact consent</th>
+              <td>LeadFlow demo field</td>
+              <td>{intake.emailContactConsent ? 'Yes' : 'No'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
+}
+
+function Qualification({
+  result,
+  intake,
+}: {
+  result: QualificationResult;
+  intake: IntakeSubmission;
+}) {
   if (result.integrityHold !== null) {
     return (
       <section
@@ -92,13 +172,21 @@ function Qualification({ result }: { result: QualificationResult }) {
         ))}
       </div>
       <div className="missing-information">
-        <strong>Missing</strong>
-        <p>
-          {result.missingInformation.length === 0
-            ? 'None.'
-            : result.missingInformation.map(readable).join(', ')}
-        </p>
+        <strong>Missing from the form</strong>
+        {result.missingInformation.length === 0 ? (
+          <p>Nothing: every scored field was answered.</p>
+        ) : (
+          <ul className="missing-list">
+            {result.missingInformation.map((field) => (
+              <li key={field}>
+                <span className="missing-pill">{formFields[field].label}</span>
+                <small>{formFields[field].source}</small>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
+      <FormAnswers intake={intake} />
     </section>
   );
 }
@@ -297,7 +385,10 @@ export function RunDossier({
       </section>
 
       {detail.qualification !== null ? (
-        <Qualification result={detail.qualification} />
+        <Qualification
+          result={detail.qualification}
+          intake={detail.lead.intake}
+        />
       ) : null}
 
       <DraftSection

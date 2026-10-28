@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import type { RunDetailResponse } from '@leadflow-ai/domain';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -340,10 +341,12 @@ describe('run dossier', () => {
     expect(screen.getByText('90', { selector: 'strong' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Events' })).toBeInTheDocument();
     expect(screen.getByText('Lead persisted')).toBeInTheDocument();
+    const outcomes = screen.getByRole('heading', { name: 'Outcomes' })
+      .parentElement as HTMLElement;
+    expect(within(outcomes).getAllByText(/^(Yes|No)$/u)).toHaveLength(3);
     expect(
-      screen.getByRole('heading', { name: 'Outcomes' }),
+      screen.getByText(/Form answers \(\d+ of 11 answered\)/u),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/^(Yes|No)$/u)).toHaveLength(3);
   });
 
   it('exposes explicit resume only for an eligible stored failure', async () => {
