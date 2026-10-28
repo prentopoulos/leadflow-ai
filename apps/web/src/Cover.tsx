@@ -4,13 +4,13 @@ import { SimulationStrip } from './Masthead.js';
 // The agent pipeline in the order a lead moves through it (README "How it
 // works" and "Agent pipeline").
 const pipeline = [
-  ['Store', 'The lead is saved first'],
-  ['Score', 'Fixed rubric sets marketing priority'],
-  ['Enrich', 'NHTSA vehicle and ZIP lookups'],
-  ['Research', 'Lead agent and three sub-agents'],
-  ['Draft', 'Drafting agent writes outreach'],
-  ['Check', 'Rules and a critic agent review it'],
-  ['Approve', 'A person approves, edits or rejects'],
+  'Store',
+  'Score',
+  'Enrich',
+  'Research',
+  'Draft',
+  'Check',
+  'Approve',
 ] as const;
 
 const entries = [
@@ -53,13 +53,10 @@ export function Cover() {
           className="cover-pipeline"
           aria-labelledby="cover-pipeline-title"
         >
-          <h2 id="cover-pipeline-title">Agent pipeline</h2>
+          <h2 id="cover-pipeline-title">Pipeline</h2>
           <ol>
-            {pipeline.map(([step, detail]) => (
-              <li key={step}>
-                <strong>{step}</strong>
-                <span>{detail}</span>
-              </li>
+            {pipeline.map((step) => (
+              <li key={step}>{step}</li>
             ))}
           </ol>
         </section>

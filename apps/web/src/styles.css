@@ -2951,3 +2951,28 @@ fieldset.flow-question > legend + * {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 }
+
+/* The cover pipeline reads as one line of single-word steps. */
+.cover-pipeline ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cover-pipeline li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  color: var(--cover-ink);
+  font-weight: 700;
+}
+
+.cover-pipeline li + li::before {
+  margin-left: -0.5rem;
+  padding-right: 0.5rem;
+  color: var(--cover-mint);
+  content: '→';
+}
