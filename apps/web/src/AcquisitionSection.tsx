@@ -182,9 +182,15 @@ export function AcquisitionSection({
                 accessibilityLayer
                 title="CPL by channel"
               >
-                <CartesianGrid stroke="#c8c6bd" horizontal={false} />
+                <CartesianGrid
+                  stroke="#dcd9d0"
+                  strokeDasharray="4 4"
+                  horizontal={false}
+                />
                 <XAxis
                   type="number"
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fill: '#4e5753', fontSize: 12 }}
                   tickFormatter={(value: number) => `$${value}`}
                 />
@@ -192,16 +198,21 @@ export function AcquisitionSection({
                   type="category"
                   dataKey="label"
                   width={112}
-                  tick={{ fill: '#4e5753', fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#1a211f', fontSize: 12, fontWeight: 600 }}
                 />
                 <Tooltip
                   animationDuration={0}
                   formatter={(value) => [usd.format(Number(value)), 'CPL']}
+                  cursor={{ fill: 'rgb(11 23 20 / 5%)' }}
                 />
                 <Bar
                   dataKey="dollars"
                   fill="#087f73"
                   stroke="#075e57"
+                  radius={[0, 8, 8, 0]}
+                  maxBarSize={26}
                   // Static: polling would restart an animation, and Recharts
                   // draws value labels only once an animation finishes.
                   isAnimationActive={false}

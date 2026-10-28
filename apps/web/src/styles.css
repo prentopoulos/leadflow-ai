@@ -2402,3 +2402,114 @@ kbd {
   color: var(--accent-dark);
   background: var(--accent-soft);
 }
+
+/* Tables after 21st.dev: a rounded frame, a quiet header band, roomy rows
+   with hairline dividers and a hover tint. */
+.table-scroll {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.table-scroll .data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-scroll .data-table caption {
+  padding: 0.85rem 1rem 0.6rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.table-scroll .data-table thead th {
+  border-top: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 0.65rem 1rem;
+  color: var(--muted);
+  background: #f7f5ef;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+}
+
+.table-scroll .data-table tbody th,
+.table-scroll .data-table td {
+  border-top: 0;
+  border-bottom: 1px solid #ebe8e0;
+  padding: 0.8rem 1rem;
+  vertical-align: middle;
+}
+
+.table-scroll .data-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.table-scroll .data-table tbody tr:hover > * {
+  background: #faf8f3;
+}
+
+.table-scroll .data-table tbody th {
+  font-weight: 650;
+}
+
+.rate-bar {
+  display: block;
+  width: 100%;
+  max-width: 9rem;
+  height: 6px;
+  margin-bottom: 0.4rem;
+  border-radius: 999px;
+  background: #e6ebe8;
+}
+
+.rate-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+/* Outcomes and failures read as small stat cards. */
+.synthetic-panel dl,
+.failure-ledger {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.synthetic-panel dl > div,
+.failure-ledger > div {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  background: var(--paper-strong);
+}
+
+.synthetic-panel dt,
+.failure-ledger dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+  text-transform: capitalize;
+}
+
+.synthetic-panel dd,
+.failure-ledger dd {
+  margin: 0.2rem 0 0;
+  color: #0b1714;
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* The strip shares the header's dark band; a faint mint rule separates them. */
+.simulation-strip {
+  border-bottom: 1px solid rgb(134 239 197 / 16%);
+  color: #f4c95d;
+  background: #0b1714;
+}
