@@ -2953,8 +2953,8 @@ fieldset.flow-question > legend + * {
 }
 
 /* Cover pipeline after 21st.dev steppers: single-word steps on one line,
-   joined by a rail. The highlight moves step to step (1.6 s each) and the
-   rail fills toward the next step, like a lead going through. */
+   joined by a rail. Steps light one by one (1.6 s each) and stay lit while
+   the rail fills forward; the finished line holds, fades and starts again. */
 .cover-pipeline ol {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -2980,14 +2980,10 @@ fieldset.flow-question > legend + * {
   border: 2px solid var(--cover-mint);
   border-radius: 50%;
   background: #0b1714;
-  animation: pipeline-dot 11.2s linear infinite;
-  animation-delay: calc(var(--step) * 1.6s);
 }
 
 .step-label {
   color: var(--cover-soft);
-  animation: pipeline-label 11.2s linear infinite;
-  animation-delay: calc(var(--step) * 1.6s);
 }
 
 .step-rail {
@@ -3006,46 +3002,420 @@ fieldset.flow-question > legend + * {
   background: var(--cover-mint);
   transform: scaleX(0);
   transform-origin: left;
-  animation: pipeline-rail 11.2s linear infinite;
-  animation-delay: calc(var(--step) * 1.6s);
 }
 
-@keyframes pipeline-dot {
-  0%,
-  13% {
+.cover-pipeline li:nth-child(1) .step-dot {
+  animation: pipeline-dot-1 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(1) .step-label {
+  animation: pipeline-label-1 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-1 {
+  0% {
+    background: #0b1714;
+  }
+
+  1%,
+  94% {
     background: var(--cover-mint);
   }
 
-  16%,
   100% {
     background: #0b1714;
   }
 }
 
-@keyframes pipeline-label {
-  0%,
-  13% {
+@keyframes pipeline-label-1 {
+  0% {
+    color: var(--cover-soft);
+  }
+
+  1%,
+  94% {
     color: #f4fbf8;
   }
 
-  16%,
   100% {
     color: var(--cover-soft);
   }
 }
 
-@keyframes pipeline-rail {
+.cover-pipeline li:nth-child(1) .step-rail > span {
+  animation: pipeline-rail-1 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-1 {
   0% {
+    opacity: 1;
     transform: scaleX(0);
   }
 
-  14% {
+  12.5%,
+  94% {
+    opacity: 1;
     transform: scaleX(1);
   }
 
-  16%,
   100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(2) .step-dot {
+  animation: pipeline-dot-2 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(2) .step-label {
+  animation: pipeline-label-2 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-2 {
+  0%,
+  12.5% {
+    background: #0b1714;
+  }
+
+  13.5%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-2 {
+  0%,
+  12.5% {
+    color: var(--cover-soft);
+  }
+
+  13.5%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(2) .step-rail > span {
+  animation: pipeline-rail-2 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-2 {
+  0%,
+  12.5% {
+    opacity: 1;
     transform: scaleX(0);
+  }
+
+  25%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(3) .step-dot {
+  animation: pipeline-dot-3 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(3) .step-label {
+  animation: pipeline-label-3 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-3 {
+  0%,
+  25% {
+    background: #0b1714;
+  }
+
+  26%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-3 {
+  0%,
+  25% {
+    color: var(--cover-soft);
+  }
+
+  26%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(3) .step-rail > span {
+  animation: pipeline-rail-3 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-3 {
+  0%,
+  25% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  37.5%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(4) .step-dot {
+  animation: pipeline-dot-4 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(4) .step-label {
+  animation: pipeline-label-4 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-4 {
+  0%,
+  37.5% {
+    background: #0b1714;
+  }
+
+  38.5%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-4 {
+  0%,
+  37.5% {
+    color: var(--cover-soft);
+  }
+
+  38.5%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(4) .step-rail > span {
+  animation: pipeline-rail-4 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-4 {
+  0%,
+  37.5% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  50%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(5) .step-dot {
+  animation: pipeline-dot-5 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(5) .step-label {
+  animation: pipeline-label-5 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-5 {
+  0%,
+  50% {
+    background: #0b1714;
+  }
+
+  51%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-5 {
+  0%,
+  50% {
+    color: var(--cover-soft);
+  }
+
+  51%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(5) .step-rail > span {
+  animation: pipeline-rail-5 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-5 {
+  0%,
+  50% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  62.5%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(6) .step-dot {
+  animation: pipeline-dot-6 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(6) .step-label {
+  animation: pipeline-label-6 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-6 {
+  0%,
+  62.5% {
+    background: #0b1714;
+  }
+
+  63.5%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-6 {
+  0%,
+  62.5% {
+    color: var(--cover-soft);
+  }
+
+  63.5%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
+  }
+}
+
+.cover-pipeline li:nth-child(6) .step-rail > span {
+  animation: pipeline-rail-6 12.8s linear infinite;
+}
+
+@keyframes pipeline-rail-6 {
+  0%,
+  62.5% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  75%,
+  94% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+.cover-pipeline li:nth-child(7) .step-dot {
+  animation: pipeline-dot-7 12.8s linear infinite;
+}
+
+.cover-pipeline li:nth-child(7) .step-label {
+  animation: pipeline-label-7 12.8s linear infinite;
+}
+
+@keyframes pipeline-dot-7 {
+  0%,
+  75% {
+    background: #0b1714;
+  }
+
+  76%,
+  94% {
+    background: var(--cover-mint);
+  }
+
+  100% {
+    background: #0b1714;
+  }
+}
+
+@keyframes pipeline-label-7 {
+  0%,
+  75% {
+    color: var(--cover-soft);
+  }
+
+  76%,
+  94% {
+    color: #f4fbf8;
+  }
+
+  100% {
+    color: var(--cover-soft);
   }
 }
 
