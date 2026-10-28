@@ -29,10 +29,6 @@ export function Cover() {
           <p className="cover-lede">
             Scores and enriches fictional insurance leads. Nothing is ever sent.
           </p>
-          <p className="cover-status">
-            <span aria-hidden="true" className="cover-status-dot" />
-            Running on this machine
-          </p>
         </header>
 
         <nav className="cover-entries" aria-label="Open the workspace">
