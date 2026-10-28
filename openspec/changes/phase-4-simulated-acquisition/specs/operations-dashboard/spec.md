@@ -43,23 +43,25 @@ separately from live runs.
 ## ADDED Requirements
 
 ### Requirement: Simulated acquisition section
-The metrics view SHALL include an "Acquisition — SIMULATED" section with a persistent
-"synthetic spend fixture · fictional leads" label, headline blended-CPL and cost-per-qualified-lead
-tiles with n, spend and planned-lead progress, a per-channel table that is the text equivalent of a
-horizontal CPL-by-channel bar chart, a campaign table behind a disclosure, and the definitions,
-channel-rules and independence notes, meeting the existing WCAG 2.2 AA dashboard requirement at
-desktop and 390 px.
+The operations workspace SHALL give acquisition its own tab, with the simulated-traffic control
+first, then headline blended-CPL and cost-per-qualified-lead tiles with n, spend and planned-lead
+progress, a per-channel table that is the text equivalent of a horizontal CPL-by-channel bar chart,
+a campaign table behind a disclosure, and the definitions, channel-rules and independence notes
+behind a disclosure, meeting the existing WCAG 2.2 AA dashboard requirement at desktop and 390 px.
+Pipeline and enrichment metrics SHALL sit on their own tabs. The persistent page-level SIMULATION
+strip SHALL be the single simulation label; values below it are not tagged individually (owner,
+2026-10-27).
 
 #### Scenario: Operator reads the section
 - **WHEN** simulated leads are stored
-- **THEN** every acquisition value is labelled SIMULATED and is never mixed into the operational metrics
+- **THEN** every acquisition value sits under the persistent SIMULATION strip and is never mixed into the operational metrics
 
 #### Scenario: Keyboard and reduced-motion user
 - **WHEN** a keyboard user with reduced motion reaches the chart at 390 px
 - **THEN** the chart has a focusable explanatory frame, direct value labels, no colour-only encoding, 3:1 marks and no animation
 
 ### Requirement: Dossier attribution block
-The run dossier SHALL show an "Acquisition (simulated)" block with channel, source and medium,
+The run dossier SHALL show an "Acquisition" block, under the SIMULATION strip, with channel, source and medium,
 campaign and click ID, or "Unattributed" when the lead has no attribution.
 
 #### Scenario: Unattributed lead is opened

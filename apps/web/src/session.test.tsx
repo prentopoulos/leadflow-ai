@@ -52,9 +52,7 @@ describe('session gate', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Checking access…');
     await act(async () => resolve({ status: 'ready', session: hosted }));
     expect(
-      screen.getByText(
-        'Private hosted demo · signed in · recorded lookups only',
-      ),
+      screen.getByText('SIMULATION', { selector: 'strong' }),
     ).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/@|accounts\.google/u);
   });
@@ -135,7 +133,7 @@ describe('session gate', () => {
       </SessionGate>,
     );
     expect(
-      screen.getByText('This machine · public lookups read-only'),
+      screen.getByText('SIMULATION', { selector: 'strong' }),
     ).toBeInTheDocument();
   });
 });

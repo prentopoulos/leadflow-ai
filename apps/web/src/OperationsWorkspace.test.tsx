@@ -424,7 +424,7 @@ describe('Phase 3 accessibility refinements', () => {
   });
 
   it('frames the chart with a caption that names its table', async () => {
-    render(<MetricsDashboard client={operationsClient()} />);
+    render(<MetricsDashboard client={operationsClient()} section="pipeline" />);
     expect(
       await screen.findByRole('figure', { name: /Stored runs by priority/u }),
     ).toBeInTheDocument();
@@ -433,17 +433,27 @@ describe('Phase 3 accessibility refinements', () => {
 
 describe('metrics dashboard', () => {
   it('names denominators, shows insufficient data and keeps synthetic outcomes apart', async () => {
-    render(<MetricsDashboard client={operationsClient()} />);
+    const view = render(
+      <MetricsDashboard client={operationsClient()} section="pipeline" />,
+    );
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Metrics' }),
+      await screen.findByRole('heading', { level: 1, name: 'Pipeline' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('table', { name: 'Priority distribution' }),
     ).toBeInTheDocument();
     expect(screen.getAllByText(/Insufficient data/u).length).toBeGreaterThan(0);
-    expect(screen.getAllByText('1 / 10; 0 excluded').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('1 of 10').length).toBeGreaterThan(0);
     expect(
-      screen.getByRole('heading', { name: 'Simulation' }),
+      screen.getByRole('heading', { name: 'Outcomes' }),
+    ).toBeInTheDocument();
+    view.unmount();
+
+    render(
+      <MetricsDashboard client={operationsClient()} section="enrichment" />,
+    );
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Enrichment' }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole('row', { name: /Live/u })).toHaveLength(3);
   });

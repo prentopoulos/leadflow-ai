@@ -22,6 +22,8 @@ function viewFromHash(hash: string): RouteView {
   if (hash === '#intake') return 'intake';
   if (hash === '#runs') return 'runs';
   if (hash === '#metrics') return 'metrics';
+  if (hash === '#pipeline') return 'pipeline';
+  if (hash === '#enrichment') return 'enrichment';
   return 'home';
 }
 

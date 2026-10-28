@@ -62,9 +62,7 @@ describe('SimulatedTrafficControl', () => {
         flight={flight}
       />,
     );
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Run simulated traffic' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Run 60 leads' }));
     await waitFor(() =>
       expect(screen.getByRole('status')).toHaveTextContent(
         'Finished: 0 new, 60 already present.',
@@ -86,9 +84,7 @@ describe('SimulatedTrafficControl', () => {
         flight={flight}
       />,
     );
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Run simulated traffic' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Run 60 leads' }));
     await waitFor(() => expect(submit).toHaveBeenCalledTimes(1));
     view.unmount();
     render(

@@ -158,7 +158,7 @@ rate) with Spend and Leads tiles, so a performance-marketing manager reads it fi
 - a campaign table behind a disclosure;
 - the definitions text beside the values and the channel-rules and independence notes.
 
-The run dossier gets an "Acquisition (simulated)" block with channel, source/medium, campaign and
+The run dossier gets an "Acquisition" block with channel, source/medium, campaign and
 click ID. Click IDs appear nowhere else: not in summaries, metrics, events or logs.
 
 ### 7. Attribution isolation

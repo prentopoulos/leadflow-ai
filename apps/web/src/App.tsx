@@ -562,7 +562,7 @@ export function App({
                     ? 'Storing lead…'
                     : submissionStatus === 'stored'
                       ? 'Lead stored'
-                      : 'Store synthetic lead'}
+                      : 'Store lead'}
                 </button>
                 <button
                   className="secondary-action"
@@ -617,9 +617,7 @@ export function App({
                     <div>
                       <dt>Evidence</dt>
                       <dd>
-                        {hosted
-                          ? 'Synthetic · private hosted'
-                          : accepted.evidenceClass}
+                        {hosted ? 'Private hosted' : accepted.evidenceClass}
                       </dd>
                     </div>
                   </dl>

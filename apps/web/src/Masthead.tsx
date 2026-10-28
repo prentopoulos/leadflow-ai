@@ -1,21 +1,11 @@
-import { useSession } from './session-context.js';
+export type AppView = 'intake' | 'runs' | 'metrics' | 'pipeline' | 'enrichment';
 
-export type AppView = 'intake' | 'runs' | 'metrics';
-
+// The one page-level label for fictional leads, spend and outcomes; values
+// below it stay unmarked (owner, 2026-10-27).
 export function SimulationStrip() {
-  const session = useSession();
-  const hosted = session.mode === 'cloud';
   return (
     <div className="simulation-strip" role="note">
-      <span className="simulation-mark" aria-hidden="true" />
       <strong>SIMULATION</strong>
-      <span aria-hidden="true">·</span>
-      <span>Synthetic leads and outcomes</span>
-      <span className="simulation-scope">
-        {hosted
-          ? 'Private hosted demo · signed in · recorded lookups only'
-          : 'This machine · public lookups read-only'}
-      </span>
     </div>
   );
 }

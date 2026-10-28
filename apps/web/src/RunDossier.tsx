@@ -126,9 +126,7 @@ function AttributionBlock({
       className="result-section simulation-result"
       aria-labelledby="attribution-title"
     >
-      <h3 id="attribution-title">
-        Acquisition <span className="simulated-tag">SIMULATED</span>
-      </h3>
+      <h3 id="attribution-title">Acquisition</h3>
       <dl>
         <div>
           <dt>Channel</dt>
@@ -153,7 +151,7 @@ function AttributionBlock({
             {attribution.clickId === null ? null : (
               <div>
                 <dt>Click ID</dt>
-                <dd>{attribution.clickId} (synthetic)</dd>
+                <dd>{attribution.clickId}</dd>
               </div>
             )}
           </>
@@ -375,31 +373,19 @@ export function RunDossier({
           className="result-section simulation-result"
           aria-labelledby="simulation-title"
         >
-          <h3 id="simulation-title">Simulation</h3>
+          <h3 id="simulation-title">Outcomes</h3>
           <dl>
             <div>
               <dt>Contacted</dt>
-              <dd>
-                {detail.simulation.outcome.contacted
-                  ? 'Simulated yes'
-                  : 'Simulated no'}
-              </dd>
+              <dd>{detail.simulation.outcome.contacted ? 'Yes' : 'No'}</dd>
             </div>
             <div>
               <dt>Responded</dt>
-              <dd>
-                {detail.simulation.outcome.responded
-                  ? 'Simulated yes'
-                  : 'Simulated no'}
-              </dd>
+              <dd>{detail.simulation.outcome.responded ? 'Yes' : 'No'}</dd>
             </div>
             <div>
               <dt>Appointment</dt>
-              <dd>
-                {detail.simulation.outcome.appointment
-                  ? 'Simulated yes'
-                  : 'Simulated no'}
-              </dd>
+              <dd>{detail.simulation.outcome.appointment ? 'Yes' : 'No'}</dd>
             </div>
           </dl>
         </section>

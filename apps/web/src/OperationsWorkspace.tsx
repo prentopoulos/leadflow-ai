@@ -8,7 +8,9 @@ import {
   AlertTriangle,
   BarChart3,
   Clock3,
+  Database,
   FilePlus2,
+  Gauge,
   Inbox,
   Keyboard,
   RefreshCw,
@@ -32,7 +34,7 @@ import type { RunClient } from './run-client.js';
 import { useSession } from './session-context.js';
 import { useVisiblePolling } from './use-visible-polling.js';
 
-export type OperatorView = 'runs' | 'metrics';
+export type OperatorView = 'runs' | 'metrics' | 'pipeline' | 'enrichment';
 
 function readable(value: string) {
   return value
@@ -422,7 +424,13 @@ export function OperationsWorkspace({
               <Inbox size={16} aria-hidden="true" /> Runs
             </TabsTrigger>
             <TabsTrigger value="metrics">
-              <BarChart3 size={16} aria-hidden="true" /> Metrics
+              <BarChart3 size={16} aria-hidden="true" /> Acquisition
+            </TabsTrigger>
+            <TabsTrigger value="pipeline">
+              <Gauge size={16} aria-hidden="true" /> Pipeline
+            </TabsTrigger>
+            <TabsTrigger value="enrichment">
+              <Database size={16} aria-hidden="true" /> Enrichment
             </TabsTrigger>
           </TabsList>
           <TabsContent value="runs">
@@ -432,7 +440,13 @@ export function OperationsWorkspace({
             />
           </TabsContent>
           <TabsContent value="metrics">
-            <MetricsDashboard client={operationsClient} />
+            <MetricsDashboard client={operationsClient} section="acquisition" />
+          </TabsContent>
+          <TabsContent value="pipeline">
+            <MetricsDashboard client={operationsClient} section="pipeline" />
+          </TabsContent>
+          <TabsContent value="enrichment">
+            <MetricsDashboard client={operationsClient} section="enrichment" />
           </TabsContent>
         </Tabs>
       </main>

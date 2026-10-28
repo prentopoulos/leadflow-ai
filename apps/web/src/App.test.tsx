@@ -36,9 +36,6 @@ describe('Phase 1 intake workspace', () => {
       screen.getByText(/SIMULATION/i, { selector: 'strong' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Synthetic leads and outcomes'),
-    ).toBeInTheDocument();
-    expect(
       screen.getByRole('heading', {
         level: 1,
         name: 'New lead',
@@ -75,9 +72,7 @@ describe('Phase 1 intake workspace', () => {
     const zip = screen.getByLabelText(/ZIP Code/i);
     fireEvent.change(email, { target: { value: 'real.person@gmail.com' } });
     fireEvent.change(zip, { target: { value: '12' } });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Store synthetic lead' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Store lead' }));
 
     const summary = screen.getByRole('alert');
     expect(summary).toHaveFocus();
@@ -97,9 +92,7 @@ describe('Phase 1 intake workspace', () => {
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Store synthetic lead' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Store lead' }));
 
     const runHeading = screen.getByRole('heading', { name: 'Dossier' });
     await waitFor(() => expect(runHeading).toHaveFocus());
@@ -141,7 +134,7 @@ describe('Phase 1 intake workspace', () => {
     );
 
     const submit = screen.getByRole('button', {
-      name: 'Store synthetic lead',
+      name: 'Store lead',
     });
     fireEvent.click(submit);
     const error = await screen.findByRole('alert');
